@@ -190,11 +190,13 @@
           var minY = Math.min.apply(null, nodes.map(function (n) { return n.y; }));
           var maxX = Math.max.apply(null, nodes.map(function (n) { return n.x + n.w; }));
           var maxY = Math.max.apply(null, nodes.map(function (n) { return n.y + n.h; }));
-          // Margen extra (sobre todo abajo) para las etiquetas de texto que cuelgan bajo cada nodo.
+          // Margen extra (arriba para no meterse bajo la barra de herramientas, abajo para las
+          // etiquetas de texto que cuelgan bajo cada nodo).
+          var padTop = opts.padTop || 70;
           var rect = svgEl.getBoundingClientRect();
-          var sx = rect.width / Math.max(1, (maxX - minX + 140)), sy = rect.height / Math.max(1, (maxY - minY + 200));
+          var sx = rect.width / Math.max(1, (maxX - minX + 140)), sy = rect.height / Math.max(1, (maxY - minY + padTop + 130));
           scale = OS.util.clamp(Math.min(sx, sy), 0.25, 1.4);
-          tx = 70 - minX * scale; ty = 70 - minY * scale;
+          tx = 70 - minX * scale; ty = padTop - minY * scale;
           applyTransform();
         },
         highlightDim: function (idsToKeep) {

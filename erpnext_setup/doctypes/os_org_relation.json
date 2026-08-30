@@ -19,7 +19,7 @@
       "fieldname": "relation_type",
       "label": "Relation Type",
       "fieldtype": "Select",
-      "options": "REPORTS_TO\nOWNS\nAPPROVES\nEXECUTES\nUSES\nREADS\nWRITES\nTRIGGERS\nHANDOFF_TO\nDEPENDS_ON\nMEASURES",
+      "options": "REPORTS_TO\nCOLLABORATES_WITH\nSUPPORTS\nOWNS\nAPPROVES\nEXECUTES\nUSES\nREADS\nWRITES\nTRIGGERS\nHANDOFF_TO\nDEPENDS_ON\nMEASURES",
       "reqd": 1,
       "in_list_view": 1
     },
