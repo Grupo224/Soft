@@ -39,6 +39,9 @@ docs/
    en orden: roles → DocTypes → permisos → subir archivos → crear el Web Page.
 2. Revisa `docs/ARQUITECTURA.md` para entender las decisiones de diseño y cómo
    cada pantalla del portal se conecta a los DocTypes.
+   Para el historial de cambios ve `CHANGELOG.md`; para el detalle de la
+   auditoría de bugs v1.1.0 (diagnóstico, matriz de comparación, pruebas y
+   evidencia) ve `docs/AUDITORIA_2026-08_v1.1.0.md`.
 3. Los archivos de `portal/assets/` son el producto final: código JavaScript
    plano (ES5, sin dependencias externas) y CSS auto-contenido, listos para
    subirse tal cual al Administrador de Archivos de Frappe.
