@@ -26,7 +26,7 @@ Ve a **Desk → Usuarios y permisos → Rol → Nuevo** y crea estos 8 roles (no
 Ver `roles_permission_matrix.md` para qué puede hacer cada rol. Asigna estos roles
 a los usuarios reales desde **Usuario → Roles** antes de continuar.
 
-## 2. Crear los 15 Custom DocTypes
+## 2. Crear los 17 Custom DocTypes
 
 Carpeta `erpnext_setup/doctypes/*.json` contiene la especificación **campo por campo**
 de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de destino).
@@ -49,6 +49,8 @@ de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de desti
 13. `OS Approval`
 14. `OS KPI Definition`
 15. `OS Integration`
+16. `OS Knowledge Source`
+17. `OS Skill`
 
 Para cada uno:
 
@@ -90,6 +92,7 @@ os-page-processes.js
 os-page-work.js
 os-page-runs.js
 os-page-agents.js
+os-page-knowledge.js
 os-page-analytics.js
 os-app.js
 ```

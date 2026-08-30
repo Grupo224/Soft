@@ -1,0 +1,166 @@
+{
+  "doctype": "DocType",
+  "name": "OS Knowledge Source",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "source_title",
+      "label": "Source Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "source_type",
+      "label": "Source Type",
+      "fieldtype": "Select",
+      "options": "Document\nEmail\nCRM\nMeeting\nERP\nPolicy\nWebsite\nOther",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "department",
+      "label": "Department",
+      "fieldtype": "Link",
+      "options": "Department"
+    },
+    {
+      "fieldname": "process",
+      "label": "Related Process",
+      "fieldtype": "Link",
+      "options": "OS Process"
+    },
+    {
+      "fieldname": "tags",
+      "label": "Tags",
+      "fieldtype": "Small Text",
+      "description": "Área, cliente, proceso — separados por coma."
+    },
+    {
+      "fieldname": "sensitivity",
+      "label": "Sensitivity",
+      "fieldtype": "Select",
+      "options": "Public\nInternal\nConfidential\nRestricted",
+      "default": "Internal",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "valid_from",
+      "label": "Valid From",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "valid_until",
+      "label": "Valid Until",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "url_or_reference",
+      "label": "URL or Reference",
+      "fieldtype": "Data",
+      "description": "Enlace de vuelta a la fuente original (cita)."
+    },
+    {
+      "fieldname": "file",
+      "label": "File",
+      "fieldtype": "Attach"
+    },
+    {
+      "fieldname": "summary",
+      "label": "Summary",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Active\nUnder Review\nOutdated",
+      "default": "Active",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User",
+      "fieldtype": "Link",
+      "options": "User",
+      "in_list_view": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Architect",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS AI Supervisor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Operator",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

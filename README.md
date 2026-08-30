@@ -19,12 +19,13 @@ portal/
   assets/js/os-api.js          Adaptador REST único hacia Frappe (CSRF, errores, timeouts)
   assets/js/os-core.js         Sesión, router (hash SPA), store, UI kit, CRUD genérico
   assets/js/os-canvas.js       Motor pan/zoom/drag SVG reutilizado por Org + Process Studio
-  assets/js/pages/*.js         9 rutas: home, org, processes(+studio), work, approvals,
-                                runs, agents/prompts/sop/integrations/roles/kpis, analytics
+  assets/js/pages/*.js         10 rutas: home, org, processes(+studio), work, approvals,
+                                runs, agents/prompts/sop/integrations/roles/kpis,
+                                knowledge/skills, analytics
   pages/os-web-page.html       El único bloque HTML que se pega en el Web Page de Frappe
 
 erpnext_setup/
-  doctypes/*.json              Especificación campo-por-campo de los 15 Custom DocTypes
+  doctypes/*.json              Especificación campo-por-campo de los 17 Custom DocTypes
   roles_permission_matrix.md   Matriz de permisos por rol OS
   README_INSTALACION.md        Guía paso a paso (sin SSH) para montar todo esto
 

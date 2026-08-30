@@ -15,12 +15,12 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
   ├─ User / Role / Permission          ← identidad y permisos reales
   ├─ Company / Department / Designation / Employee   ← estructura ya existente
   ├─ Lead / Opportunity / Quotation / Project / Task  ← transacciones reales
-  └─ 15 Custom DocTypes OS_* (erpnext_setup/doctypes)
+  └─ 17 Custom DocTypes OS_* (erpnext_setup/doctypes)
        OS Org Node / OS Org Relation / OS Role Card
        OS Process (+ Steps/Edges child tables) / OS SOP
-       OS Prompt / OS Agent
+       OS Prompt / OS Agent / OS Skill
        OS Run / OS Step Run / OS Evidence / OS Approval
-       OS KPI Definition / OS Integration
+       OS KPI Definition / OS Integration / OS Knowledge Source
   │
   └───────────────► SERVICIO EXTERNO SEGURO (opcional, fuera de este repo)
                      n8n / OpenClaw / API propia — únicos que pueden usar
@@ -74,6 +74,7 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
 | `/sop`, `/sop/:name` | SOP Builder | OS SOP |
 | `/analytics` | Analítica | OS Run, OS Step Run, OS Process, OS Integration |
 | `/integrations`, `/roles`, `/kpis` | Gobierno | OS Integration, OS Role Card, OS KPI Definition |
+| `/knowledge`, `/skills` | Knowledge Brain (acotado a MVP) | OS Knowledge Source, OS Skill |
 
 ## Extensión futura sin romper nada de esto
 

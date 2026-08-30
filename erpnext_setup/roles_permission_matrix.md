@@ -20,6 +20,8 @@ Basada en el SOP técnico §6 y el blueprint §16.1. Configúrala en
 | OS Approval         | RWCD | R | R | R | RW (su área) | RW (si es aprobador) | R | R |
 | OS KPI Definition   | RWCD | RWC | R | R | R | – | R | R |
 | OS Integration      | RWCD | – | – | R | – | – | R | R |
+| OS Knowledge Source | RWCD | RWC | R | RWC | R | R | R | R |
+| OS Skill            | RWCD | RWC | R | RWC | R | – | R | R |
 
 \* Child tables: heredan el permiso efectivo del documento padre (`OS Process`);
 configúralas igual por consistencia si tu versión de Frappe las expone en el
