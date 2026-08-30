@@ -126,6 +126,154 @@
       "label": "Edges",
       "fieldtype": "Table",
       "options": "OS Process Edge"
+    },
+    {
+      "fieldname": "outcome",
+      "label": "Expected Outcome",
+      "fieldtype": "Small Text",
+      "description": "La salida de valor concreta cuando el proceso sale bien."
+    },
+    {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Select",
+      "options": "Low\nMedium\nHigh\nCritical",
+      "description": "Criticidad de negocio (distinta de Risk Level, que es riesgo operativo)."
+    },
+    {
+      "fieldname": "org_area",
+      "label": "Area (Organigrama)",
+      "fieldtype": "Link",
+      "options": "OS Org Node",
+      "description": "Ubica el proceso en el Organigrama Vivo."
+    },
+    {
+      "fieldname": "suppliers",
+      "label": "Suppliers",
+      "fieldtype": "Small Text",
+      "description": "SIPOC: quién provee los insumos, separado por comas."
+    },
+    {
+      "fieldname": "inputs",
+      "label": "Inputs",
+      "fieldtype": "Small Text",
+      "description": "SIPOC: qué se necesita para poder ejecutar, separado por comas."
+    },
+    {
+      "fieldname": "outputs",
+      "label": "Outputs",
+      "fieldtype": "Small Text",
+      "description": "SIPOC: qué produce el proceso, separado por comas."
+    },
+    {
+      "fieldname": "clients",
+      "label": "Process Client",
+      "fieldtype": "Data",
+      "description": "SIPOC: quién recibe la salida."
+    },
+    {
+      "fieldname": "scope",
+      "label": "Scope (Includes / Excludes)",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "frequency",
+      "label": "Execution Frequency",
+      "fieldtype": "Select",
+      "options": "On Demand\nDaily\nWeekly\nBiweekly\nMonthly"
+    },
+    {
+      "fieldname": "rules",
+      "label": "Decision Rules",
+      "fieldtype": "Small Text",
+      "description": "Bifurcaciones: si pasa X, entonces Y."
+    },
+    {
+      "fieldname": "exceptions",
+      "label": "Exceptions Handling",
+      "fieldtype": "Small Text",
+      "description": "Qué hacer cuando algo se sale de lo normal."
+    },
+    {
+      "fieldname": "raci_responsible",
+      "label": "RACI Responsible (R)",
+      "fieldtype": "Link",
+      "options": "User",
+      "description": "Quién ejecuta el trabajo. El Aprobador (A) es Owner User."
+    },
+    {
+      "fieldname": "raci_consulted",
+      "label": "RACI Consulted (C)",
+      "fieldtype": "Small Text",
+      "description": "A quién se consulta antes de decidir, separado por comas."
+    },
+    {
+      "fieldname": "raci_informed",
+      "label": "RACI Informed (I)",
+      "fieldtype": "Small Text",
+      "description": "A quién se notifica del resultado, separado por comas."
+    },
+    {
+      "fieldname": "responsible_node",
+      "label": "Responsible (Org Node)",
+      "fieldtype": "Link",
+      "options": "OS Org Node",
+      "description": "Persona o rol del organigrama que responde por este proceso."
+    },
+    {
+      "fieldname": "gates",
+      "label": "Approval Gates",
+      "fieldtype": "Small Text",
+      "description": "Dónde el proceso se detiene a esperar autorización."
+    },
+    {
+      "fieldname": "controls",
+      "label": "Controls",
+      "fieldtype": "Small Text",
+      "description": "Salvaguardas que reducen el riesgo. Obligatorio en la práctica si Risk Level es High/Critical."
+    },
+    {
+      "fieldname": "kpis",
+      "label": "KPIs",
+      "fieldtype": "Small Text",
+      "description": "KPIs del proceso, separados por comas."
+    },
+    {
+      "fieldname": "goals",
+      "label": "Goals by Cadence",
+      "fieldtype": "Table",
+      "options": "OS Process Goal"
+    },
+    {
+      "fieldname": "definition_of_done",
+      "label": "Definition of Done",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "evidence_required",
+      "label": "Evidence Required",
+      "fieldtype": "Small Text",
+      "description": "Qué debe guardarse para probar que el proceso se ejecutó bien."
+    },
+    {
+      "fieldname": "docs",
+      "label": "Supporting Documents",
+      "fieldtype": "Attach"
+    },
+    {
+      "fieldname": "next_review_on",
+      "label": "Next Review",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "changelog",
+      "label": "Changelog",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "kaizen",
+      "label": "Improvement Opportunities",
+      "fieldtype": "Long Text"
     }
   ],
   "permissions": [

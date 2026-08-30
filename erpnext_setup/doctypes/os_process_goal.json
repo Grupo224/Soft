@@ -1,0 +1,81 @@
+{
+  "doctype": "DocType",
+  "name": "OS Process Goal",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 1,
+  "editable_grid": 1,
+  "track_changes": 0,
+  "fields": [
+    {
+      "fieldname": "cadence",
+      "label": "Cadence",
+      "fieldtype": "Select",
+      "options": "Daily\nWeekly\nBiweekly\nMonthly",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "metric",
+      "label": "Metric / KPI",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "target",
+      "label": "Target",
+      "fieldtype": "Float",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "unit",
+      "label": "Unit",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "description": "%, piezas, MXN, horas, leads…"
+    },
+    {
+      "fieldname": "tolerance",
+      "label": "Tolerance",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "description": "Rango aceptable antes de encender alerta. Ej. '-5%', '+4h'."
+    },
+    {
+      "fieldname": "direction",
+      "label": "Direction",
+      "fieldtype": "Select",
+      "options": "More is better\nLess is better",
+      "default": "More is better"
+    },
+    {
+      "fieldname": "responsible",
+      "label": "Responsible",
+      "fieldtype": "Data",
+      "in_list_view": 1,
+      "description": "Quién responde por este número."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

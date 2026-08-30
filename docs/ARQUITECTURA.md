@@ -15,9 +15,9 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
   ├─ User / Role / Permission          ← identidad y permisos reales
   ├─ Company / Department / Designation / Employee   ← estructura ya existente
   ├─ Lead / Opportunity / Quotation / Project / Task  ← transacciones reales
-  └─ 18 Custom DocTypes OS_* (erpnext_setup/doctypes)
+  └─ 19 Custom DocTypes OS_* (erpnext_setup/doctypes)
        OS Org Node / OS Org Relation / OS Role Card
-       OS Process (+ Steps/Edges child tables) / OS SOP
+       OS Process (+ Steps/Edges/Goals child tables) / OS SOP
        OS Prompt / OS Agent / OS Skill
        OS Run / OS Step Run / OS Evidence / OS Approval
        OS KPI Definition / OS Integration / OS Knowledge Source
@@ -65,7 +65,7 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
 |---|---|---|
 | `/` | Command Center | OS Run, OS Approval, OS Process, OS Integration |
 | `/org` | Organigrama Vivo | OS Org Node, OS Org Relation |
-| `/processes`, `/processes/:name` | Biblioteca + Process Studio | OS Process (+ Steps/Edges), OS SOP |
+| `/processes`, `/processes/:name` | Biblioteca + Process Studio | OS Process (+ Steps/Edges/Goals), OS SOP |
 | `/work` | Mi Trabajo | OS Step Run, OS Evidence |
 | `/approvals` | Aprobaciones | OS Approval, OS Step Run |
 | `/runs`, `/runs/:name` | Execution Center | OS Run, OS Step Run, OS Evidence |
@@ -75,6 +75,20 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
 | `/analytics` | Analítica | OS Run, OS Step Run, OS Process, OS Integration |
 | `/integrations`, `/roles`, `/kpis` | Gobierno | OS Integration, OS Role Card, OS KPI Definition |
 | `/knowledge`, `/skills` | Knowledge Brain (acotado a MVP) | OS Knowledge Source, OS Skill |
+
+### Módulo de Procesos — captura 100% por formulario
+
+Crear o editar los **datos** de un proceso (identidad, SIPOC, RACI, metas por
+cadencia, mejora continua) siempre pasa por un asistente por pasos —
+`openProcessWizard()` en `os-page-processes.js` — nunca por un desplegable
+suelto: Modo Rápido (7-8 campos) o Modo Completo (6 pasos, con un stepper que
+solo permite saltar a pasos ya visitados). Los **pasos y conexiones** del
+proceso (el grafo BPMN) siguen viviendo en el lienzo de Process Studio — un
+formulario lineal no puede representar bifurcaciones, y el lienzo ya cumple
+mejor ese rol; el paso 3 del asistente solo resume los pasos y enlaza al
+lienzo. Publicar como "Active" corre un checklist de calidad (SIPOC completo,
+≥3 pasos con ejecutor, KPI + meta mensual con tolerancia, DoD, controles si
+el riesgo es alto) y bloquea con la lista exacta de lo que falta.
 
 ## Pendientes documentados de esta entrega
 
@@ -94,6 +108,10 @@ Instrucción Maestra quedan fuera de esta entrega y su razón:
   el historial completo (Track Changes, activado en estos DocTypes) y es
   consultable desde el Escritorio ERPNext; falta construir un panel que lo
   muestre embebido dentro del portal en vez de saltar al Desk.
+- **Asistente de IA que propone pasos/KPIs/metas** y **plantillas por
+  vertical** en el módulo de Procesos: el propio documento de rediseño los
+  ubica en una fase posterior (semana 7–8) de su plan de implementación, no
+  en el esquema de captura base portado aquí.
 
 Ninguno de estos bloquea la operación diaria del portal ni compromete los
 principios no negociables (persistencia real vía API, sin datos simulados).

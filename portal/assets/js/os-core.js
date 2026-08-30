@@ -62,6 +62,9 @@
       Published: "Publicado", Obsolete: "Obsoleto", Disabled: "Deshabilitado", Tested: "Probado",
       Deprecated: "Obsoleto", Verified: "Verificado", "Under Review": "En revisión", Outdated: "Desactualizado",
       Low: "Bajo", Medium: "Medio", High: "Alto", Critical: "Crítico",
+      Manual: "Manual", "ERP Event": "Evento de ERPNext", Webhook: "Webhook", Schedule: "Programado", External: "Externo",
+      "On Demand": "Bajo demanda", Daily: "Diaria", Weekly: "Semanal", Biweekly: "Quincenal", Monthly: "Mensual",
+      "More is better": "Más es mejor", "Less is better": "Menos es mejor",
       User: "Usuario", Role: "Rol", Agent: "Agente", System: "Sistema", Both: "Ambos",
       START: "Inicio", HUMAN: "Humano", HYBRID: "Híbrido", AI: "IA", SYSTEM: "Sistema",
       GATEWAY: "Compuerta", APPROVAL: "Aprobación", WAIT: "Espera", END: "Fin",
@@ -149,7 +152,7 @@
     var bg = document.createElement("div");
     bg.className = "os-modal-bg";
     var box = document.createElement("div");
-    box.className = "os-modal";
+    box.className = "os-modal" + (opts.wide ? " wide" : "");
     box.innerHTML =
       '<div class="os-modal-head"><div class="os-modal-title">' + util.escapeHtml(opts.title || "") +
       '</div><div class="os-spacer"></div><button class="os-btn ghost icon" data-close title="Cerrar" aria-label="Cerrar">✕</button></div>' +
@@ -655,6 +658,7 @@
       case "code": return ui.fieldRow(f.label, '<textarea class="os-textarea" data-f="' + f.name + '">' + util.escapeHtml(v) + '</textarea>', f.hint);
       case "check": return ui.fieldRow(f.label, '<div class="os-check" style="padding-top:6px"><input type="checkbox" data-f="' + f.name + '" ' + (v ? "checked" : "") + '> Sí</div>', f.hint);
       case "number": return ui.fieldRow(f.label, '<input class="os-input" type="number" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
+      case "date": return ui.fieldRow(f.label, '<input class="os-input" type="date" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
       case "link": return ui.fieldRow(f.label, '<input class="os-input" data-f="' + f.name + '" data-link="' + f.linkDoctype + '" value="' + util.escapeHtml(v) + '">', f.hint);
       default: return ui.fieldRow(f.label, '<input class="os-input" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
     }
@@ -665,6 +669,12 @@
     root.querySelectorAll("[data-f]").forEach(function (elx) { payload[elx.dataset.f] = elx.type === "checkbox" ? (elx.checked ? 1 : 0) : elx.value; });
     return payload;
   }
+  // Expuestos para que otras páginas (asistentes por pasos, formularios a medida
+  // que no encajan en ui.simpleModule) reutilicen el mismo renderizado de campo
+  // genérico en vez de reinventarlo — mismo tipo de campo, mismo look en toda la app.
+  ui.renderFieldHtml = renderFieldHtml;
+  ui.wireFields = wireFields;
+  ui.collectFields = collectFields;
 
   ui.simpleModule = function (cfg) {
     // cfg: {path,title,doctype,icon,columns[],fields[],titleField,codeField,statusField,statusOptions,subtitleField,emptyHint}

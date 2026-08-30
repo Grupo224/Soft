@@ -26,7 +26,7 @@ Ve a **Desk → Usuarios y permisos → Rol → Nuevo** y crea estos 8 roles (no
 Ver `roles_permission_matrix.md` para qué puede hacer cada rol. Asigna estos roles
 a los usuarios reales desde **Usuario → Roles** antes de continuar.
 
-## 2. Crear los 18 Custom DocTypes
+## 2. Crear los 19 Custom DocTypes
 
 Carpeta `erpnext_setup/doctypes/*.json` contiene la especificación **campo por campo**
 de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de destino).
@@ -36,27 +36,38 @@ de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de desti
 
 1. `OS Process Step` — marcar **Is Child Table**.
 2. `OS Process Edge` — marcar **Is Child Table**.
-3. `OS SOP Step` — marcar **Is Child Table**.
-4. `OS Org Node`
-5. `OS Org Relation`
-6. `OS Role Card`
-7. `OS Prompt`
-8. `OS Agent`
-9. `OS SOP` — su campo `steps` es tipo **Table** apuntando al DocType del paso 3.
-10. `OS Process` — sus campos `steps` y `edges` son tipo **Table** apuntando a los DocTypes de los pasos 1 y 2.
-11. `OS Run`
-12. `OS Step Run`
-13. `OS Evidence`
-14. `OS Approval`
-15. `OS KPI Definition`
-16. `OS Integration`
-17. `OS Knowledge Source`
-18. `OS Skill`
+3. `OS Process Goal` — marcar **Is Child Table**.
+4. `OS SOP Step` — marcar **Is Child Table**.
+5. `OS Org Node`
+6. `OS Org Relation`
+7. `OS Role Card`
+8. `OS Prompt`
+9. `OS Agent`
+10. `OS SOP` — su campo `steps` es tipo **Table** apuntando al DocType del paso 4.
+11. `OS Process` — sus campos `steps`, `edges` y `goals` son tipo **Table** apuntando a los DocTypes de los pasos 1, 2 y 3.
+12. `OS Run`
+13. `OS Step Run`
+14. `OS Evidence`
+15. `OS Approval`
+16. `OS KPI Definition`
+17. `OS Integration`
+18. `OS Knowledge Source`
+19. `OS Skill`
 
 > **Nota de migración**: `OS SOP` cambió de un campo de texto libre (`procedure`) a una
 > tabla estructurada de pasos (`steps` → `OS SOP Step`). El campo anterior se conserva
 > como `procedure_legacy` (solo lectura funcional) para no perder contenido ya
 > capturado; el procedimiento vivo de ahora en adelante es la tabla de pasos.
+
+> **Nota de migración (Procesos)**: `OS Process` y `OS Process Step` se ampliaron con
+> el esquema SIPOC/RACI/metas del rediseño del módulo de Procesos (ver
+> `docs/ARQUITECTURA.md`). Todos los campos nuevos son opcionales y aditivos — si ya
+> tenías procesos capturados con el esquema anterior, siguen funcionando igual; el
+> asistente por pasos del portal solo pide lo nuevo cuando editas o creas un proceso
+> desde ahora en adelante. Si ya creaste `OS Process` y `OS Process Step` antes de esta
+> versión, solo necesitas **agregar los campos nuevos** listados en sus respectivos
+> `.json` (no hace falta recrear el DocType), y crear el nuevo child table
+> `OS Process Goal` para el campo `goals`.
 
 Para cada uno:
 

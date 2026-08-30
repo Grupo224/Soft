@@ -121,6 +121,25 @@
       "fieldname": "y",
       "label": "Y",
       "fieldtype": "Float"
+    },
+    {
+      "fieldname": "responsible_designation",
+      "label": "Responsible Role (Designation)",
+      "fieldtype": "Link",
+      "options": "Designation",
+      "description": "Rol responsable del paso (Trabajo estándar / TWI). Distinto de Actor Role, que es un Role de permisos."
+    },
+    {
+      "fieldname": "tool",
+      "label": "Tool / System",
+      "fieldtype": "Data",
+      "description": "Dónde se ejecuta: ERPNext, WhatsApp, POS…"
+    },
+    {
+      "fieldname": "control_point",
+      "label": "Control Point",
+      "fieldtype": "Check",
+      "description": "Marca dónde se verifica calidad (ISO 9001)."
     }
   ],
   "permissions": [

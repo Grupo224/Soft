@@ -45,44 +45,272 @@
 
     container.querySelector("#os-proc-search").oninput = render;
     container.querySelector("#os-proc-status").onchange = render;
-    container.querySelector("#os-new-process").onclick = function () { openCreateProcess(); };
+    container.querySelector("#os-new-process").onclick = function () { openProcessWizard("create"); };
   }
 
-  function openCreateProcess() {
-    var body = document.createElement("div");
-    body.innerHTML =
-      fieldRow("Título", '<input class="os-input" id="p-title" placeholder="Ej. Lead a Cotización">') +
-      fieldRow("Código funcional (único)", '<input class="os-input" id="p-code" placeholder="PROC-SALES-001">') +
-      '<div class="os-row">' +
-      fieldRow("Empresa", '<input class="os-input" id="p-company">') +
-      fieldRow("Owner (usuario)", '<input class="os-input" id="p-owner">') + '</div>' +
-      fieldRow("Propósito / resultado de negocio", '<textarea class="os-textarea" id="p-purpose" style="font-family:inherit"></textarea>') +
-      '<div class="os-row">' +
-      fieldRow("Autonomía máxima", '<select class="os-select" id="p-auto">' + opt(["L0", "L1", "L2", "L3", "L4"]) + '</select>') +
-      fieldRow("Riesgo", '<select class="os-select" id="p-risk">' + opt(["Low", "Medium", "High", "Critical"]) + '</select>') + '</div>';
-    ui.attachLinkSearch(body.querySelector("#p-company"), "Company");
-    ui.attachLinkSearch(body.querySelector("#p-owner"), "User");
-    ui.modal({
-      title: "Nuevo proceso", body: body,
-      actions: [
+  /* ===================== Asistente de proceso (SIPOC + RACI + metas) =====================
+   * Captura 100% por formulario: crear o editar los DATOS del proceso siempre pasa por este
+   * asistente por pasos, nunca por un desplegable suelto. Los PASOS y CONEXIONES del proceso
+   * (el grafo BPMN) siguen viviendo en el lienzo de Process Studio — un formulario lineal no
+   * puede representar bifurcaciones, y el lienzo ya cumple mejor ese rol (arrastrar, conectar,
+   * deshacer/rehacer). El asistente solo resume los pasos y enlaza al lienzo para editarlos.
+   * Documento de referencia: "Rediseño del Módulo de Procesos LIVINGORG OS". */
+  var PROC_SECTIONS = [
+    { title: "Identidad y propósito", fields: [
+      { name: "process_title", label: "Nombre del proceso", type: "text", required: true, hint: "Ej. Lead → Cotización" },
+      { name: "process_code", label: "Código / ID", type: "text", hint: "Se genera solo si lo dejas vacío." },
+      { name: "company", label: "Empresa", type: "link", linkDoctype: "Company", required: true },
+      { name: "org_area", label: "Área (Organigrama Vivo)", type: "link", linkDoctype: "OS Org Node" },
+      { name: "department", label: "Departamento (ERPNext)", type: "link", linkDoctype: "Department" },
+      { name: "owner_user", label: "Dueño / responsable (Aprobador)", type: "link", linkDoctype: "User", required: true },
+      { name: "priority", label: "Criticidad", type: "select", options: ["Low", "Medium", "High", "Critical"] },
+      { name: "purpose", label: "Propósito", type: "textarea", required: true, hint: "Por qué existe y qué valor entrega." },
+      { name: "outcome", label: "Resultado esperado", type: "textarea" }
+    ] },
+    { title: "Alcance y disparador (SIPOC)", fields: [
+      { name: "trigger_type", label: "Tipo de disparador", type: "select", options: ["Manual", "ERP Event", "Webhook", "Schedule", "External"], required: true },
+      { name: "trigger_reference", label: "Disparador (detalle)", type: "text" },
+      { name: "suppliers", label: "Proveedores", type: "text", hint: "Separados por coma." },
+      { name: "inputs", label: "Entradas / insumos", type: "text", required: true, hint: "Separadas por coma." },
+      { name: "outputs", label: "Salidas / entregables", type: "text", required: true, hint: "Separadas por coma." },
+      { name: "clients", label: "Cliente del proceso", type: "text" },
+      { name: "scope", label: "Incluye / no incluye", type: "textarea" },
+      { name: "frequency", label: "Frecuencia de ejecución", type: "select", options: ["On Demand", "Daily", "Weekly", "Biweekly", "Monthly"] }
+    ] },
+    { title: "Pasos y ejecución", stepsSummary: true, fields: [
+      { name: "max_autonomy", label: "Autonomía máxima de la IA", type: "select", options: ["L0", "L1", "L2", "L3", "L4"], required: true },
+      { name: "rules", label: "Reglas de decisión", type: "textarea", hint: "Bifurcaciones: si pasa X, entonces Y." },
+      { name: "exceptions", label: "Excepciones y manejo", type: "textarea" }
+    ] },
+    { title: "Roles y gobierno (RACI)", fields: [
+      { name: "raci_responsible", label: "Responsable (R)", type: "link", linkDoctype: "User" },
+      { name: "raci_consulted", label: "Consultado (C)", type: "text", hint: "Separados por coma." },
+      { name: "raci_informed", label: "Informado (I)", type: "text", hint: "Separados por coma." },
+      { name: "responsible_node", label: "Responsable vinculado (organigrama)", type: "link", linkDoctype: "OS Org Node" },
+      { name: "risk_level", label: "Riesgo", type: "select", options: ["Low", "Medium", "High", "Critical"], required: true },
+      { name: "gates", label: "Puntos de aprobación (gates)", type: "textarea" },
+      { name: "controls", label: "Controles", type: "textarea", hint: "Obligatorio en la práctica si el riesgo es alto." },
+      { name: "sop", label: "SOP vinculado", type: "link", linkDoctype: "OS SOP" }
+    ] },
+    { title: "Metas y medición", goals: true, docs: true, fields: [
+      { name: "kpis", label: "KPIs del proceso", type: "text", required: true, hint: "Separados por coma." },
+      { name: "sla_minutes", label: "SLA objetivo (min)", type: "number" },
+      { name: "definition_of_done", label: "Definición de Hecho (DoD)", type: "textarea", required: true },
+      { name: "evidence_required", label: "Evidencia requerida", type: "textarea" }
+    ] },
+    { title: "Mejora continua", fields: [
+      { name: "version_label", label: "Versión", type: "text" },
+      { name: "next_review_on", label: "Próxima revisión", type: "date" },
+      { name: "changelog", label: "Historial de cambios", type: "textarea" },
+      { name: "kaizen", label: "Oportunidades de mejora", type: "textarea" }
+    ] }
+  ];
+  var QUICK_FIELD_NAMES = ["process_title", "purpose", "owner_user", "company", "trigger_reference", "risk_level", "max_autonomy", "kpis"];
+
+  function slugify(s) { return (s || "").toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 24) || "PROC"; }
+
+  /** Editor de metas por cadencia — fila = {cadence, metric, target, unit, tolerance, responsible, direction}. */
+  function goalsEditor(container, initial) {
+    var arr = (initial || []).map(function (g) { return Object.assign({}, g); });
+    var CADS = ["Daily", "Weekly", "Biweekly", "Monthly"];
+    var CAD_LABEL = { Daily: "Diaria", Weekly: "Semanal", Biweekly: "Quincenal", Monthly: "Mensual" };
+    function paint() {
+      container.innerHTML = (arr.length ? "" : '<div class="muted" style="font-size:12px;padding:4px 0 8px">Sin metas capturadas. Empieza por la meta mensual.</div>') +
+        arr.map(function (g, i) {
+          return '<div class="os-row" data-gi="' + i + '" style="align-items:flex-end;gap:6px;margin-bottom:8px">' +
+            '<select class="os-select gf" data-gf="cadence" style="max-width:110px">' + CADS.map(function (c) { return '<option value="' + c + '"' + (g.cadence === c ? " selected" : "") + '>' + CAD_LABEL[c] + '</option>'; }).join("") + '</select>' +
+            '<input class="os-input gf" data-gf="metric" placeholder="Métrica / KPI" value="' + U.escapeHtml(g.metric || "") + '" style="min-width:130px">' +
+            '<input class="os-input gf" type="number" data-gf="target" placeholder="Objetivo" value="' + (g.target != null ? g.target : "") + '" style="max-width:90px">' +
+            '<input class="os-input gf" data-gf="unit" placeholder="Unidad" value="' + U.escapeHtml(g.unit || "") + '" style="max-width:80px">' +
+            '<input class="os-input gf" data-gf="tolerance" placeholder="Tolerancia" value="' + U.escapeHtml(g.tolerance || "") + '" style="max-width:90px">' +
+            '<input class="os-input gf" data-gf="responsible" placeholder="Responsable" value="' + U.escapeHtml(g.responsible || "") + '" style="min-width:110px">' +
+            '<button type="button" class="os-btn danger sm" data-gdel="' + i + '">✕</button></div>';
+        }).join("") +
+        '<button type="button" class="os-btn sm" id="goal-add">＋ Agregar meta</button>' +
+        '<button type="button" class="os-btn sm ghost" id="goal-cascade" title="Propone diaria/semanal/quincenal desde la mensual (~22 días hábiles, ~4.33 semanas, 2 quincenas)">✨ Sugerir cascada</button>';
+      container.querySelectorAll(".gf").forEach(function (elx) {
+        elx.addEventListener("input", function () {
+          var i = +elx.closest("[data-gi]").dataset.gi;
+          arr[i][elx.dataset.gf] = elx.dataset.gf === "target" ? (elx.value === "" ? null : Number(elx.value)) : elx.value;
+        });
+      });
+      container.querySelectorAll("[data-gdel]").forEach(function (b) { b.onclick = function () { arr.splice(+b.dataset.gdel, 1); paint(); }; });
+      container.querySelector("#goal-add").onclick = function () { arr.push({ cadence: "Monthly", direction: "More is better" }); paint(); };
+      container.querySelector("#goal-cascade").onclick = function () {
+        var base = arr.filter(function (g) { return g.cadence === "Monthly" && g.target != null; })[0];
+        if (!base) { ui.toast("Captura primero una meta mensual con objetivo numérico.", "warn"); return; }
+        var factor = { Daily: 22, Weekly: 4.33, Biweekly: 2 };
+        ["Daily", "Weekly", "Biweekly"].forEach(function (c) {
+          var val = Math.round((base.target / factor[c]) * 10) / 10;
+          var row = arr.filter(function (g) { return g.cadence === c && g.metric === base.metric; })[0];
+          if (!row) { row = { cadence: c, metric: base.metric, unit: base.unit, responsible: base.responsible, direction: base.direction, tolerance: base.tolerance }; arr.unshift(row); }
+          row.target = val;
+        });
+        paint(); ui.toast("Cascada propuesta. Ajusta lo que necesites.", "ok");
+      };
+    }
+    paint();
+    return { get: function () { return arr.filter(function (g) { return g.metric && g.target != null; }); } };
+  }
+
+  /** Antes de publicar (checklist de calidad, sección 7.1 del documento de rediseño). */
+  function checklistIssues(proc) {
+    var issues = [];
+    if (!proc.outcome) issues.push("Falta el resultado esperado.");
+    if (!(proc.inputs || "").trim()) issues.push("Falta al menos una entrada (SIPOC).");
+    if (!(proc.outputs || "").trim()) issues.push("Falta al menos una salida (SIPOC).");
+    if (!(proc.kpis || "").trim()) issues.push("Falta al menos 1 KPI.");
+    var goals = proc.goals || [];
+    var monthly = goals.filter(function (g) { return g.cadence === "Monthly" && g.target != null; })[0];
+    if (!monthly) issues.push("Falta la meta mensual (con objetivo numérico).");
+    else if (!monthly.tolerance) issues.push("La meta mensual necesita una tolerancia.");
+    if (!proc.definition_of_done) issues.push("Falta la Definición de Hecho (DoD).");
+    if (proc.risk_level === "High" || proc.risk_level === "Critical") {
+      if (!proc.controls) issues.push("Riesgo " + U.trValue(proc.risk_level).toLowerCase() + ": define controles.");
+      if (!proc.gates) issues.push("Riesgo " + U.trValue(proc.risk_level).toLowerCase() + ": define al menos un punto de aprobación (gate).");
+    }
+    return issues;
+  }
+
+  function openProcessWizard(mode, existingProc, onSaved) {
+    var editing = mode === "edit";
+    var rec = editing ? Object.assign({}, existingProc) : { status: "Draft", version_label: "v0.1", steps: [], edges: [], goals: [] };
+    var goalsCtl = null, docsUrl = rec.docs || null;
+    var stepIdx = 0, maxReached = 0, curModal = null;
+
+    function saveRec(patch) {
+      Object.assign(rec, patch);
+      if (editing) return api.update("OS Process", rec.name, patch).then(function (d) { Object.assign(rec, d); });
+      if (!rec.process_code) rec.process_code = slugify(rec.process_title) + "-" + U.uid("").slice(-4).toUpperCase();
+      if (!rec.trigger_type) rec.trigger_type = "Manual";
+      rec.status = "Draft";
+      return api.create("OS Process", rec).then(function (d) { Object.assign(rec, d); editing = true; });
+    }
+
+    function render() { if (mode === "create" && !rec._modeChosen) renderModeChoice(); else renderStep(); }
+
+    function renderModeChoice() {
+      var body = document.createElement("div");
+      body.innerHTML = '<p style="color:var(--os-ink-mut);font-size:13px;margin:0 0 14px">Puedes empezar rápido y enriquecer después — nunca se pierde lo ya capturado.</p>' +
+        '<div class="os-mode-choice">' +
+        '<div class="os-mode-card" id="mc-quick" tabindex="0" role="button"><span>Modo Rápido</span><b>7 campos · &lt;2 min</b><p>Proceso mínimo viable: nombre, propósito, empresa, dueño, disparador, riesgo, autonomía y KPI.</p></div>' +
+        '<div class="os-mode-card" id="mc-full" tabindex="0" role="button"><span>Modo Completo</span><b>6 pasos · 8–12 min</b><p>SIPOC, RACI, controles, metas por cadencia y mejora continua — el esquema completo.</p></div>' +
+        '</div>';
+      curModal = ui.modal({
+        title: "Nuevo proceso", body: body, wide: true,
+        actions: [{ label: "Cancelar", cls: "ghost", onClick: function () { return true; } }]
+      });
+      function choose(full) { rec._modeChosen = full ? "full" : "quick"; curModal.close(); render(); }
+      body.querySelector("#mc-quick").onclick = function () { choose(false); };
+      body.querySelector("#mc-full").onclick = function () { choose(true); };
+      ["mc-quick", "mc-full"].forEach(function (id) {
+        body.querySelector("#" + id).onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(id === "mc-full"); } };
+      });
+    }
+
+    function renderStep() {
+      if (rec._modeChosen === "quick") return renderQuick();
+      if (stepIdx > maxReached) maxReached = stepIdx;
+      var sec = PROC_SECTIONS[stepIdx];
+      var body = document.createElement("div");
+      var stepsNav = '<div class="os-wizard-steps">' + PROC_SECTIONS.map(function (s, i) {
+        return '<button type="button" class="os-wizard-step' + (i === stepIdx ? " on" : "") + (i < stepIdx ? " done" : "") + '" data-goto="' + i + '"' + (i > maxReached ? " disabled" : "") + '>' +
+          '<span class="os-wizard-num">' + (i < stepIdx ? "✓" : (i + 1)) + '</span>' + s.title + '</button>';
+      }).join("") + '</div>';
+      body.innerHTML = stepsNav + '<div class="os-form-body" style="padding-top:14px">' +
+        sec.fields.map(function (f) { return ui.renderFieldHtml(f, rec[f.name]); }).join("") +
+        (sec.stepsSummary ? stepsSummaryHtml() : "") +
+        (sec.goals ? '<div class="os-section-title">Metas por cadencia</div><div id="goals-host"></div>' : "") +
+        (sec.docs ? '<div class="os-section-title">Documentos de respaldo</div><div id="docs-host"></div>' : "") +
+        '</div>';
+      ui.wireFields(body);
+      if (sec.goals) { goalsCtl = goalsEditor(body.querySelector("#goals-host"), rec.goals); }
+      if (sec.docs) { ui.fileField(body.querySelector("#docs-host"), { value: docsUrl, onChange: function (u) { docsUrl = u; } }); }
+
+      body.querySelectorAll("[data-goto]").forEach(function (b) {
+        b.onclick = function () { if (b.disabled) return; collect(sec); stepIdx = +b.dataset.goto; curModal.close(); renderStep(); };
+      });
+      var isLast = stepIdx === PROC_SECTIONS.length - 1;
+      var actions = [
         { label: "Cancelar", cls: "ghost", onClick: function () { return true; } },
-        {
-          label: "Crear proceso", cls: "primary", onClick: function () {
-            var title = body.querySelector("#p-title").value.trim();
-            if (!title) { ui.toast("El título es obligatorio", "warn"); return false; }
-            api.create("OS Process", {
-              process_title: title, process_code: body.querySelector("#p-code").value.trim() || undefined,
-              company: body.querySelector("#p-company").value.trim() || undefined,
-              owner_user: body.querySelector("#p-owner").value.trim() || undefined,
-              purpose: body.querySelector("#p-purpose").value.trim(),
-              max_autonomy: body.querySelector("#p-auto").value, risk_level: body.querySelector("#p-risk").value,
-              status: "Draft", version_label: "v0.1", trigger_type: "Manual", steps: [], edges: []
-            }).then(function (doc) { ui.toast("Proceso creado en Draft", "ok"); OS.router.navigate("/processes/" + doc.name); })
-              .catch(ui.error);
-          }
+        { label: "Guardar borrador y salir", cls: "ghost", onClick: function () { collect(sec); return finishDraft(); }, keepOpen: false }
+      ];
+      if (stepIdx > 0) actions.push({ label: "Atrás", cls: "", onClick: function () { collect(sec); stepIdx--; curModal.close(); renderStep(); return false; } });
+      actions.push({
+        label: isLast ? "Guardar proceso" : "Siguiente", cls: "primary", onClick: function () {
+          collect(sec);
+          var missing = sec.fields.filter(function (f) { return f.required && !(rec[f.name] + "").trim(); });
+          if (missing.length) { ui.toast("Falta capturar: " + missing.map(function (f) { return f.label; }).join(", "), "warn"); return false; }
+          if (!isLast) { stepIdx++; curModal.close(); renderStep(); return false; }
+          return finish();
         }
-      ]
-    });
+      });
+      curModal = ui.modal({ title: (editing ? "Editar proceso" : "Nuevo proceso") + " · paso " + (stepIdx + 1) + " de " + PROC_SECTIONS.length, body: body, wide: true, actions: actions, dismissible: false });
+    }
+
+    function stepsSummaryHtml() {
+      var n = (rec.steps || []).length;
+      return '<div class="os-section-title">Resumen de pasos</div>' +
+        (editing
+          ? (n ? '<p style="font-size:13px;color:var(--os-ink-mut)">' + n + ' paso(s) definidos en el lienzo: ' + (rec.steps || []).map(function (s) { return U.escapeHtml(s.step_title || s.step_key); }).join(", ") + '.</p>'
+            : '<p style="font-size:13px;color:var(--os-ink-mut)">Sin pasos todavía.</p>') +
+          '<button type="button" class="os-btn sm ghost" id="goto-canvas">↗ Ir al lienzo (Process Studio)</button>'
+          : '<p style="font-size:13px;color:var(--os-ink-mut)">Los pasos y sus conexiones se dibujan en el lienzo de Process Studio (arrastrar, conectar, deshacer) — podrás agregarlos justo después de guardar este proceso.</p>');
+    }
+
+    function collect(sec) {
+      var body = curModal.el.querySelector(".os-form-body");
+      Object.assign(rec, ui.collectFields(body));
+      if (goalsCtl) rec.goals = goalsCtl.get();
+      if (sec.docs) rec.docs = docsUrl;
+    }
+
+    function renderQuick() {
+      var body = document.createElement("div");
+      var fields = QUICK_FIELD_NAMES.map(function (n) { for (var i = 0; i < PROC_SECTIONS.length; i++) { var f = PROC_SECTIONS[i].fields.filter(function (x) { return x.name === n; })[0]; if (f) return f; } }).filter(Boolean);
+      body.className = "os-form-body";
+      body.innerHTML = '<p style="color:var(--os-ink-mut);font-size:12.5px;margin:0 0 10px">Con esto ya es un proceso utilizable. Podrás enriquecerlo después con SIPOC, RACI y más metas.</p>' +
+        fields.map(function (f) { return ui.renderFieldHtml(f, rec[f.name]); }).join("");
+      ui.wireFields(body);
+      curModal = ui.modal({
+        title: "Modo Rápido — Nuevo proceso", body: body, wide: true,
+        actions: [
+          { label: "Cancelar", cls: "ghost", onClick: function () { return true; } },
+          {
+            label: "Prefiero el modo completo", cls: "ghost", onClick: function () {
+              Object.assign(rec, ui.collectFields(body)); rec._modeChosen = "full"; stepIdx = 0;
+              curModal.close(); renderStep(); return false;
+            }
+          },
+          {
+            label: "Guardar", cls: "primary", onClick: function () {
+              Object.assign(rec, ui.collectFields(body));
+              var missing = fields.filter(function (f) { return f.required && !(rec[f.name] + "").trim(); });
+              if (missing.length) { ui.toast("Falta capturar: " + missing.map(function (f) { return f.label; }).join(", "), "warn"); return false; }
+              return finish();
+            }
+          }
+        ]
+      });
+    }
+
+    function afterSave() { if (onSaved) onSaved(rec); else OS.router.navigate("/processes/" + rec.name); }
+    function finishDraft() {
+      return saveRec({}).then(function () {
+        ui.toast("Guardado como borrador ✓", "ok");
+        afterSave();
+        return true;
+      }).catch(function (e) { ui.error(e); return false; });
+    }
+    function finish() {
+      saveRec({}).then(function () {
+        ui.toast(editing ? "Cambios guardados ✓" : "Proceso creado en Draft ✓", "ok");
+        afterSave();
+      }).catch(ui.error);
+      return true;
+    }
+
+    render();
   }
 
   /* ============================= /processes/:name — Process Studio ============================= */
@@ -116,6 +344,7 @@
         '<div class="os-page-actions">' +
         '<span class="os-save-state" id="os-save-state"></span>' +
         '<select class="os-select" id="os-status-sel" style="max-width:150px">' + opt(STATUS_FLOW, proc.status) + '</select>' +
+        '<button class="os-btn ghost" id="os-edit-data">✎ Editar datos</button>' +
         '<button class="os-btn" id="os-add-step">＋ Paso</button>' +
         '<button class="os-btn" id="os-connect">🔗 Conectar</button>' +
         '<button class="os-btn primary" id="os-run-test">▶ Ejecutar prueba</button>' +
@@ -123,6 +352,8 @@
         '<div class="os-toolbar"><span class="os-tag">Versión ' + U.escapeHtml(proc.version_label || "—") + '</span>' +
         '<span class="os-tag">Autonomía ' + U.escapeHtml(proc.max_autonomy || "—") + '</span>' +
         ui.badgeRisk(proc.risk_level) +
+        (proc.priority ? '<span class="os-tag">Criticidad: ' + U.escapeHtml(U.trValue(proc.priority)) + '</span>' : '') +
+        (proc.frequency ? '<span class="os-tag">' + U.escapeHtml(U.trValue(proc.frequency)) + '</span>' : '') +
         '<span class="os-tag">SOP: ' + (proc.sop ? "<a href='#/sop/" + proc.sop + "'>" + U.escapeHtml(proc.sop) + "</a>" : "sin vincular") + '</span>' +
         '<button class="os-btn sm ghost" id="os-link-sop">Vincular SOP</button>' +
         '<button class="os-btn sm" id="os-warn" style="display:none">⚠ 0 advertencias</button></div>';
@@ -150,6 +381,9 @@
           if (next === "Active") patch.published_on = new Date().toISOString().slice(0, 19).replace("T", " ");
           persist(patch).then(renderHead);
         });
+      };
+      head.querySelector("#os-edit-data").onclick = function () {
+        openProcessWizard("edit", proc, function (updated) { Object.assign(proc, updated); renderHead(); });
       };
       head.querySelector("#os-add-step").onclick = function () { guardActiveEdit().then(function (ok) { if (ok) openStepPalette(); }); };
       head.querySelector("#os-connect").onclick = function () {
@@ -231,7 +465,7 @@
         if (s.step_type !== "END" && !hasOutgoing[s.step_key]) issues.push("\"" + (s.step_title || s.step_key) + "\" no tiene salida (destino).");
       });
       if (!proc.steps || !proc.steps.length) issues.push("El proceso no tiene pasos.");
-      return issues;
+      return issues.concat(checklistIssues(proc));
     }
 
     function toCanvasData() {
@@ -415,11 +649,15 @@
         fieldRow("Usuario (si aplica)", '<input class="os-input" f="actor_user" id="ai-actor-user" value="' + U.escapeHtml(step.actor_user || "") + '">') +
         fieldRow("Rol (si aplica)", '<input class="os-input" f="actor_role" id="ai-actor-role" value="' + U.escapeHtml(step.actor_role || "") + '">') +
         fieldRow("Agente IA (si aplica)", '<input class="os-input" f="actor_agent" id="ai-actor-agent" value="' + U.escapeHtml(step.actor_agent || "") + '">') +
+        '<div class="os-row">' +
+        fieldRow("Rol responsable (Designation)", '<input class="os-input" f="responsible_designation" id="ai-resp-desig" value="' + U.escapeHtml(step.responsible_designation || "") + '">', "Trabajo estándar / TWI") +
+        fieldRow("Herramienta / sistema", '<input class="os-input" f="tool" value="' + U.escapeHtml(step.tool || "") + '" placeholder="Ej. ERPNext, WhatsApp…">') + '</div>' +
         '<div class="os-section-title">Contrato del paso</div>' +
         fieldRow("Instrucciones", '<textarea class="os-textarea" f="instructions">' + U.escapeHtml(step.instructions || "") + '</textarea>') +
         fieldRow("Evidence policy — qué prueba que terminó", '<input class="os-input" f="evidence_policy" value="' + U.escapeHtml(step.evidence_policy || "") + '">') +
         '<div class="os-row">' +
-        fieldRow("SLA (min)", '<input class="os-input" type="number" f="sla_minutes" value="' + (step.sla_minutes || "") + '">') +
+        fieldRow("SLA / tiempo estimado (min)", '<input class="os-input" type="number" f="sla_minutes" value="' + (step.sla_minutes || "") + '">') +
+        fieldRow("Punto de control", '<div class="os-check" style="padding-top:8px"><input type="checkbox" f="control_point" ' + (step.control_point ? "checked" : "") + '> Sí (ISO 9001)</div>') +
         fieldRow("Requiere aprobación", '<div class="os-check" style="padding-top:8px"><input type="checkbox" f="requires_approval" ' + (step.requires_approval ? "checked" : "") + '> Sí</div>') + '</div>' +
         fieldRow("Rol aprobador (si aplica)", '<input class="os-input" f="approval_role" id="ai-approval-role" value="' + U.escapeHtml(step.approval_role || "") + '">') +
         '<div class="os-row">' +
@@ -433,6 +671,7 @@
       ui.attachLinkSearch(body.querySelector("#ai-actor-role"), "Role");
       ui.attachLinkSearch(body.querySelector("#ai-approval-role"), "Role");
       ui.attachLinkSearch(body.querySelector("#ai-actor-agent"), "OS Agent");
+      ui.attachLinkSearch(body.querySelector("#ai-resp-desig"), "Designation");
       ui.attachLinkSearch(body.querySelector("#ai-agent"), "OS Agent");
       ui.attachLinkSearch(body.querySelector("#ai-prompt"), "OS Prompt");
 

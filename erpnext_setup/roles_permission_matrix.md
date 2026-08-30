@@ -11,6 +11,7 @@ Basada en el SOP técnico §6 y el blueprint §16.1. Configúrala en
 | OS Process          | RWCD | RWC (Draft/Pilot) | RW (publicar/retirar) | R | R (su área) | R | R | R |
 | OS Process Step*    | RWCD | RWC | RW | R | R | R | R | R |
 | OS Process Edge*    | RWCD | RWC | RW | R | R | R | R | R |
+| OS Process Goal*    | RWCD | RWC | RW | R | R | R | R | R |
 | OS SOP              | RWCD | RWC | RW | R | R | R | R | R |
 | OS Prompt           | RWCD | R | R | RWCD | R | – | R | R |
 | OS Agent            | RWCD | R | R | RWCD | R | – | R | R |
