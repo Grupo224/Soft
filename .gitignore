@@ -1,0 +1,23 @@
+# Dependencias (por si en el futuro se agrega tooling con npm)
+node_modules/
+
+# Archivos temporales y de salida del sistema operativo / editores
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*~
+
+# Carpetas de salida / build (no aplica hoy: ambos proyectos son
+# HTML/CSS/JS sin build, pero se ignoran por si se agregan a futuro)
+dist/
+build/
+.cache/
+
+# Variables de entorno / secretos — nunca se suben al repositorio
+.env
+.env.*
+*.pem
+*.key

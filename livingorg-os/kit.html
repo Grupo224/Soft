@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pack UX/UI · Grupo Altoplano — Guía de estilo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{ background:var(--canvas); }
+    .kit-top{ position:sticky; top:0; z-index:30; background:var(--topbar-bg); backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line); padding:12px 28px; display:flex; align-items:center; gap:14px; }
+    .kit-top .mark{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+      background:linear-gradient(155deg,#FFB259,#F5820A 60%,#E56A00); box-shadow:0 4px 10px rgba(245,130,10,.3); }
+    .kit-top .mark svg{ width:20px; height:20px; }
+    .kit-top b{ font-family:var(--ff-display); font-weight:800; font-size:15px; }
+    .kit-top b span{ color:var(--brand); }
+    .code{ font-family:var(--ff-mono); font-size:12px; background:var(--surface-3); border:1px solid var(--line-2);
+      border-radius:7px; padding:2px 8px; color:var(--brand-ink); }
+    .nav-demo{ width:250px; background:var(--side-bg); border:1px solid var(--side-line); border-radius:16px; padding:10px; box-shadow:var(--side-shadow); }
+  </style>
+</head>
+<body>
+  <div class="kit-top">
+    <div class="mark"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M4 24 L13 8 L18 17 L21 12 L28 24 Z" fill="#fff"/><path d="M13 8 L18 17 L15.2 17 L11.5 11 Z" fill="#fff" opacity="0.55"/></svg></div>
+    <b>Altoplano <span>· Pack UX/UI</span></b>
+    <div style="flex:1"></div>
+    <button class="btn" id="themeToggle">Cambiar tema</button>
+  </div>
+
+  <div class="kit-body">
+    <div class="kit-hd">
+      <div>
+        <h1 style="font-size:30px">Sistema de diseño</h1>
+        <p class="muted" style="margin:8px 0 0; max-width:66ch">
+          Tokens y componentes listos para reskin. Enlaza <span class="code">styles.css</span>,
+          usa las mismas clases y todo hereda la marca. Cambia colores desde <span class="code">:root</span>
+          y el tema oscuro desde <span class="code">[data-theme="dark"]</span>.
+        </p>
+      </div>
+    </div>
+
+    <!-- COLORES -->
+    <section class="kit-sec">
+      <h2>Colores de marca</h2>
+      <div class="sw-grid" id="brandSwatches"></div>
+      <h2 style="margin-top:26px">Actores · Humano / IA / Sistema</h2>
+      <div class="sw-grid" id="actorSwatches"></div>
+      <h2 style="margin-top:26px">Estados</h2>
+      <div class="sw-grid" id="stateSwatches"></div>
+    </section>
+
+    <!-- TIPOGRAFÍA -->
+    <section class="kit-sec">
+      <h2>Tipografía</h2>
+      <div class="kit-panel">
+        <div class="type-row"><div style="font-family:var(--ff-display); font-weight:800; font-size:30px; letter-spacing:-.02em">Montserrat 800 · Títulos</div><small>--ff-display · h1</small></div>
+        <div class="type-row"><div style="font-family:var(--ff-display); font-weight:700; font-size:21px">Montserrat 700 · Subtítulos</div><small>--ff-display · h2</small></div>
+        <div class="type-row"><div style="font-family:var(--ff-body); font-size:14px; max-width:70ch">Inter Regular · Texto de interfaz y párrafos. Legible en tamaños chicos y con buen color de contraste sobre superficies claras.</div><small>--ff-body · 14px</small></div>
+        <div class="type-row"><div style="font-family:var(--ff-mono); font-size:13px">IBM Plex Mono · datos, contadores, folios 01·02·03</div><small>--ff-mono</small></div>
+      </div>
+    </section>
+
+    <!-- BOTONES -->
+    <section class="kit-sec">
+      <h2>Botones</h2>
+      <div class="kit-panel">
+        <div class="kit-row">
+          <button class="btn primary">Acción principal</button>
+          <button class="btn">Secundario</button>
+          <button class="btn ghost">Ghost</button>
+          <button class="btn danger">Peligro</button>
+          <button class="btn sm">Pequeño</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BADGES / ESTADOS -->
+    <section class="kit-sec">
+      <h2>Etiquetas de estado, actor y riesgo</h2>
+      <div class="kit-panel">
+        <div class="kit-row" id="statusRow" style="margin-bottom:14px"></div>
+        <div class="kit-row" id="actorRow" style="margin-bottom:14px"></div>
+        <div class="kit-row" id="riskRow"></div>
+      </div>
+    </section>
+
+    <!-- NAV -->
+    <section class="kit-sec">
+      <h2>Navegación (pill activo + contador)</h2>
+      <div class="kit-row" style="align-items:flex-start; gap:18px">
+        <div class="nav-demo">
+          <div class="nav-group" style="margin-top:0">
+            <div class="g-title">Panorama</div>
+            <div class="nav-item active"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span class="txt">Centro de Mando</span><span class="count">4</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h6v4H4z"/><path d="M14 14h6v4h-6z"/><path d="M7 10v4h10"/></svg><span class="txt">Procesos</span><span class="count">3</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M9 13h6M9 17h6"/></svg><span class="txt">SOPs</span><span class="count">2</span></div>
+          </div>
+        </div>
+        <p class="muted" style="max-width:40ch; font-size:13px">
+          El item activo usa un pill suave con el naranja de marca y texto <span class="code">--brand-ink</span>
+          para máxima legibilidad. Contadores alineados a la derecha, como en tus referencias.
+          En tema oscuro, el pill cambia a degradado con barra de acento.
+        </p>
+      </div>
+    </section>
+
+    <!-- INPUTS -->
+    <section class="kit-sec">
+      <h2>Campos de captura</h2>
+      <div class="kit-panel">
+        <div class="form-grid">
+          <div class="fgroup"><label>Campo de texto</label><input class="inp" placeholder="Escribe aquí…" /></div>
+          <div class="fgroup"><label>Selector</label><select class="inp"><option>Opción A</option><option>Opción B</option></select></div>
+          <div class="fgroup col2"><label>Área de texto</label><textarea class="ta" placeholder="Descripción amplia…"></textarea></div>
+          <div class="fgroup col2"><label>Etiquetas</label><div class="tags"><span class="tg">ERPNext<button>×</button></span><span class="tg">Moorty<button>×</button></span><input placeholder="Agregar…" /></div></div>
+          <div class="fgroup col2"><label>Zona de archivos</label>
+            <div class="dropzone"><svg class="ico dz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20V9"/><path d="M8 13l4-4 4 4"/><path d="M5 4h14"/></svg><b>Arrastra archivos aquí</b><span> o haz clic para seleccionar</span><small>.docx · .pdf · .xlsx · imágenes</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARJETAS -->
+    <section class="kit-sec">
+      <h2>Tarjetas y paneles</h2>
+      <div class="grid g-3">
+        <div class="card kpi-card">
+          <div class="k-top"><div class="k-label">Procesos activos</div>
+            <div class="kpi-ico" style="background:rgba(31,157,107,.14); color:var(--ok)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h6v4H4z"/><path d="M14 14h6v4h-6z"/><path d="M7 10v4h10"/></svg></div>
+          </div>
+          <div class="k-val">2</div><div class="k-sub">de 3 en el modelo</div>
+          <div class="k-meter"><i style="width:66%; background:var(--ok)"></i></div>
+        </div>
+        <div class="card kpi-card">
+          <div class="k-top"><div class="k-label">Cobertura de owner</div>
+            <div class="kpi-ico" style="background:var(--brand-soft); color:var(--brand)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          </div>
+          <div class="k-val">100<small>%</small></div><div class="k-sub">procesos con responsable</div>
+          <div class="k-meter"><i style="width:100%; background:var(--brand)"></i></div>
+        </div>
+        <div class="card panel">
+          <div class="panel-h"><span class="pi" style="background:var(--info-soft); color:var(--info)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v12H4z"/><path d="M9 10l2 2 4-4"/></svg></span><h3>Panel</h3></div>
+          <div class="panel-list">
+            <div class="pl-item"><span class="pl-dot" style="background:var(--warn)"></span><div class="pl-main"><b>Elemento de lista</b><span>Descripción breve</span></div><span class="pl-right">Alto</span></div>
+            <div class="pl-item"><span class="pl-dot" style="background:var(--ok)"></span><div class="pl-main"><b>Otro elemento</b><span>Con subtítulo</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABLA -->
+    <section class="kit-sec">
+      <h2>Tabla</h2>
+      <table class="tbl">
+        <thead><tr><th>Nombre</th><th>Estado</th><th>Riesgo</th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div class="name-cell"><span class="rico" style="background:var(--brand)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h6v4H4z"/><path d="M14 14h6v4h-6z"/><path d="M7 10v4h10"/></svg></span><div><b>Lead → Cotización</b><small>Gerencia Comercial</small></div></div></td>
+            <td><span class="badge" style="color:#1F9D6B; background:#1F9D6B14; border-color:#1F9D6B33"><span class="d"></span>Activo</span></td>
+            <td><span class="risk-pill" style="background:#E08A2B1f; color:#E08A2B">Riesgo Medio</span></td>
+            <td style="text-align:right"><button class="btn ghost icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></td>
+          </tr>
+          <tr>
+            <td><div class="name-cell"><span class="rico" style="background:var(--a-ai)"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3a4 4 0 014 4v1h1a2 2 0 012 2v2a5 5 0 01-5 5H9a5 5 0 01-5-5V10a2 2 0 012-2h1V7a4 4 0 014-4z"/></svg></span><div><b>Agente de Calificación</b><small>Comercial</small></div></div></td>
+            <td><span class="badge" style="color:#E08A2B; background:#E08A2B14; border-color:#E08A2B33"><span class="d"></span>Piloto</span></td>
+            <td><span class="risk-pill" style="background:#1F9D6B1f; color:#1F9D6B">Riesgo Bajo</span></td>
+            <td style="text-align:right"><button class="btn ghost icon"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- Datos de marca leídos de config.js para pintar swatches reales -->
+  <script src="js/config.js"></script>
+  <script>
+    const LO = window.LO;
+    const el=(t,p,c)=>{ const n=document.createElement(t); if(p) for(const k in p){ if(k==="html")n.innerHTML=p[k]; else if(k==="style")n.setAttribute("style",p[k]); else n.setAttribute(k,p[k]); } if(c) (Array.isArray(c)?c:[c]).forEach(x=>n.appendChild(typeof x==="object"?x:document.createTextNode(x))); return n; };
+    function swatch(name, value){
+      const box=el("div",{class:"sw"});
+      box.appendChild(el("div",{class:"chip", style:"background:"+value}));
+      box.appendChild(el("div",{class:"meta"},[ el("b",{},name), el("span",{},value) ]));
+      return box;
+    }
+    // Marca
+    const brand=[["Brand","#F5820A"],["Brand strong","#E0720A"],["Brand ink","#B05200"],["Amber","#FFC24A"],["Brand soft","#FFF3E6"],["Navy","#0C1420"]];
+    brand.forEach(([n,v])=>document.getElementById("brandSwatches").appendChild(swatch(n,v)));
+    // Actores desde config
+    Object.keys(LO.ACTOR_TYPES).forEach(k=>{ const a=LO.ACTOR_TYPES[k]; document.getElementById("actorSwatches").appendChild(swatch(a.label,a.color)); });
+    // Estados
+    [["OK","#1F9D6B"],["Warn","#E08A2B"],["Error","#D84C4C"],["Info","#3B72C4"]].forEach(([n,v])=>document.getElementById("stateSwatches").appendChild(swatch(n,v)));
+
+    // Badges de estado
+    Object.keys(LO.STATUSES).forEach(k=>{ const s=LO.STATUSES[k];
+      const b=el("span",{class:"badge", style:"color:"+s.color+"; background:"+s.color+"14; border-color:"+s.color+"33"},[ el("span",{class:"d"}), s.label ]);
+      document.getElementById("statusRow").appendChild(b);
+    });
+    // Actores
+    Object.keys(LO.ACTOR_TYPES).forEach(k=>{ const a=LO.ACTOR_TYPES[k];
+      const b=el("span",{class:"actor", style:"background:"+a.color},[ el("span",{class:"k"},a.short), a.label ]);
+      document.getElementById("actorRow").appendChild(b);
+    });
+    // Riesgo
+    Object.keys(LO.RISK).forEach(k=>{ const r=LO.RISK[k];
+      document.getElementById("riskRow").appendChild(el("span",{class:"risk-pill", style:"background:"+r.color+"1f; color:"+r.color},"Riesgo "+r.label));
+    });
+
+    // Toggle de tema para previsualizar
+    document.getElementById("themeToggle").addEventListener("click",()=>{
+      const cur=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+      document.documentElement.setAttribute("data-theme",cur);
+    });
+  </script>
+</body>
+</html>
