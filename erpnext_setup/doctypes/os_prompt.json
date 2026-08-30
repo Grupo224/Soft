@@ -1,0 +1,128 @@
+{
+  "doctype": "DocType",
+  "name": "OS Prompt",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "prompt_title",
+      "label": "Prompt Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "prompt_code",
+      "label": "Prompt Code",
+      "fieldtype": "Data",
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "version_label",
+      "label": "Version Label",
+      "fieldtype": "Data",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nTested\nApproved\nDeprecated",
+      "default": "Draft",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "system_instruction",
+      "label": "System Instruction",
+      "fieldtype": "Text Editor"
+    },
+    {
+      "fieldname": "task_template",
+      "label": "Task Template",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "context_template",
+      "label": "Context Template",
+      "fieldtype": "Text Editor"
+    },
+    {
+      "fieldname": "tool_policy",
+      "label": "Tool Policy",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "output_schema",
+      "label": "Output Schema",
+      "fieldtype": "Code",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "fallback",
+      "label": "Fallback",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "approval_policy",
+      "label": "Approval Policy",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User",
+      "fieldtype": "Link",
+      "options": "User"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS AI Supervisor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

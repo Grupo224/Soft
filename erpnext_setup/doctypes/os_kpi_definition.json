@@ -1,0 +1,110 @@
+{
+  "doctype": "DocType",
+  "name": "OS KPI Definition",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "kpi_title",
+      "label": "KPI Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "kpi_code",
+      "label": "KPI Code",
+      "fieldtype": "Data",
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "entity_type",
+      "label": "Entity Type",
+      "fieldtype": "Select",
+      "options": "Company\nProcess\nStep\nAgent\nConnector",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "formula",
+      "label": "Formula",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "source",
+      "label": "Source",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "frequency",
+      "label": "Frequency",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "threshold_warning",
+      "label": "Threshold Warning",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "threshold_critical",
+      "label": "Threshold Critical",
+      "fieldtype": "Data"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Architect",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

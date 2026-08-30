@@ -1,0 +1,196 @@
+{
+  "doctype": "DocType",
+  "name": "OS Process",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "process_title",
+      "label": "Process Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "process_code",
+      "label": "Process Code",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company",
+      "reqd": 1
+    },
+    {
+      "fieldname": "department",
+      "label": "Department",
+      "fieldtype": "Link",
+      "options": "Department"
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User",
+      "fieldtype": "Link",
+      "options": "User",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "purpose",
+      "label": "Purpose",
+      "fieldtype": "Small Text",
+      "reqd": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nPilot\nActive\nDegraded\nRetired",
+      "default": "Draft",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "trigger_type",
+      "label": "Trigger Type",
+      "fieldtype": "Select",
+      "options": "Manual\nERP Event\nWebhook\nSchedule\nExternal",
+      "reqd": 1
+    },
+    {
+      "fieldname": "trigger_reference",
+      "label": "Trigger Reference",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "max_autonomy",
+      "label": "Max Autonomy",
+      "fieldtype": "Select",
+      "options": "L0\nL1\nL2\nL3\nL4",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "risk_level",
+      "label": "Risk Level",
+      "fieldtype": "Select",
+      "options": "Low\nMedium\nHigh\nCritical",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "sla_minutes",
+      "label": "SLA Minutes",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "sop",
+      "label": "SOP",
+      "fieldtype": "Link",
+      "options": "OS SOP"
+    },
+    {
+      "fieldname": "version_label",
+      "label": "Version Label",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "published_on",
+      "label": "Published On",
+      "fieldtype": "Datetime",
+      "read_only": 1
+    },
+    {
+      "fieldname": "canvas_json",
+      "label": "Canvas JSON (viewport/layout)",
+      "fieldtype": "Long Text"
+    },
+    {
+      "fieldname": "steps",
+      "label": "Steps",
+      "fieldtype": "Table",
+      "options": "OS Process Step"
+    },
+    {
+      "fieldname": "edges",
+      "label": "Edges",
+      "fieldtype": "Table",
+      "options": "OS Process Edge"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Architect",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Publisher",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

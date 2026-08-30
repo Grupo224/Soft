@@ -1,0 +1,134 @@
+{
+  "doctype": "DocType",
+  "name": "OS Org Node",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "node_type",
+      "label": "Node Type",
+      "fieldtype": "Select",
+      "options": "Company\nDepartment\nDesignation\nEmployee\nAgent\nCustom",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company"
+    },
+    {
+      "fieldname": "department",
+      "label": "Department",
+      "fieldtype": "Link",
+      "options": "Department"
+    },
+    {
+      "fieldname": "designation",
+      "label": "Designation",
+      "fieldtype": "Link",
+      "options": "Designation"
+    },
+    {
+      "fieldname": "employee",
+      "label": "Employee",
+      "fieldtype": "Link",
+      "options": "Employee"
+    },
+    {
+      "fieldname": "agent",
+      "label": "Agent",
+      "fieldtype": "Link",
+      "options": "OS Agent"
+    },
+    {
+      "fieldname": "custom_ref",
+      "label": "Custom Reference",
+      "fieldtype": "Data",
+      "description": "Uso libre cuando node_type = Custom"
+    },
+    {
+      "fieldname": "x",
+      "label": "X",
+      "fieldtype": "Float"
+    },
+    {
+      "fieldname": "y",
+      "label": "Y",
+      "fieldtype": "Float"
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Is Active",
+      "fieldtype": "Check",
+      "default": "1"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Architect",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

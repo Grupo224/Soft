@@ -1,0 +1,151 @@
+{
+  "doctype": "DocType",
+  "name": "OS Run",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "run_code",
+      "label": "Run Code",
+      "fieldtype": "Data",
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "process",
+      "label": "Process",
+      "fieldtype": "Link",
+      "options": "OS Process",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "process_version",
+      "label": "Process Version",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "company",
+      "label": "Company",
+      "fieldtype": "Link",
+      "options": "Company"
+    },
+    {
+      "fieldname": "initiated_by",
+      "label": "Initiated By",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "trigger_type",
+      "label": "Trigger Type",
+      "fieldtype": "Select",
+      "options": "Manual\nERP Event\nWebhook\nSchedule\nExternal"
+    },
+    {
+      "fieldname": "trigger_ref_doctype",
+      "label": "Trigger Ref DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "trigger_ref_name",
+      "label": "Trigger Ref Name",
+      "fieldtype": "Dynamic Link",
+      "options": "trigger_ref_doctype"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Queued\nRunning\nWaiting\nApproved\nCompleted\nFailed\nSkipped\nCancelled",
+      "default": "Queued",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "started_at",
+      "label": "Started At",
+      "fieldtype": "Datetime",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "completed_at",
+      "label": "Completed At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "current_step_key",
+      "label": "Current Step Key",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "correlation_id",
+      "label": "Correlation Id",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "summary",
+      "label": "Summary",
+      "fieldtype": "Small Text"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Operator",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

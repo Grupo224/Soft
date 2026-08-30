@@ -1,0 +1,128 @@
+{
+  "doctype": "DocType",
+  "name": "OS Approval",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "run",
+      "label": "Run",
+      "fieldtype": "Link",
+      "options": "OS Run",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "step_run",
+      "label": "Step Run",
+      "fieldtype": "Link",
+      "options": "OS Step Run"
+    },
+    {
+      "fieldname": "requested_to",
+      "label": "Requested To",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "requested_role",
+      "label": "Requested Role",
+      "fieldtype": "Link",
+      "options": "Role"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Pending\nApproved\nRejected",
+      "default": "Pending",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "requested_at",
+      "label": "Requested At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "decided_at",
+      "label": "Decided At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "decided_by",
+      "label": "Decided By",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "decision_comment",
+      "label": "Decision Comment",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "context_snapshot",
+      "label": "Context Snapshot",
+      "fieldtype": "Code",
+      "options": "JSON"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Operator",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

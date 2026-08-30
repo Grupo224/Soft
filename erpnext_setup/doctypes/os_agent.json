@@ -1,0 +1,137 @@
+{
+  "doctype": "DocType",
+  "name": "OS Agent",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "agent_title",
+      "label": "Agent Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "agent_code",
+      "label": "Agent Code",
+      "fieldtype": "Data",
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "purpose",
+      "label": "Purpose",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "department",
+      "label": "Department",
+      "fieldtype": "Link",
+      "options": "Department"
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User",
+      "fieldtype": "Link",
+      "options": "User",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "autonomy_max",
+      "label": "Autonomy Max",
+      "fieldtype": "Select",
+      "options": "L0\nL1\nL2\nL3\nL4",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "prompt",
+      "label": "Prompt",
+      "fieldtype": "Link",
+      "options": "OS Prompt"
+    },
+    {
+      "fieldname": "skills",
+      "label": "Skills",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "tools_allowed",
+      "label": "Tools Allowed",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "budget_limit",
+      "label": "Budget Limit",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "escalation_policy",
+      "label": "Escalation Policy",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "model_policy",
+      "label": "Model / Provider Reference",
+      "fieldtype": "Data",
+      "description": "Solo referencia, nunca credenciales."
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Draft\nActive\nDisabled",
+      "default": "Draft",
+      "in_list_view": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS AI Supervisor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

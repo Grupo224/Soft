@@ -1,0 +1,146 @@
+{
+  "doctype": "DocType",
+  "name": "OS Process Step",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 1,
+  "editable_grid": 1,
+  "track_changes": 0,
+  "fields": [
+    {
+      "fieldname": "step_key",
+      "label": "Step Key",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "unique": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "step_title",
+      "label": "Step Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "step_type",
+      "label": "Step Type",
+      "fieldtype": "Select",
+      "options": "START\nHUMAN\nHYBRID\nAI\nSYSTEM\nGATEWAY\nAPPROVAL\nWAIT\nEND",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "execution_type",
+      "label": "Execution Type",
+      "fieldtype": "Select",
+      "options": "H\nH+AI\nAI→H\nAI\nSYS",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "actor_kind",
+      "label": "Actor Kind",
+      "fieldtype": "Select",
+      "options": "User\nRole\nAgent\nSystem"
+    },
+    {
+      "fieldname": "actor_user",
+      "label": "Actor User",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "actor_role",
+      "label": "Actor Role",
+      "fieldtype": "Link",
+      "options": "Role"
+    },
+    {
+      "fieldname": "actor_agent",
+      "label": "Actor Agent",
+      "fieldtype": "Link",
+      "options": "OS Agent"
+    },
+    {
+      "fieldname": "instructions",
+      "label": "Instructions",
+      "fieldtype": "Text Editor"
+    },
+    {
+      "fieldname": "input_schema",
+      "label": "Input Schema",
+      "fieldtype": "Code",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "output_schema",
+      "label": "Output Schema",
+      "fieldtype": "Code",
+      "options": "JSON"
+    },
+    {
+      "fieldname": "evidence_policy",
+      "label": "Evidence Policy",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "sla_minutes",
+      "label": "SLA Minutes",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "requires_approval",
+      "label": "Requires Approval",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "approval_role",
+      "label": "Approval Role",
+      "fieldtype": "Link",
+      "options": "Role"
+    },
+    {
+      "fieldname": "prompt",
+      "label": "Prompt",
+      "fieldtype": "Link",
+      "options": "OS Prompt"
+    },
+    {
+      "fieldname": "agent",
+      "label": "Agent",
+      "fieldtype": "Link",
+      "options": "OS Agent"
+    },
+    {
+      "fieldname": "x",
+      "label": "X",
+      "fieldtype": "Float"
+    },
+    {
+      "fieldname": "y",
+      "label": "Y",
+      "fieldtype": "Float"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "doctype": "DocType",
+  "name": "OS Evidence",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "run",
+      "label": "Run",
+      "fieldtype": "Link",
+      "options": "OS Run",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "step_run",
+      "label": "Step Run",
+      "fieldtype": "Link",
+      "options": "OS Step Run",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "evidence_type",
+      "label": "Evidence Type",
+      "fieldtype": "Select",
+      "options": "File\nLink\nRecord\nNote",
+      "reqd": 1
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "reference_name",
+      "label": "Reference Name",
+      "fieldtype": "Dynamic Link",
+      "options": "reference_doctype"
+    },
+    {
+      "fieldname": "file",
+      "label": "File",
+      "fieldtype": "Attach"
+    },
+    {
+      "fieldname": "external_reference",
+      "label": "External Reference",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "summary",
+      "label": "Summary",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "verified_by",
+      "label": "Verified By",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "verified_at",
+      "label": "Verified At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "verification_status",
+      "label": "Verification Status",
+      "fieldtype": "Select",
+      "options": "Pending\nVerified\nRejected",
+      "default": "Pending",
+      "in_list_view": 1
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Operator",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

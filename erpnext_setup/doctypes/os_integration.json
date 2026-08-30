@@ -1,0 +1,104 @@
+{
+  "doctype": "DocType",
+  "name": "OS Integration",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {
+      "fieldname": "integration_name",
+      "label": "Integration Name",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "provider",
+      "label": "Provider",
+      "fieldtype": "Data",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "category",
+      "label": "Category",
+      "fieldtype": "Select",
+      "options": "CRM\nComms\nDocs\nCalendar\nFinance\nAutomation\nCustomAPI",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Connected\nDegraded\nDisconnected",
+      "default": "Disconnected",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "scopes_declared",
+      "label": "Scopes Declared",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "external_connection_id",
+      "label": "External Connection Id",
+      "fieldtype": "Data",
+      "description": "Referencia, nunca el secreto."
+    },
+    {
+      "fieldname": "last_sync_at",
+      "label": "Last Sync At",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "owner_user",
+      "label": "Owner User (responsable técnico)",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "health_notes",
+      "label": "Health Notes",
+      "fieldtype": "Small Text"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Auditor",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "OS Viewer",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "report": 1,
+      "export": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}
