@@ -7,6 +7,23 @@
   var OS = global.OS = global.OS || {};
   var api = OS.api;
 
+  /* Firma visual Grupo Altoplano (pack de diseño LIVINGORG OS): marca de
+   * montaña para el logo, curvas de nivel topográficas como fondo decorativo. */
+  var OS_MARK_SVG = '<svg viewBox="0 0 32 32" fill="none" aria-hidden="true">' +
+    '<path d="M4 24 L13 8 L18 17 L21 12 L28 24 Z" fill="#fff"/>' +
+    '<path d="M13 8 L18 17 L15.2 17 L11.5 11 Z" fill="#fff" opacity="0.55"/></svg>';
+  function osTopoSvg() {
+    var paths = "";
+    for (var i = 0; i < 6; i++) {
+      var y = 30 + i * 26, a = 10 + i * 3;
+      paths += '<path d="M-40 ' + y + ' C 120 ' + (y - a) + ', 260 ' + (y + a) + ', 460 ' + (y - a) +
+        ' S 820 ' + (y + a) + ', 1100 ' + (y - a) + '" opacity="' + (0.9 - i * 0.11) + '"/>';
+    }
+    return '<svg viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + paths + '</svg>';
+  }
+  var OS_TOPO_SVG = osTopoSvg();
+  OS.topoSvg = OS_TOPO_SVG; // reutilizable como fondo decorativo (hero del dashboard, vacíos, etc.)
+
   /* ============================= Utilidades ============================= */
   var util = {
     debounce: function (fn, ms) {
@@ -461,16 +478,18 @@
     { group: "Gobierno" },
     { path: "/integrations", icon: "🔌", label: "Integraciones" },
     { path: "/roles", icon: "🎖", label: "Fichas de Rol" },
-    { path: "/kpis", icon: "🎯", label: "KPIs" }
+    { path: "/kpis", icon: "🎯", label: "KPIs" },
+    { path: "/policies", icon: "📜", label: "Políticas" }
   ];
 
   function buildShell(root) {
     root.innerHTML =
       '<div class="os-shell">' +
       '  <aside class="os-sidebar">' +
-      '    <div class="os-brand"><div class="os-logo">OS</div><div><div class="os-brand-title">LivingOrg OS</div>' +
+      '    <div class="os-brand"><div class="os-logo">' + OS_MARK_SVG + '</div><div><div class="os-brand-title">LivingOrg OS</div>' +
       '    <div class="os-brand-sub">sobre ERPNext / Frappe</div></div></div>' +
       '    <nav class="os-nav" id="os-nav"></nav>' +
+      '    <div class="os-topo">' + OS_TOPO_SVG + '</div>' +
       '    <div class="os-sidebar-foot">v1.0 · Portal HTML/CSS/JS<br>Sin modificar el core.</div>' +
       '  </aside>' +
       '  <div class="os-sidebar-scrim" id="os-sidebar-scrim"></div>' +
@@ -660,13 +679,20 @@
       case "number": return ui.fieldRow(f.label, '<input class="os-input" type="number" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
       case "date": return ui.fieldRow(f.label, '<input class="os-input" type="date" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
       case "link": return ui.fieldRow(f.label, '<input class="os-input" data-f="' + f.name + '" data-link="' + f.linkDoctype + '" value="' + util.escapeHtml(v) + '">', f.hint);
+      case "file": return ui.fieldRow(f.label, '<div data-ff="' + f.name + '" data-value="' + util.escapeHtml(v) + '"></div>', f.hint);
       default: return ui.fieldRow(f.label, '<input class="os-input" data-f="' + f.name + '" value="' + util.escapeHtml(v) + '">', f.hint);
     }
   }
-  function wireFields(root) { root.querySelectorAll("[data-link]").forEach(function (elx) { ui.attachLinkSearch(elx, elx.dataset.link); }); }
+  function wireFields(root) {
+    root.querySelectorAll("[data-link]").forEach(function (elx) { ui.attachLinkSearch(elx, elx.dataset.link); });
+    root.querySelectorAll("[data-ff]").forEach(function (elx) {
+      ui.fileField(elx, { value: elx.dataset.value || "", onChange: function (url) { elx.dataset.value = url || ""; } });
+    });
+  }
   function collectFields(root) {
     var payload = {};
     root.querySelectorAll("[data-f]").forEach(function (elx) { payload[elx.dataset.f] = elx.type === "checkbox" ? (elx.checked ? 1 : 0) : elx.value; });
+    root.querySelectorAll("[data-ff]").forEach(function (elx) { payload[elx.dataset.ff] = elx.dataset.value || ""; });
     return payload;
   }
   // Expuestos para que otras páginas (asistentes por pasos, formularios a medida

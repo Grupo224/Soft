@@ -25,7 +25,7 @@ portal/
   pages/os-web-page.html       El único bloque HTML que se pega en el Web Page de Frappe
 
 erpnext_setup/
-  doctypes/*.json              Especificación campo-por-campo de los 19 Custom DocTypes
+  doctypes/*.json              Especificación campo-por-campo de los 20 Custom DocTypes
   roles_permission_matrix.md   Matriz de permisos por rol OS
   README_INSTALACION.md        Guía paso a paso (sin SSH) para montar todo esto
 

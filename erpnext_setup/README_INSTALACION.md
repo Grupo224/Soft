@@ -26,7 +26,7 @@ Ve a **Desk → Usuarios y permisos → Rol → Nuevo** y crea estos 8 roles (no
 Ver `roles_permission_matrix.md` para qué puede hacer cada rol. Asigna estos roles
 a los usuarios reales desde **Usuario → Roles** antes de continuar.
 
-## 2. Crear los 19 Custom DocTypes
+## 2. Crear los 20 Custom DocTypes
 
 Carpeta `erpnext_setup/doctypes/*.json` contiene la especificación **campo por campo**
 de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de destino).
@@ -53,6 +53,7 @@ de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de desti
 17. `OS Integration`
 18. `OS Knowledge Source`
 19. `OS Skill`
+20. `OS Policy`
 
 > **Nota de migración**: `OS SOP` cambió de un campo de texto libre (`procedure`) a una
 > tabla estructurada de pasos (`steps` → `OS SOP Step`). El campo anterior se conserva
@@ -68,6 +69,13 @@ de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de desti
 > versión, solo necesitas **agregar los campos nuevos** listados en sus respectivos
 > `.json` (no hace falta recrear el DocType), y crear el nuevo child table
 > `OS Process Goal` para el campo `goals`.
+
+> **Nota de migración (auditoría de completitud)**: `OS Agent` (+`knowledge_sources`,
+> `output_schema`, `docs`), `OS Prompt` (+`docs`), `OS Knowledge Source` (+`content`),
+> `OS Integration` (+`depends`) y `OS Approval` (+`process`, `due_by`, `risk_level`)
+> se ampliaron con campos que ya existían en el modelo de referencia pero no se habían
+> portado al esquema real — todos opcionales y aditivos. `OS Policy` es un DocType
+> nuevo (el módulo "Gobierno" no tenía dónde documentar políticas hasta ahora).
 
 Para cada uno:
 

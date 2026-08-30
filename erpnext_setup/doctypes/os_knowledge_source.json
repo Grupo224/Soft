@@ -74,6 +74,12 @@
       "fieldtype": "Small Text"
     },
     {
+      "fieldname": "content",
+      "label": "Content / Notes",
+      "fieldtype": "Long Text",
+      "description": "Notas o contenido capturado directamente, cuando no basta con un archivo o referencia externa."
+    },
+    {
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",

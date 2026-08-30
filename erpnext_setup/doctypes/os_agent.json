@@ -79,6 +79,24 @@
       "description": "Solo referencia, nunca credenciales."
     },
     {
+      "fieldname": "knowledge_sources",
+      "label": "Knowledge Sources",
+      "fieldtype": "Small Text",
+      "description": "Fuentes de conocimiento que consulta, separadas por coma."
+    },
+    {
+      "fieldname": "output_schema",
+      "label": "Output Contract (Schema)",
+      "fieldtype": "Code",
+      "options": "JSON",
+      "description": "JSON esperado de salida."
+    },
+    {
+      "fieldname": "docs",
+      "label": "Evaluations / Documents",
+      "fieldtype": "Attach"
+    },
+    {
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",

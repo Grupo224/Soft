@@ -67,6 +67,24 @@
       "label": "Context Snapshot",
       "fieldtype": "Code",
       "options": "JSON"
+    },
+    {
+      "fieldname": "process",
+      "label": "Process",
+      "fieldtype": "Link",
+      "options": "OS Process",
+      "description": "Se puede derivar del Run, pero se guarda directo para filtrar/reportar sin saltos."
+    },
+    {
+      "fieldname": "due_by",
+      "label": "Due By",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "risk_level",
+      "label": "Risk Level",
+      "fieldtype": "Select",
+      "options": "Low\nMedium\nHigh\nCritical"
     }
   ],
   "permissions": [

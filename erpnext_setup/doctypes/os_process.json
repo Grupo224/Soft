@@ -227,6 +227,13 @@
       "description": "Dónde el proceso se detiene a esperar autorización."
     },
     {
+      "fieldname": "policy",
+      "label": "Applicable Policy",
+      "fieldtype": "Link",
+      "options": "OS Policy",
+      "description": "Reglas que el proceso debe cumplir."
+    },
+    {
       "fieldname": "controls",
       "label": "Controls",
       "fieldtype": "Small Text",

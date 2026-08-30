@@ -24,7 +24,10 @@
       { name: "tools_allowed", label: "Herramientas y scopes autorizados", type: "textarea" },
       { name: "budget_limit", label: "Presupuesto (tokens/costo/tiempo por run)" },
       { name: "escalation_policy", label: "Política de escalación", type: "textarea" },
-      { name: "model_policy", label: "Referencia de modelo/proveedor (sin credenciales)" }
+      { name: "model_policy", label: "Referencia de modelo/proveedor (sin credenciales)" },
+      { name: "knowledge_sources", label: "Fuentes de conocimiento que consulta", type: "textarea" },
+      { name: "output_schema", label: "Contrato de salida (schema)", type: "code" },
+      { name: "docs", label: "Evaluaciones / documentos", type: "file" }
     ],
     related: function (host, doc) {
       Promise.all([
@@ -60,7 +63,8 @@
       { name: "output_schema", label: "Output schema (JSON)", type: "code" },
       { name: "fallback", label: "Fallback si faltan datos o falla una herramienta", type: "textarea" },
       { name: "approval_policy", label: "Cuándo requiere humano", type: "textarea" },
-      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" },
+      { name: "docs", label: "Casos de prueba / adjuntos", type: "file" }
     ],
     related: function (host, doc) {
       host.innerHTML =
@@ -97,7 +101,8 @@
       { name: "scopes_declared", label: "Scopes declarados", type: "textarea" },
       { name: "external_connection_id", label: "ID de conexión externa (referencia, no secreto)" },
       { name: "owner_user", label: "Responsable técnico", type: "link", linkDoctype: "User" },
-      { name: "health_notes", label: "Notas de salud / última incidencia", type: "textarea" }
+      { name: "health_notes", label: "Notas de salud / última incidencia", type: "textarea" },
+      { name: "depends", label: "Procesos dependientes", type: "textarea", hint: "Si esta integración falla, qué procesos se ven afectados." }
     ]
   });
 
@@ -126,6 +131,23 @@
       { name: "formula", label: "Fórmula", type: "textarea" }, { name: "source", label: "Fuente de datos" }, { name: "frequency", label: "Frecuencia de medición" },
       { name: "threshold_warning", label: "Umbral de alerta" }, { name: "threshold_critical", label: "Umbral crítico" },
       { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
+    ]
+  });
+
+  ui.simpleModule({
+    path: "/policies", title: "Políticas", doctype: "OS Policy", icon: "📜",
+    subtitle: "Reglas de permisos, riesgo, herramientas y autonomía que los procesos y agentes deben cumplir.",
+    titleField: "policy_title", statusField: "status", statusOptions: ["Draft", "Active", "Retired"],
+    columns: [
+      { field: "policy_title", label: "Política" }, { field: "scope", label: "Alcance" },
+      { field: "status", label: "Estado", render: function (r) { return ui.badgeStatus(r.status); } }, { field: "owner_user", label: "Responsable" }
+    ],
+    fields: [
+      { name: "policy_title", label: "Nombre de la política" },
+      { name: "scope", label: "Alcance", hint: "Un área, un tipo de acción, o \"Global\"." },
+      { name: "rules", label: "Reglas", type: "textarea" },
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" },
+      { name: "docs", label: "Documentos", type: "file" }
     ]
   });
 })(window);

@@ -4,35 +4,43 @@
  * Sin dependencias externas de JS. Compatible con la Website de Frappe.
  */
 .os-app{
-  /* Marca y acentos — tokens oficiales Grupo Altoplano */
-  --os-brand:#F26B1F; --os-brand-strong:#C6540F; --os-brand-soft:#FBE7D8;
-  --os-accent-grad:linear-gradient(135deg,#F26B1F,#F0904D);
+  /* Marca y acentos — identidad Grupo Altoplano (pack de diseño LIVINGORG OS) */
+  --os-brand:#F5820A; --os-brand-strong:#E0720A; --os-brand-ink:#B05200;
+  --os-brand-soft:#FFF3E6; --os-brand-tint:#FDE7CE; --os-brand-line:#F3CFA2;
+  --os-gold:#FFC24A; --os-gold-soft:#FFF5DE;
+  --os-accent-grad:linear-gradient(135deg,#F5820A,#FFC24A);
 
-  /* Chrome oscuro (barra lateral) */
-  --os-ink:#1A1A1A; --os-ink-2:#262624; --os-ink-line:#3D3D3D; --os-ink-text:#D9D6D0; --os-ink-mut:#8f8b83;
+  /* Chrome oscuro (barra lateral) — navy Altoplano */
+  --os-ink:#0C1420; --os-ink-2:#121D2C; --os-ink-line:#23334A; --os-ink-text:#C4CFDE; --os-ink-mut:#75879F;
 
   /* Superficies claras */
-  --os-bg:#FAF6F0; --os-bg-soft:#F3EDE3; --os-panel:#FFFFFF; --os-panel-2:#FCFAF6;
-  --os-border:#E7DED0; --os-border-soft:#EFE9DE;
+  --os-bg:#EFEDE7; --os-bg-soft:#F2F0EA; --os-panel:#FFFFFF; --os-panel-2:#FAF8F3;
+  --os-border:#E7E1D5; --os-border-soft:#F0ECE3;
 
   /* Texto */
-  --os-text:#1A1A1A; --os-text-dim:#3D3D3D; --os-text-mute:#8a8478;
+  --os-text:#1B242F; --os-text-dim:#57616F; --os-text-mute:#909AA6;
 
   /* Semántica de actores (Humano / Híbrido / IA / Sistema) */
   --os-a-h:#C8862F; --os-a-hai:#B87BD6; --os-a-aih:#8067EE; --os-a-ai:#6D5AE6; --os-a-sys:#2E8FB0;
 
   /* Estados */
-  --os-green:#1F9D6B; --os-amber:#E08A2B; --os-red:#D84C4C; --os-blue:#4E7BD6; --os-gray:#8a8478;
+  --os-green:#1F9D6B; --os-green-soft:#E4F5EE; --os-amber:#E08A2B; --os-amber-soft:#FCEFDC;
+  --os-red:#D84C4C; --os-red-soft:#FBE9E9; --os-blue:#3B72C4; --os-blue-soft:#E7EFFB; --os-gray:#909AA6;
 
-  --os-radius:11px; --os-radius-sm:8px; --os-radius-lg:16px;
-  --os-shadow:0 20px 50px rgba(26,20,10,.14), 0 6px 16px rgba(26,20,10,.08);
-  --os-shadow-sm:0 1px 2px rgba(26,20,10,.06), 0 1px 3px rgba(26,20,10,.05);
+  --os-radius:13px; --os-radius-sm:9px; --os-radius-lg:18px; --os-radius-xl:26px; --os-radius-pill:999px;
+  --os-shadow:0 30px 70px rgba(12,20,32,.22), 0 10px 26px rgba(12,20,32,.12);
+  --os-shadow-md:0 8px 22px rgba(26,20,10,.08), 0 3px 8px rgba(26,20,10,.05);
+  --os-shadow-sm:0 1px 2px rgba(26,20,10,.05), 0 2px 6px rgba(26,20,10,.04);
+  --os-shadow-brand:0 6px 16px rgba(245,130,10,.28);
   --os-font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-  --os-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --os-sidebar-w:254px; --os-topbar-h:60px; --os-inspector-w:min(560px,94vw);
+  --os-font-display:"Montserrat","Inter",-apple-system,sans-serif;
+  --os-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --os-sidebar-w:264px; --os-topbar-h:62px; --os-inspector-w:min(560px,94vw);
 }
 .os-app{font-family:var(--os-font);color:var(--os-text);background:var(--os-bg);
   min-height:100vh;position:relative;line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased}
+.os-app h1,.os-app h2,.os-app h3,.os-app h4,.os-app .os-page-title,.os-app .os-modal-title,
+.os-app .os-brand-title,.os-app .os-inspector-title{font-family:var(--os-font-display);letter-spacing:-.015em}
 .os-app *,.os-app *::before,.os-app *::after{box-sizing:border-box}
 .os-app a{color:var(--os-brand);text-decoration:none}
 .os-app button{font-family:inherit}
@@ -50,13 +58,18 @@
 
 /* ---------- Shell: topbar + sidebar + content ---------- */
 .os-shell{display:flex;min-height:100vh}
-.os-sidebar{width:var(--os-sidebar-w);flex:0 0 auto;background:var(--os-ink);
+.os-sidebar{width:var(--os-sidebar-w);flex:0 0 auto;background:radial-gradient(120% 60% at 50% -10%,#16233a 0%,transparent 60%) var(--os-ink);
   border-right:1px solid var(--os-ink-line);position:sticky;top:0;height:100vh;
   display:flex;flex-direction:column;overflow-y:auto;z-index:20}
-.os-brand{display:flex;align-items:center;gap:11px;padding:16px 16px 14px;border-bottom:1px solid var(--os-ink-line)}
-.os-brand .os-logo{width:30px;height:30px;border-radius:9px;background:var(--os-accent-grad);
+.os-brand{display:flex;align-items:center;gap:11px;padding:16px 16px 14px;border-bottom:1px solid var(--os-ink-line);position:relative;z-index:1}
+.os-brand .os-logo{width:32px;height:32px;border-radius:9px;background:var(--os-accent-grad);
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex:none;
-  box-shadow:0 0 0 1px rgba(255,255,255,.08),inset 0 1px 1px rgba(255,255,255,.35);position:relative}
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),inset 0 1px 1px rgba(255,255,255,.35),var(--os-shadow-brand);position:relative}
+.os-brand .os-logo svg{width:18px;height:18px}
+/* Firma visual: curvas de nivel topográficas (pack de diseño LIVINGORG OS) */
+.os-topo{position:absolute;inset:auto 0 0 0;height:190px;overflow:hidden;pointer-events:none;color:#2B3C56;opacity:.6;z-index:0}
+.os-topo svg{position:absolute;width:140%;height:auto;bottom:0}
+.os-topo path{fill:none;stroke:currentColor;stroke-width:1.4}
 .os-brand-title{font-weight:700;font-size:15px;letter-spacing:.1px;color:#fff}
 .os-brand-sub{font-size:11px;color:var(--os-ink-mut)}
 .os-nav{padding:6px 10px;display:flex;flex-direction:column;gap:2px;flex:1}
@@ -72,7 +85,8 @@
 .os-nav-badge{margin-left:auto;font-size:10.5px;background:var(--os-ink-2);color:var(--os-ink-mut);
   padding:1px 7px;border-radius:20px;font-weight:700}
 .os-nav-badge.warn{background:#3a2a12;color:var(--os-amber)}
-.os-sidebar-foot{padding:10px 16px 14px;border-top:1px solid var(--os-ink-line);font-size:11.5px;color:var(--os-ink-mut)}
+.os-sidebar-foot{padding:10px 16px 14px;border-top:1px solid var(--os-ink-line);font-size:11.5px;color:var(--os-ink-mut);position:relative;z-index:1;background:var(--os-ink)}
+.os-nav{position:relative;z-index:1}
 
 .os-main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh}
 .os-topbar{height:var(--os-topbar-h);flex:none;display:flex;align-items:center;gap:14px;
@@ -94,6 +108,43 @@
 .os-page-title{font-size:22px;font-weight:700;letter-spacing:-.01em}
 .os-page-sub{color:var(--os-text-dim);font-size:13px;margin-top:5px;max-width:64ch}
 .os-page-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- Hero del Centro de Mando ---------- */
+.os-hero{position:relative;overflow:hidden;border-radius:var(--os-radius-xl);border:1px solid var(--os-brand-line);
+  background:linear-gradient(120deg,#FFF7EE 0%,#FBEEDE 100%);padding:26px 28px;margin-bottom:18px}
+.os-hero .os-hero-topo{color:var(--os-brand);opacity:.1;height:100%}
+.os-hero-inner{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.os-hero-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;
+  font-weight:800;color:var(--os-brand-ink)}
+.os-hero-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--os-green);box-shadow:0 0 0 3px var(--os-green-soft)}
+.os-hero h1{font-family:var(--os-font-display);font-size:26px;font-weight:800;margin:8px 0 0;letter-spacing:-.015em}
+.os-hero-sub{color:var(--os-text-dim);font-size:13.5px;margin-top:8px;max-width:56ch}
+.os-hero-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+/* ---------- KPI con medidor ---------- */
+.os-kpi-meter{height:6px;border-radius:6px;background:var(--os-border-soft);margin-top:8px;overflow:hidden}
+.os-kpi-meter i{display:block;height:100%;border-radius:6px}
+
+/* ---------- Mapa de ejecución (Humano/IA/Sistema) ---------- */
+.os-execmap-bar{display:flex;height:38px;border-radius:11px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--os-border)}
+.os-execmap-bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;min-width:2px}
+.os-execmap-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.os-execmap-legend .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--os-text-dim)}
+.os-execmap-legend .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.os-empty-inline{font-size:12.5px;color:var(--os-text-mute);padding:10px 0}
+
+/* ---------- Health Score ---------- */
+.os-health{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.os-health-ringwrap{width:120px;flex:none}
+.os-health-ring{width:100%}
+.os-health-ring .v{font-family:var(--os-font-display);font-size:25px;font-weight:800;fill:var(--os-text)}
+.os-health-ring .l{font-size:8px;font-weight:700;fill:var(--os-text-mute)}
+.os-health-legend{flex:1;min-width:200px;display:grid;gap:9px}
+.os-health-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--os-text-dim)}
+.os-health-row .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.os-health-row .track{flex:1;height:6px;border-radius:6px;background:var(--os-border-soft);overflow:hidden}
+.os-health-row .track i{display:block;height:100%;border-radius:6px}
+.os-health-row .v{font-family:var(--os-mono);font-size:11.5px;font-weight:600;color:var(--os-text)}
 
 /* ---------- Primitives ---------- */
 .os-card{background:var(--os-panel);border:1px solid var(--os-border);border-radius:var(--os-radius);padding:16px;box-shadow:var(--os-shadow-sm)}

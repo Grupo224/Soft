@@ -89,6 +89,7 @@
       { name: "responsible_node", label: "Responsable vinculado (organigrama)", type: "link", linkDoctype: "OS Org Node" },
       { name: "risk_level", label: "Riesgo", type: "select", options: ["Low", "Medium", "High", "Critical"], required: true },
       { name: "gates", label: "Puntos de aprobación (gates)", type: "textarea" },
+      { name: "policy", label: "Política aplicable", type: "link", linkDoctype: "OS Policy" },
       { name: "controls", label: "Controles", type: "textarea", hint: "Obligatorio en la práctica si el riesgo es alto." },
       { name: "sop", label: "SOP vinculado", type: "link", linkDoctype: "OS SOP" }
     ] },

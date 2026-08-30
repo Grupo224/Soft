@@ -50,12 +50,29 @@
     }
   }
 
+  /** Busca las instrucciones del paso (viven en OS Process Step, no se snapshotean
+   * en OS Step Run) para que quien ejecuta sepa qué se le pide antes de completar. */
+  function fetchStepInstructions(stepRun) {
+    return api.get("OS Run", stepRun.run).then(function (run) {
+      if (!run.process) return "";
+      return api.get("OS Process", run.process).then(function (proc) {
+        var step = (proc.steps || []).find(function (s) { return s.step_key === stepRun.step_key; });
+        return (step && step.instructions) || "";
+      });
+    }).catch(function () { return ""; });
+  }
+
   function openComplete(stepRun, done) {
     var body = document.createElement("div");
     body.innerHTML =
+      '<div id="c-instructions"></div>' +
       '<div class="os-field"><label>Resultado / comentario</label><textarea class="os-textarea" id="c-comment" placeholder="Qué se hizo, decisión tomada, siguiente acción…"></textarea></div>' +
       (stepRun.evidence_required ? '<div class="os-field"><label>Evidencia requerida</label><input type="file" id="c-file"><div class="hint">También puedes referenciar un documento ERPNext ya existente.</div>' +
         '<input class="os-input" id="c-ref" placeholder="reference_doctype:reference_name (opcional)" style="margin-top:6px"></div>' : "");
+    fetchStepInstructions(stepRun).then(function (instr) {
+      var host = body.querySelector("#c-instructions");
+      if (host) host.innerHTML = instr ? '<div class="os-section-title">Instrucciones del paso</div><div class="os-card" style="margin-bottom:14px;white-space:pre-wrap;font-size:13px">' + U.escapeHtml(instr) + '</div>' : '';
+    });
     ui.modal({
       title: "Completar: " + (stepRun.step_title_snapshot || stepRun.step_key), body: body,
       actions: [
@@ -94,7 +111,7 @@
 
     function load() {
       api.list("OS Approval", {
-        fields: ["name", "run", "step_run", "requested_to", "requested_role", "status", "requested_at", "context_snapshot"],
+        fields: ["name", "run", "step_run", "process", "requested_to", "requested_role", "status", "requested_at", "due_by", "risk_level", "context_snapshot"],
         filters: [["status", "=", "Pending"]], orderBy: "requested_at asc", limit: 100
       }).then(function (rows) {
         var host = container.querySelector("#os-appr-list");
@@ -102,8 +119,9 @@
         host.innerHTML = rows.map(function (r) {
           return '<div class="os-card" data-n="' + r.name + '">' +
             '<div style="display:flex;justify-content:space-between;gap:10px"><div>' +
-            '<div><b>Run ' + U.escapeHtml(r.run) + '</b></div>' +
-            '<div class="muted" style="font-size:12px">Paso: ' + U.escapeHtml(r.step_run || "—") + ' · solicitado a ' + U.escapeHtml(r.requested_to || r.requested_role || "—") + ' · ' + U.timeAgo(r.requested_at) + '</div>' +
+            '<div><b>Run ' + U.escapeHtml(r.run) + '</b>' + (r.process ? ' · <a href="#/processes/' + r.process + '">' + U.escapeHtml(r.process) + '</a>' : '') + ' ' + (r.risk_level ? ui.badgeRisk(r.risk_level) : '') + '</div>' +
+            '<div class="muted" style="font-size:12px">Paso: ' + U.escapeHtml(r.step_run || "—") + ' · solicitado a ' + U.escapeHtml(r.requested_to || r.requested_role || "—") + ' · ' + U.timeAgo(r.requested_at) +
+            (r.due_by ? ' · vence ' + U.fmtDate(r.due_by) : '') + '</div>' +
             (r.context_snapshot ? '<pre style="white-space:pre-wrap;font-size:11.5px;color:var(--os-text-dim);margin-top:8px">' + U.escapeHtml(r.context_snapshot).slice(0, 400) + '</pre>' : "") +
             '</div><div style="display:flex;gap:6px;align-self:flex-start">' +
             '<button class="os-btn danger sm" data-a="reject">Rechazar</button><button class="os-btn primary sm" data-a="approve">Aprobar</button>' +

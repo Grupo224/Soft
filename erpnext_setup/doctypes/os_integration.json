@@ -61,6 +61,12 @@
       "fieldname": "health_notes",
       "label": "Health Notes",
       "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "depends",
+      "label": "Dependent Processes",
+      "fieldtype": "Small Text",
+      "description": "Procesos que dependen de esta integración, separados por coma — para análisis de impacto si falla."
     }
   ],
   "permissions": [

@@ -15,12 +15,12 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
   ├─ User / Role / Permission          ← identidad y permisos reales
   ├─ Company / Department / Designation / Employee   ← estructura ya existente
   ├─ Lead / Opportunity / Quotation / Project / Task  ← transacciones reales
-  └─ 19 Custom DocTypes OS_* (erpnext_setup/doctypes)
+  └─ 20 Custom DocTypes OS_* (erpnext_setup/doctypes)
        OS Org Node / OS Org Relation / OS Role Card
        OS Process (+ Steps/Edges/Goals child tables) / OS SOP
        OS Prompt / OS Agent / OS Skill
        OS Run / OS Step Run / OS Evidence / OS Approval
-       OS KPI Definition / OS Integration / OS Knowledge Source
+       OS KPI Definition / OS Integration / OS Knowledge Source / OS Policy
   │
   └───────────────► SERVICIO EXTERNO SEGURO (opcional, fuera de este repo)
                      n8n / OpenClaw / API propia — únicos que pueden usar
@@ -73,8 +73,20 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
 | `/prompts`, `/prompts/:name` | Prompt Library | OS Prompt |
 | `/sop`, `/sop/:name` | SOP Builder | OS SOP |
 | `/analytics` | Analítica | OS Run, OS Step Run, OS Process, OS Integration |
-| `/integrations`, `/roles`, `/kpis` | Gobierno | OS Integration, OS Role Card, OS KPI Definition |
+| `/integrations`, `/roles`, `/kpis`, `/policies` | Gobierno | OS Integration, OS Role Card, OS KPI Definition, OS Policy |
 | `/knowledge`, `/skills` | Knowledge Brain (acotado a MVP) | OS Knowledge Source, OS Skill |
+
+### Identidad visual
+
+El portal adopta el pack de diseño Grupo Altoplano definido en `livingorg-os/`
+(mismos tokens: `--brand`/`--ink`/`--surface`/etc., tipografías Montserrat +
+Inter + IBM Plex Mono, logo de montaña y curvas de nivel como firma) — portado
+sobre los **mismos nombres de clase** que ya usaba `os-portal.css` (`.os-card`,
+`.os-btn`, `.os-sidebar`…), así que ningún archivo de página tuvo que cambiar
+su HTML para heredar el nuevo look. El Centro de Mando además incorpora el
+hero, el mapa de ejecución (Humano/IA/Sistema, agregado en vivo desde
+`OS Process Step`) y el Health Score del pack, calculados con datos reales de
+la instancia — nunca simulados.
 
 ### Módulo de Procesos — captura 100% por formulario
 
@@ -112,6 +124,11 @@ Instrucción Maestra quedan fuera de esta entrega y su razón:
   vertical** en el módulo de Procesos: el propio documento de rediseño los
   ubica en una fase posterior (semana 7–8) de su plan de implementación, no
   en el esquema de captura base portado aquí.
+- **Selector de tema claro/oscuro.** `livingorg-os/` ofrece ambos; el portal
+  adoptó solo la paleta clara (con la barra lateral ya oscura por diseño,
+  como en el tema oscuro de referencia) — un toggle completo de tema
+  requeriría duplicar tokens de superficie/texto para todo el contenido
+  claro, no solo la barra lateral.
 
 Ninguno de estos bloquea la operación diaria del portal ni compromete los
 principios no negociables (persistencia real vía API, sin datos simulados).

@@ -1,6 +1,6 @@
 {
   "doctype": "DocType",
-  "name": "OS Prompt",
+  "name": "OS Policy",
   "module": "OS Business Layer",
   "custom": 1,
   "istable": 0,
@@ -8,78 +8,43 @@
   "track_changes": 1,
   "fields": [
     {
-      "fieldname": "prompt_title",
-      "label": "Prompt Title",
+      "fieldname": "policy_title",
+      "label": "Policy Title",
       "fieldtype": "Data",
       "reqd": 1,
       "in_list_view": 1
     },
     {
-      "fieldname": "prompt_code",
-      "label": "Prompt Code",
+      "fieldname": "scope",
+      "label": "Scope",
       "fieldtype": "Data",
-      "unique": 1,
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "version_label",
-      "label": "Version Label",
-      "fieldtype": "Data",
+      "description": "A qué aplica: un área, un tipo de acción, o 'Global'.",
       "in_list_view": 1
     },
     {
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",
-      "options": "Draft\nTested\nApproved\nDeprecated",
+      "options": "Draft\nActive\nRetired",
       "default": "Draft",
       "in_list_view": 1
     },
     {
-      "fieldname": "system_instruction",
-      "label": "System Instruction",
-      "fieldtype": "Text Editor"
-    },
-    {
-      "fieldname": "task_template",
-      "label": "Task Template",
-      "fieldtype": "Code"
-    },
-    {
-      "fieldname": "context_template",
-      "label": "Context Template",
-      "fieldtype": "Text Editor"
-    },
-    {
-      "fieldname": "tool_policy",
-      "label": "Tool Policy",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "output_schema",
-      "label": "Output Schema",
-      "fieldtype": "Code",
-      "options": "JSON"
-    },
-    {
-      "fieldname": "fallback",
-      "label": "Fallback",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "approval_policy",
-      "label": "Approval Policy",
-      "fieldtype": "Small Text"
+      "fieldname": "rules",
+      "label": "Rules",
+      "fieldtype": "Long Text",
+      "description": "Reglas de permisos, riesgo, uso de herramientas o autonomía."
     },
     {
       "fieldname": "owner_user",
       "label": "Owner User",
       "fieldtype": "Link",
-      "options": "User"
+      "options": "User",
+      "in_list_view": 1
     },
     {
       "fieldname": "docs",
-      "label": "Test Cases / Attachments",
+      "label": "Documents",
       "fieldtype": "Attach"
     }
   ],
@@ -94,7 +59,7 @@
       "export": 1
     },
     {
-      "role": "OS AI Supervisor",
+      "role": "OS Manager",
       "read": 1,
       "write": 1,
       "create": 1,
