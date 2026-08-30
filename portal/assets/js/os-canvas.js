@@ -19,7 +19,11 @@
    * opts: {
    *   onNodeClick(node), onNodeDragEnd(node, x, y), onBackgroundClick(),
    *   renderNode(g, node) -> dibuja contenido dentro del <g> del nodo,
-   *   edgeAnchor: 'lr' (izq-der, para flujos) | 'tb' (arriba-abajo, para organigrama)
+   *   edgeAnchor: 'lr' (izq-der, para flujos) | 'tb' (arriba-abajo, para organigrama),
+   *   nodeShape: 'rect' (por defecto) | 'circle' — con 'circle' el motor no dibuja la caja
+   *     visible (renderNode dibuja el círculo); solo agrega un rect invisible para hit-testing,
+   *   edgeStyle: 'default' (por defecto) | 'glow' — líneas con brillo, sin flecha, coloreadas
+   *     por edge.glowClass (una clase CSS que define `color` para que stroke:currentColor la herede)
    * }
    */
   OS.canvas = {
@@ -56,17 +60,19 @@
         return "M " + sx + " " + sy + " C " + (sx + dx) + " " + sy + ", " + (tx2 - dx) + " " + ty2 + ", " + tx2 + " " + ty2;
       }
 
+      var glowStyle = opts.edgeStyle === "glow";
       function renderEdges() {
         edgesLayer.innerHTML = "";
         edges.forEach(function (e) {
           var a = nodeEls[e.from] && nodeEls[e.from].node, b = nodeEls[e.to] && nodeEls[e.to].node;
           if (!a || !b) return;
-          var p = el("path", {
-            class: "os-edge" + (e.cls ? " " + e.cls : "") + (e.dim ? " dim" : ""),
-            d: edgePath(a, b), "marker-end": "url(#os-arrow)"
-          }, edgesLayer);
+          var attrs = { d: edgePath(a, b) };
+          if (glowStyle) attrs.class = "os-edge-glow" + (e.glowClass ? " " + e.glowClass : "") + (e.dim ? " dim" : "");
+          else { attrs.class = "os-edge" + (e.cls ? " " + e.cls : "") + (e.dim ? " dim" : ""); attrs["marker-end"] = "url(#os-arrow)"; }
+          var p = el("path", attrs, edgesLayer);
           if (e.label) {
-            var mid = p.getPointAtLength ? p.getPointAtLength(p.getTotalLength() / 2) : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+            // Al 32% del trazo (cerca del origen) para no chocar con la etiqueta del nodo destino.
+            var mid = p.getPointAtLength ? p.getPointAtLength(p.getTotalLength() * 0.32) : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
             el("text", { class: "os-edge-label", x: mid.x, y: mid.y - 4, "text-anchor": "middle" }, edgesLayer).textContent = e.label;
           }
         });
@@ -75,8 +81,10 @@
       function renderNodes() {
         nodesLayer.innerHTML = ""; nodeEls = {};
         nodes.forEach(function (n) {
-          var g = el("g", { class: "os-node" + (n.live ? " live" : "") + (n.id === selected ? " selected" : ""), transform: "translate(" + n.x + "," + n.y + ")" }, nodesLayer);
-          el("rect", { width: n.w, height: n.h, rx: 10 }, g);
+          var nodeClass = (opts.nodeShape === "circle" ? "os-node-glow" : "os-node") + (n.live ? " live" : "") + (n.id === selected ? " selected" : "") + (n.extraClass ? " " + n.extraClass : "");
+          var g = el("g", { class: nodeClass, transform: "translate(" + n.x + "," + n.y + ")" }, nodesLayer);
+          if (opts.nodeShape === "circle") el("rect", { width: n.w, height: n.h, fill: "transparent" }, g);
+          else el("rect", { width: n.w, height: n.h, rx: 10 }, g);
           if (opts.renderNode) opts.renderNode(g, n);
           g.style.cursor = "pointer";
           g.addEventListener("mousedown", function (ev) { startDrag(ev, n, g); });
@@ -149,10 +157,11 @@
           var minY = Math.min.apply(null, nodes.map(function (n) { return n.y; }));
           var maxX = Math.max.apply(null, nodes.map(function (n) { return n.x + n.w; }));
           var maxY = Math.max.apply(null, nodes.map(function (n) { return n.y + n.h; }));
+          // Margen extra (sobre todo abajo) para las etiquetas de texto que cuelgan bajo cada nodo.
           var rect = svgEl.getBoundingClientRect();
-          var sx = rect.width / Math.max(1, (maxX - minX + 120)), sy = rect.height / Math.max(1, (maxY - minY + 120));
+          var sx = rect.width / Math.max(1, (maxX - minX + 140)), sy = rect.height / Math.max(1, (maxY - minY + 200));
           scale = OS.util.clamp(Math.min(sx, sy), 0.25, 1.4);
-          tx = 60 - minX * scale; ty = 60 - minY * scale;
+          tx = 70 - minX * scale; ty = 70 - minY * scale;
           applyTransform();
         },
         highlightDim: function (idsToKeep) {

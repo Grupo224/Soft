@@ -1,23 +1,66 @@
-/*! Página: Organigrama Vivo (/org) — estructura + relaciones semánticas sobre OS Org Node / OS Org Relation. */
+/*! Página: Organigrama Vivo (/org) — mapa radial de nodos brillantes con líneas convergentes,
+ * inspirado en el video de referencia del blueprint (§2: "mapa radial por departamentos").
+ * Estructura: OS Org Node (nodos) + OS Org Relation (líneas semánticas tipadas). */
 (function (global) {
   "use strict";
   var OS = global.OS, api = OS.api, ui = OS.ui, U = OS.util;
+
   var TYPE_ICON = { Company: "🏢", Department: "🏛", Designation: "🎖", Employee: "🧑", Agent: "🤖", Custom: "●" };
+  var TYPE_CLASS = { Company: "n-company", Department: "n-department", Designation: "n-designation", Employee: "n-employee", Agent: "n-agent", Custom: "n-custom" };
   var TYPE_RANK = { Company: 0, Department: 1, Designation: 2, Employee: 3, Agent: 3, Custom: 2 };
+  var TYPE_RADIUS = { Company: 34, Department: 26, Designation: 19, Employee: 15, Agent: 15, Custom: 15 };
+  var PARENT_RELATIONS = ["REPORTS_TO", "EXECUTES", "OWNS", "HANDOFF_TO"]; // orden de prioridad para inferir jerarquía visual
 
-  function autoLayout(nodes, relations) {
-    var byRank = {};
+  function label(n) { return n.employee || n.agent || n.designation || n.department || n.company || n.title || n.name; }
+
+  /* ---------------- Layout: árbol radial (fan-out arriba, convergencia hacia el padre) ---------------- */
+  function radialLayout(nodes, relations) {
+    var byId = {}; nodes.forEach(function (n) { byId[n.name] = n; });
+    var parentOf = {}, childrenOf = {};
+    PARENT_RELATIONS.forEach(function (rt) {
+      relations.filter(function (r) { return r.relation_type === rt; }).forEach(function (r) {
+        if (!parentOf[r.from_node] && byId[r.from_node] && byId[r.to_node] && r.from_node !== r.to_node) parentOf[r.from_node] = r.to_node;
+      });
+    });
+    nodes.forEach(function (n) { var p = parentOf[n.name]; if (p) (childrenOf[p] = childrenOf[p] || []).push(n.name); });
+    var roots = nodes.filter(function (n) { return !parentOf[n.name]; }).map(function (n) { return n.name; });
+    if (!roots.length) roots = nodes.slice(0, 1).map(function (n) { return n.name; });
+
+    var LEVEL_H = 150, LEAF_W = 190, cursor = 0;
+    function place(id, depth) {
+      var kids = childrenOf[id] || [];
+      var n = byId[id];
+      n._depth = depth;
+      if (!kids.length) {
+        n._cx = cursor * LEAF_W + LEAF_W / 2; cursor++;
+      } else {
+        kids.forEach(function (k) { place(k, depth + 1); });
+        var first = byId[kids[0]], last = byId[kids[kids.length - 1]];
+        n._cx = (first._cx + last._cx) / 2;
+        // Arco tipo "fan": los hijos de los extremos del grupo suben un poco respecto
+        // al centro, para que converjan visualmente hacia el padre (efecto del video de referencia).
+        var span = Math.max(1, last._cx - first._cx);
+        kids.forEach(function (k) {
+          var kn = byId[k], t = (kn._cx - n._cx) / (span / 2);
+          kn._bow = Math.min(24, Math.abs(t) * 20);
+        });
+      }
+    }
+    roots.forEach(function (r) { place(r, 0); });
     nodes.forEach(function (n) {
-      var r = TYPE_RANK[n.node_type] != null ? TYPE_RANK[n.node_type] : 2;
-      (byRank[r] = byRank[r] || []).push(n);
+      if (n._cx === undefined) return; // aislado (sin relación): se resuelve abajo
+      n.x = Math.round(n._cx - n.w / 2);
+      n.y = Math.round(n._depth * LEVEL_H + 50 - (n._bow || 0));
     });
-    Object.keys(byRank).sort().forEach(function (r) {
-      byRank[r].forEach(function (n, i) { n.x = 60 + i * 220; n.y = 40 + r * 150; });
+    // Nodos sin relación alguna -> fila extra a la derecha, para no perderlos.
+    var totalWidth = cursor * LEAF_W, extra = 0;
+    nodes.forEach(function (n) {
+      if (n.x === undefined) {
+        n.x = totalWidth + 60 + (extra % 4) * LEAF_W;
+        n.y = 50 + Math.floor(extra / 4) * LEVEL_H;
+        extra++;
+      }
     });
-  }
-
-  function label(n) {
-    return n.employee || n.agent || n.designation || n.department || n.company || n.title || n.name;
   }
 
   function load(container, root) {
@@ -30,33 +73,54 @@
       '</div>' +
       '<div class="os-canvas-legend"></div>' +
       '<svg class="os-canvas-svg"></svg>';
+    root.parentElement.classList.add("radial");
 
     Promise.all([
       api.list("OS Org Node", { fields: ["name", "node_type", "title", "company", "department", "designation", "employee", "agent", "x", "y", "is_active"], limit: 500 }),
       api.list("OS Org Relation", { fields: ["name", "from_node", "to_node", "relation_type", "label"], limit: 1000 })
     ]).then(function (r) {
       var nodes = r[0], relations = r[1];
+      nodes.forEach(function (n) { n.w = (TYPE_RADIUS[n.node_type] || 15) * 2; n.h = n.w; });
       var needsLayout = nodes.some(function (n) { return !n.x && !n.y; });
-      if (needsLayout) autoLayout(nodes, relations);
+      if (needsLayout) { nodes.forEach(function (n) { delete n.x; delete n.y; }); radialLayout(nodes, relations); }
 
-      var canvasNodes = nodes.map(function (n) { return { id: n.name, x: n.x || 0, y: n.y || 0, w: 168, h: 58, data: n }; });
-      var canvasEdges = relations.map(function (rel) { return { from: rel.from_node, to: rel.to_node, label: rel.relation_type, cls: "" }; });
+      var canvasNodes = nodes.map(function (n) { return { id: n.name, x: n.x || 0, y: n.y || 0, w: n.w, h: n.h, data: n, live: n.node_type === "Agent" }; });
+      var canvasEdges = relations.map(function (rel) {
+        var fromNode = nodes.find(function (n) { return n.name === rel.from_node; });
+        return { from: rel.from_node, to: rel.to_node, label: rel.relation_type, glowClass: TYPE_CLASS[fromNode && fromNode.node_type] || "n-custom" };
+      });
 
       var legend = root.querySelector(".os-canvas-legend");
-      legend.innerHTML = Object.keys(TYPE_ICON).map(function (t) { return '<span class="os-tag">' + TYPE_ICON[t] + " " + t + "</span>"; }).join("");
+      legend.innerHTML = Object.keys(TYPE_ICON).map(function (t) {
+        return '<span class="os-tag" style="border-color:currentColor;color:var(--os-text-dim)"><span style="color:var(--os-text)">' + TYPE_ICON[t] + '</span> ' + t + '</span>';
+      }).join("");
 
       var engine = OS.canvas.create(root.querySelector(".os-canvas-svg"), {
-        edgeAnchor: "tb",
+        edgeAnchor: "tb", nodeShape: "circle", edgeStyle: "glow",
         renderNode: function (g, n) {
-          var d = n.data;
-          var el1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          el1.setAttribute("x", 12); el1.setAttribute("y", 22); el1.setAttribute("class", "n-title");
-          el1.textContent = TYPE_ICON[d.node_type] + " " + (label(d) || "(sin nombre)").slice(0, 20);
-          g.appendChild(el1);
-          var el2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          el2.setAttribute("x", 12); el2.setAttribute("y", 40); el2.setAttribute("class", "n-sub");
-          el2.textContent = d.node_type + (d.is_active === 0 ? " · inactivo" : "");
-          g.appendChild(el2);
+          var d = n.data, r = n.w / 2, cls = TYPE_CLASS[d.node_type] || "n-custom";
+          var isHub = d.node_type === "Company" || d.node_type === "Department";
+          g.setAttribute("class", g.getAttribute("class") + " " + cls);
+          var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          circle.setAttribute("class", "core"); circle.setAttribute("cx", r); circle.setAttribute("cy", r); circle.setAttribute("r", r);
+          circle.setAttribute("stroke", "currentColor");
+          circle.setAttribute("fill", isHub ? "#0d1424" : "currentColor");
+          circle.setAttribute("fill-opacity", isHub ? "1" : ".85");
+          g.appendChild(circle);
+          if (isHub) {
+            var ico = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            ico.setAttribute("class", "n-ico"); ico.setAttribute("x", r); ico.setAttribute("y", r + 1);
+            ico.textContent = TYPE_ICON[d.node_type] || "●";
+            g.appendChild(ico);
+          }
+          var lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          lbl.setAttribute("class", "n-label"); lbl.setAttribute("x", r); lbl.setAttribute("y", n.h + 16);
+          lbl.textContent = (label(d) || "(sin nombre)").slice(0, 22);
+          g.appendChild(lbl);
+          var cap = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          cap.setAttribute("class", "n-caption"); cap.setAttribute("x", r); cap.setAttribute("y", n.h + 28);
+          cap.textContent = d.node_type + (d.is_active === 0 ? " · inactivo" : "");
+          g.appendChild(cap);
         },
         onNodeClick: function (n) { openInspector(n.data, engine, relations, nodes); },
         onNodeDragEnd: function (n) {
@@ -76,6 +140,7 @@
     });
   }
 
+  /* ---------------- Inspector: ver + AGREGAR información del nodo ---------------- */
   function openInspector(node, engine, relations, allNodes) {
     var rels = relations.filter(function (r) { return r.from_node === node.name || r.to_node === node.name; });
     var body = document.createElement("div");
@@ -84,6 +149,7 @@
       '<div class="os-field"><label>Tipo</label><div>' + TYPE_ICON[node.node_type] + " " + node.node_type + '</div></div>' +
       '<div class="os-field"><label>Nombre</label><div>' + U.escapeHtml(label(node)) + '</div></div>' +
       (node.company ? '<div class="os-field"><label>Empresa</label><div>' + U.escapeHtml(node.company) + '</div></div>' : "") +
+      '<div id="os-org-rolecard"></div>' +
       '<div class="os-section-title">Relaciones (' + rels.length + ')</div>' +
       '<div class="os-flow-list">' + (rels.length ? rels.map(function (r) {
         var other = r.from_node === node.name ? r.to_node : r.from_node;
@@ -97,7 +163,9 @@
     foot.innerHTML = '<button class="os-btn danger sm" id="os-org-del">Eliminar nodo</button><div class="os-spacer"></div>' +
       '<a class="os-btn sm" href="/app/os-org-node/' + encodeURIComponent(node.name) + '" target="_blank">Abrir en ERPNext ↗</a>';
 
-    ui.inspector.open({ title: label(node) || node.name, subtitle: node.node_type, body: body, foot: foot });
+    ui.inspector.open({ title: label(node) || node.name, subtitle: node.node_type + " · clic para agregar información del rol", body: body, foot: foot });
+
+    if (node.node_type === "Designation") mountRoleCardEditor(body.querySelector("#os-org-rolecard"), node);
 
     if (node.designation) {
       api.list("OS Process Step", { fields: ["parent"], filters: [["approval_role", "=", node.designation]], limit: 5 }).catch(function () { return []; })
@@ -114,6 +182,36 @@
     };
   }
 
+  /** Ficha operativa del rol (OS Role Card) editable directamente desde el organigrama —
+   * responde al North Star de ambos SOP: abrir un nodo y ver/completar su contrato operativo. */
+  function mountRoleCardEditor(host, node) {
+    host.innerHTML = '<div class="os-section-title">Ficha del rol — agregar información</div>' + ui.skeleton(3);
+    api.list("OS Role Card", { fields: ["name", "role_title", "mission", "expected_results", "responsibilities", "kpis", "owner_user"], filters: [["designation", "=", node.designation]], limit: 1 })
+      .catch(function () { return []; })
+      .then(function (rows) {
+        var card = rows[0] || null;
+        host.innerHTML =
+          '<div class="os-section-title">Ficha del rol' + (card ? "" : " — aún sin completar") + '</div>' +
+          '<div class="os-field"><label>Misión</label><textarea class="os-textarea" id="rc-mission" placeholder="Para qué existe este rol">' + U.escapeHtml(card ? card.mission : "") + '</textarea></div>' +
+          '<div class="os-field"><label>Resultados esperados</label><textarea class="os-textarea" id="rc-results" placeholder="Qué produce cuando funciona bien">' + U.escapeHtml(card ? card.expected_results : "") + '</textarea></div>' +
+          '<div class="os-field"><label>Responsabilidades</label><textarea class="os-textarea" id="rc-resp">' + U.escapeHtml(card ? card.responsibilities : "") + '</textarea></div>' +
+          '<div class="os-field"><label>KPIs del rol</label><textarea class="os-textarea" id="rc-kpis" placeholder="Cómo se mide">' + U.escapeHtml(card ? card.kpis : "") + '</textarea></div>' +
+          '<button class="os-btn primary sm" id="rc-save">💾 Guardar información del rol</button> ' +
+          '<span class="os-save-state" id="rc-state" style="margin-left:8px"></span>';
+        host.querySelector("#rc-save").onclick = function () {
+          ui.saveState(host.querySelector("#rc-state"), "saving");
+          var payload = {
+            role_title: label(node), designation: node.designation, owner_user: card ? card.owner_user : OS.session.user,
+            mission: host.querySelector("#rc-mission").value, expected_results: host.querySelector("#rc-results").value,
+            responsibilities: host.querySelector("#rc-resp").value, kpis: host.querySelector("#rc-kpis").value
+          };
+          var p = card ? api.update("OS Role Card", card.name, payload) : api.create("OS Role Card", payload);
+          p.then(function (doc) { card = doc; ui.saveState(host.querySelector("#rc-state"), "saved"); ui.toast("Ficha del rol guardada", "ok"); })
+            .catch(function (e) { ui.saveState(host.querySelector("#rc-state"), "error"); ui.error(e); });
+        };
+      });
+  }
+
   function fieldRow(labelTxt, inputHtml) { return '<div class="os-field"><label>' + labelTxt + '</label>' + inputHtml + '</div>'; }
 
   function openCreateNode(container, canvasRoot) {
@@ -123,8 +221,7 @@
       fieldRow("Título visible", '<input class="os-input" id="f-title" placeholder="Ej. Gerencia Comercial">') +
       fieldRow("Vínculo ERPNext (opcional, nombre exacto del documento)", '<input class="os-input" id="f-link" placeholder="Se autocompleta según el tipo elegido">') +
       '<div class="hint" style="margin-top:-6px">Company/Department/Designation/Employee ya existen en ERPNext; Agent referencia un OS Agent creado en /agents.</div>';
-    var linkInput = body.querySelector ? null : null;
-    var m = ui.modal({
+    ui.modal({
       title: "Nuevo nodo del organigrama", body: body,
       actions: [
         { label: "Cancelar", cls: "ghost", onClick: function () { return true; } },
@@ -132,7 +229,7 @@
           label: "Crear", cls: "primary", onClick: function () {
             var type = body.querySelector("#f-type").value, title = body.querySelector("#f-title").value.trim(), link = body.querySelector("#f-link").value.trim();
             if (!title) { ui.toast("El título es obligatorio", "warn"); return false; }
-            var payload = { node_type: type, title: title, x: 80, y: 80, is_active: 1 };
+            var payload = { node_type: type, title: title, is_active: 1 };
             var map = { Department: "department", Designation: "designation", Employee: "employee", Agent: "agent", Custom: "custom_ref" };
             if (link && map[type] && map[type] !== "custom_ref") payload[map[type]] = link;
             api.create("OS Org Node", payload).then(function () { ui.toast("Nodo creado", "ok"); OS.router.navigate("/org"); location.reload(); }).catch(ui.error);
@@ -154,7 +251,8 @@
     body.innerHTML =
       fieldRow("Desde", '<select class="os-select" id="r-from">' + opts + '</select>') +
       fieldRow("Relación", '<select class="os-select" id="r-type"><option>REPORTS_TO</option><option>OWNS</option><option>APPROVES</option><option>EXECUTES</option><option>USES</option><option>READS</option><option>WRITES</option><option>TRIGGERS</option><option>HANDOFF_TO</option><option>DEPENDS_ON</option><option>MEASURES</option></select>') +
-      fieldRow("Hacia", '<select class="os-select" id="r-to">' + opts + '</select>');
+      fieldRow("Hacia", '<select class="os-select" id="r-to">' + opts + '</select>') +
+      '<div class="hint">REPORTS_TO/EXECUTES/OWNS/HANDOFF_TO también definen la posición del nodo en el mapa (de quién "cuelga").</div>';
     ui.modal({
       title: "Nueva relación semántica", body: body,
       actions: [
@@ -175,7 +273,7 @@
     mount: function (container) {
       container.innerHTML =
         '<div class="os-page-head"><div><div class="os-page-title">Organigrama Vivo</div>' +
-        '<div class="os-page-sub">Empresa → Área → Rol → Persona/Agente. Arrastra para reordenar; las relaciones se editan explícitamente.</div></div></div>' +
+        '<div class="os-page-sub">Mapa radial de la empresa. Haz clic en cualquier nodo para abrir su ficha y agregar información.</div></div></div>' +
         '<div class="os-canvas-wrap"><div id="os-org-canvas" style="position:absolute;inset:0"></div></div>';
       load(container, container.querySelector("#os-org-canvas"));
     },

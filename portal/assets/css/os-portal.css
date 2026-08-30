@@ -241,6 +241,24 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13px}
 .os-canvas-minimap{position:absolute;bottom:12px;right:12px;width:150px;height:100px;background:rgba(10,14,26,.85);
   border:1px solid var(--os-border);border-radius:8px;z-index:5}
 
+/* ---------- Radial glow (Organigrama Vivo: nodos circulares + líneas convergentes) ---------- */
+.os-canvas-wrap.radial{background:
+  radial-gradient(circle at 50% 0%,rgba(91,140,255,.08),transparent 55%),
+  radial-gradient(circle at 1px 1px,var(--os-border-soft) 1px,transparent 0) 0 0/26px 26px, #070b16}
+.os-node-glow circle.core{stroke-width:1.6;transition:r .12s ease}
+.os-node-glow.selected circle.core{stroke-width:2.5;filter:drop-shadow(0 0 10px currentColor)}
+.os-node-glow:hover circle.core{filter:drop-shadow(0 0 8px currentColor)}
+.os-node-glow.live circle.core{animation:os-node-pulse 1.8s ease infinite}
+@keyframes os-node-pulse{0%,100%{filter:drop-shadow(0 0 2px currentColor)}50%{filter:drop-shadow(0 0 12px currentColor)}}
+.os-node-glow .n-ico{font-size:13px;text-anchor:middle;dominant-baseline:central;fill:var(--os-text)}
+.os-node-glow .n-label{fill:var(--os-text);font-size:11px;font-weight:700;text-anchor:middle;font-family:var(--os-font)}
+.os-node-glow .n-caption{fill:var(--os-text-mute);font-size:9.5px;text-anchor:middle;font-family:var(--os-font)}
+/* Colores por tipo de nodo — hereda al trazo del edge que nace en ese nodo */
+.n-company{color:#7dd3fc} .n-department{color:#5b8cff} .n-designation{color:#f472b6}
+.n-employee{color:#34d399} .n-agent{color:#f59e0b} .n-custom{color:#94a3b8}
+.os-edge-glow{fill:none;stroke:currentColor;stroke-width:1.4;opacity:.55;filter:drop-shadow(0 0 3px currentColor)}
+.os-edge-glow.dim{opacity:.08}
+
 /* ---------- Misc ---------- */
 .os-divider{height:1px;background:var(--os-border-soft);margin:14px 0}
 .os-flow-list{display:flex;flex-direction:column;gap:8px}
