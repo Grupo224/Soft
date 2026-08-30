@@ -124,11 +124,24 @@
         '<span class="os-tag">Autonomía ' + U.escapeHtml(proc.max_autonomy || "—") + '</span>' +
         ui.badgeRisk(proc.risk_level) +
         '<span class="os-tag">SOP: ' + (proc.sop ? "<a href='#/sop/" + proc.sop + "'>" + U.escapeHtml(proc.sop) + "</a>" : "sin vincular") + '</span>' +
-        '<button class="os-btn sm ghost" id="os-link-sop">Vincular SOP</button></div>';
+        '<button class="os-btn sm ghost" id="os-link-sop">Vincular SOP</button>' +
+        '<button class="os-btn sm" id="os-warn" style="display:none">⚠ 0 advertencias</button></div>';
       ui.saveState(saveIndicatorEl(), "idle");
+      renderWarnings();
 
       head.querySelector("#os-status-sel").onchange = function (e) {
         var next = e.target.value;
+        if (next === "Active") {
+          var issues = validateForPublish();
+          if (issues.length) {
+            e.target.value = proc.status;
+            var body = document.createElement("div");
+            body.innerHTML = '<p>No se puede publicar como Active mientras existan estos problemas:</p>' +
+              issues.map(function (m) { return '<div class="os-flow-item"><div class="n">⚠</div><div>' + U.escapeHtml(m) + '</div></div>'; }).join("");
+            ui.modal({ title: "No se puede publicar", body: body, actions: [{ label: "Entendido", cls: "primary", onClick: function () { return true; } }] });
+            return;
+          }
+        }
         var msg = next === "Active" ? "¿Publicar esta versión como Active? Quedará disponible para iniciar runs reales." :
           next === "Retired" ? "¿Retirar el proceso? No podrá iniciar nuevos runs." : "¿Confirmar cambio de estado a " + next + "?";
         ui.confirm(msg).then(function (ok) {
@@ -138,7 +151,7 @@
           persist(patch).then(renderHead);
         });
       };
-      head.querySelector("#os-add-step").onclick = function () { guardActiveEdit().then(function (ok) { if (ok) addStep(); }); };
+      head.querySelector("#os-add-step").onclick = function () { guardActiveEdit().then(function (ok) { if (ok) openStepPalette(); }); };
       head.querySelector("#os-connect").onclick = function () {
         connectMode = !connectMode; connectFrom = null;
         head.querySelector("#os-connect").classList.toggle("primary", connectMode);
@@ -172,9 +185,63 @@
       });
     }
 
+    /** Advertencias: nodos huérfanos (START/END exceptuados de una de las dos direcciones),
+     * conexiones sin destino válido y pasos sin actor — visibles sin bloquear el trabajo. */
+    function computeWarnings() {
+      var out = [];
+      var stepKeys = {}; (proc.steps || []).forEach(function (s) { stepKeys[s.step_key] = true; });
+      var hasIncoming = {}, hasOutgoing = {};
+      (proc.edges || []).forEach(function (e) {
+        hasOutgoing[e.source_step_key] = true; hasIncoming[e.target_step_key] = true;
+        if (!stepKeys[e.source_step_key]) out.push("Conexión con origen roto: " + e.source_step_key);
+        if (!stepKeys[e.target_step_key]) out.push("Conexión con destino roto: " + e.target_step_key);
+      });
+      (proc.steps || []).forEach(function (s) {
+        if (s.step_type !== "START" && !hasIncoming[s.step_key]) out.push("Paso sin conexión de entrada: " + (s.step_title || s.step_key));
+        if (s.step_type !== "END" && !hasOutgoing[s.step_key]) out.push("Paso sin conexión de salida: " + (s.step_title || s.step_key));
+      });
+      var seen = {};
+      (proc.edges || []).forEach(function (e) {
+        var k = e.source_step_key + "|" + e.target_step_key + "|" + e.relation_type;
+        if (seen[k]) out.push("Conexión duplicada: " + e.source_step_key + " → " + e.target_step_key);
+        seen[k] = true;
+      });
+      return out;
+    }
+    function renderWarnings() {
+      var btn = container.querySelector("#os-warn"); if (!btn) return;
+      var issues = computeWarnings();
+      btn.style.display = issues.length ? "" : "none";
+      btn.textContent = "⚠ " + issues.length + " advertencia" + (issues.length === 1 ? "" : "s");
+      btn.onclick = function () {
+        var body = document.createElement("div");
+        body.innerHTML = issues.map(function (m) { return '<div class="os-flow-item"><div class="n">⚠</div><div>' + U.escapeHtml(m) + '</div></div>'; }).join("");
+        ui.modal({ title: "Advertencias del proceso", body: body, actions: [{ label: "Cerrar", cls: "primary", onClick: function () { return true; } }] });
+      };
+    }
+    /** Antes de publicar: cada paso necesita actor y, salvo START/END, entrada y salida. */
+    function validateForPublish() {
+      var issues = [];
+      var hasIncoming = {}, hasOutgoing = {};
+      (proc.edges || []).forEach(function (e) { hasOutgoing[e.source_step_key] = true; hasIncoming[e.target_step_key] = true; });
+      (proc.steps || []).forEach(function (s) {
+        var hasActor = s.actor_kind === "System" || s.actor_user || s.actor_role || s.actor_agent;
+        if (!hasActor) issues.push("\"" + (s.step_title || s.step_key) + "\" no tiene responsable o ejecutor asignado.");
+        if (s.step_type !== "START" && !hasIncoming[s.step_key]) issues.push("\"" + (s.step_title || s.step_key) + "\" no tiene entrada (disparador).");
+        if (s.step_type !== "END" && !hasOutgoing[s.step_key]) issues.push("\"" + (s.step_title || s.step_key) + "\" no tiene salida (destino).");
+      });
+      if (!proc.steps || !proc.steps.length) issues.push("El proceso no tiene pasos.");
+      return issues;
+    }
+
     function toCanvasData() {
       var cn = (proc.steps || []).map(function (s) { return { id: s.step_key, x: s.x || 0, y: s.y || 0, w: 176, h: 62, data: s }; });
-      var ce = (proc.edges || []).map(function (e) { return { id: e.edge_key, data: e, from: e.source_step_key, to: e.target_step_key, label: e.relation_type + (e.label ? ": " + e.label : ""), cls: e.relation_type === "ERROR" ? "error" : (e.relation_type === "TRUE" ? "true" : e.relation_type === "FALSE" ? "false" : "") }; });
+      var DASH = { HANDOFF: "alt", TIMEOUT: "feedback", ERROR: "feedback" };
+      var ce = (proc.edges || []).map(function (e) {
+        var cls = e.relation_type === "ERROR" ? "error" : (e.relation_type === "TRUE" ? "true" : e.relation_type === "FALSE" ? "false" : "");
+        if (DASH[e.relation_type]) cls = (cls + " " + DASH[e.relation_type]).trim();
+        return { id: e.edge_key, data: e, from: e.source_step_key, to: e.target_step_key, label: e.relation_type + (e.label ? ": " + e.label : ""), cls: cls };
+      });
       if (cn.some(function (n) { return !n.x && !n.y; })) cn.forEach(function (n, i) { if (!n.x && !n.y) { n.x = 60 + i * 230; n.y = 60; } });
       return { cn: cn, ce: ce };
     }
@@ -221,13 +288,31 @@
         svg.querySelector('[data-a="fit"]').onclick = engine.fit;
       }
       engine.setData(data.cn, data.ce);
+      renderWarnings();
     }
 
-    function addStep() {
+    var STEP_TYPE_LABEL = { START: "Inicio / disparador", HUMAN: "Tarea humana", HYBRID: "Tarea híbrida (IA propone, persona confirma)", AI: "Tarea de IA", SYSTEM: "Acción de sistema", GATEWAY: "Compuerta / decisión", APPROVAL: "Aprobación", WAIT: "Espera / temporizador", END: "Fin" };
+    var STEP_TYPE_DEFAULT_EXEC = { START: "SYS", HUMAN: "H", HYBRID: "H+AI", AI: "AI", SYSTEM: "SYS", GATEWAY: "SYS", APPROVAL: "H", WAIT: "SYS", END: "SYS" };
+
+    /** Paleta de tipos de bloque — el paso nuevo abre su panel de edición de inmediato. */
+    function openStepPalette() {
+      var body = document.createElement("div");
+      body.innerHTML = '<div class="os-grid cols-2">' + STEP_TYPES.map(function (t) {
+        return '<div class="os-card" data-t="' + t + '" style="cursor:pointer;text-align:center">' +
+          '<div style="font-size:22px">' + STEP_ICON[t] + '</div><b style="font-size:12.5px">' + STEP_TYPE_LABEL[t] + '</b></div>';
+      }).join("") + '</div>';
+      var m = ui.modal({ title: "Elige el tipo de paso", body: body, actions: [{ label: "Cancelar", cls: "ghost", onClick: function () { return true; } }] });
+      body.querySelectorAll("[data-t]").forEach(function (card) {
+        card.onclick = function () { m.close(); addStep(card.dataset.t); };
+      });
+    }
+    function addStep(type) {
+      type = type || "HUMAN";
       var key = U.uid("step");
       proc.steps = proc.steps || [];
-      proc.steps.push({ step_key: key, step_title: "Nuevo paso", step_type: "HUMAN", execution_type: "H", actor_kind: "User", x: 60 + proc.steps.length * 40, y: 60 + proc.steps.length * 30 });
-      persist({ steps: proc.steps, edges: proc.edges }).then(function () { renderCanvas(); });
+      var step = { step_key: key, step_title: STEP_TYPE_LABEL[type], step_type: type, execution_type: STEP_TYPE_DEFAULT_EXEC[type], actor_kind: type === "AI" ? "Agent" : (type === "SYSTEM" || type === "START" || type === "END" || type === "GATEWAY" || type === "WAIT") ? "System" : "User", x: 60 + proc.steps.length * 40, y: 60 + proc.steps.length * 30 };
+      proc.steps.push(step);
+      persist({ steps: proc.steps, edges: proc.edges }).then(function () { renderCanvas(); openStepInspector(step); });
     }
 
     function openEdgeModal(from, to) {
