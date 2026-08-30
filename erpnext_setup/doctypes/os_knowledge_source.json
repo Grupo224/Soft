@@ -28,7 +28,7 @@
       "options": "Department"
     },
     {
-      "fieldname": "process",
+      "fieldname": "process_ref",
       "label": "Related Process",
       "fieldtype": "Link",
       "options": "OS Process"

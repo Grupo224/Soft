@@ -169,13 +169,16 @@ button{ font-family:inherit; }
 .sidebar{
   background:var(--side-bg); color:var(--side-text); display:flex; flex-direction:column;
   border-right:1px solid var(--side-line); min-width:0; position:relative; box-shadow:var(--side-shadow); z-index:2;
+  overflow:hidden; /* el nombre de marca no debe poder escapar de la caja (ver MOV-01) */
 }
 .brand{ display:flex; align-items:center; gap:12px; padding:20px 18px 18px; position:relative; z-index:1; }
 .brand .mark{ width:40px; height:40px; flex:none; border-radius:12px; display:grid; place-items:center;
   background:linear-gradient(155deg,#FFB259,#F5820A 60%,#E56A00);
   box-shadow:0 0 0 1px rgba(255,255,255,.10), inset 0 1px 1px rgba(255,255,255,.45), 0 6px 14px rgba(245,130,10,.30); }
 .brand .mark svg{ width:24px; height:24px; display:block; }
-.brand .name{ font-family:var(--ff-display); font-weight:800; font-size:17px; color:var(--side-brandname); letter-spacing:.2px; white-space:nowrap; line-height:1; }
+.brand .name{ font-family:var(--ff-display); font-weight:800; font-size:17px; color:var(--side-brandname); letter-spacing:.2px;
+  white-space:nowrap; line-height:1; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; }
+.brand .txt{ min-width:0; }
 .brand .name span{ color:var(--side-suffix); font-weight:800; margin-left:2px; }
 .brand .tag{ font-size:11px; color:var(--side-mut); margin-top:4px; white-space:nowrap; letter-spacing:.02em; }
 .collapsed .brand{ justify-content:center; padding:20px 0 18px; }
@@ -547,7 +550,7 @@ select.inp{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg 
 .hero .eyebrow .d{ width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 4px rgba(31,157,107,.22); animation:pulse 2.4s ease-in-out infinite; }
 .hero h1{ color:var(--hero-text); font-size:29px; margin:12px 0 6px; }
 .hero p{ color:var(--hero-sub); margin:0; max-width:60ch; font-size:14px; }
-.hero .h-actions{ display:flex; gap:10px; }
+.hero .h-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 .hero .h-actions .btn{ background:var(--hero-btn-bg); border-color:var(--hero-btn-border); color:var(--hero-btn-tx); }
 .hero .h-actions .btn:hover{ background:var(--hero-btn-hover); }
 .hero .h-actions .btn.primary{ background:linear-gradient(180deg,#FF9422,var(--brand)); border-color:var(--brand-strong); color:#fff; }
@@ -721,6 +724,28 @@ select.inp{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg 
   .wrap{ padding:20px 16px 80px; }
 }
 
+/* MOV-01: en teléfono (≤720px) la sidebar se oculta fuera de pantalla en vez
+   de solo colapsar a 76px — igual patrón off-canvas que ya usa el portal
+   ERPNext (transform + botón hamburguesa + scrim). */
+.mobile-menu-btn{ display:none; }
+.mobile-scrim{ position:fixed; inset:0; background:rgba(12,20,32,.45); z-index:29; opacity:0; pointer-events:none; transition:opacity .2s; }
+.mobile-scrim.show{ opacity:1; pointer-events:auto; }
+@media(max-width:720px){
+  .app{ grid-template-columns:1fr; }
+  .sidebar{ position:fixed; left:0; top:0; bottom:0; width:264px; z-index:30; transform:translateX(-100%); transition:transform .2s ease; }
+  .sidebar.mobile-open{ transform:none; }
+  .sidebar .g-title{ opacity:1; height:auto; padding:14px 10px 2px; overflow:visible; }
+  .sidebar .nav-item{ justify-content:flex-start; padding:12px 0; }
+  .sidebar .nav-item .txt,.sidebar .nav-item .count,.sidebar .brand .txt,.sidebar .side-user .su-txt,.sidebar .collapse-btn .txt{ display:inline; }
+  .sidebar .collapse-btn{ display:none; } /* el colapso a ícono es un concepto de escritorio; en móvil se abre/cierra completo */
+  .sidebar .brand{ justify-content:flex-start; padding:16px; }
+  .mobile-menu-btn{ display:flex; }
+  .topbar{ padding:0 14px; gap:8px; }
+  .topbar .btn .txt{ display:none; }
+  .ws-pick{ display:none; }
+  .search{ width:auto; } .search .lbl,.search .kbd{ display:none; }
+}
+
 /* Responsivo: en teléfonos, ninguna fila debe quedar recortada fuera de
    pantalla — el encabezado y la barra de herramientas se apilan, y una
    tabla ancha se desplaza horizontalmente dentro de su propio contenedor
@@ -729,6 +754,9 @@ select.inp{ appearance:none; background-image:url("data:image/svg+xml;utf8,<svg 
   .pagehead{ flex-wrap:wrap; }
   .h-actions{ width:100%; }
   .h-actions .btn{ flex:1; justify-content:center; }
+  .hero .h-lead{ min-width:0; width:100%; }
+  .hero .h-actions{ width:100%; }
+  .hero .h-actions .btn{ flex:1; justify-content:center; }
   .toolbar{ flex-wrap:wrap; }
   .filter{ width:100%; }
   .chip-toggle{ margin-left:auto; }

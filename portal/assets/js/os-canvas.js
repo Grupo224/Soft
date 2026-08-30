@@ -24,6 +24,10 @@
    *     visible (renderNode dibuja el círculo); solo agrega un rect invisible para hit-testing,
    *   edgeStyle: 'default' (por defecto) | 'glow' — líneas con brillo, sin flecha, coloreadas
    *     por edge.glowClass (una clase CSS que define `color` para que stroke:currentColor la herede)
+   *   connectPorts: true — dibuja un puerto (●) en el borde derecho de cada nodo; arrastrar desde
+   *     ahí hasta otro nodo dispara onDragConnect(fromId, toId) — BUG-03: alternativa a
+   *     "clic origen → clic destino" para conectar pasos en Process Studio.
+   *   onDragConnect(fromId, toId)
    * }
    */
   OS.canvas = {
@@ -110,6 +114,12 @@
             selected = n.id; selectedEdge = null; renderNodes(); renderEdges();
             opts.onNodeClick && opts.onNodeClick(n);
           });
+          if (opts.connectPorts) {
+            var port = el("circle", { class: "os-canvas-port", cx: n.w, cy: n.h / 2, r: 6 }, g);
+            port.style.cursor = "crosshair";
+            port.addEventListener("mousedown", function (ev) { ev.stopPropagation(); startConnectDrag(ev, n); });
+            port.addEventListener("touchstart", function (ev) { ev.stopPropagation(); ev.preventDefault(); startConnectDrag(ev.touches[0], n); }, { passive: false });
+          }
           nodeEls[n.id] = { node: n, g: g };
         });
         renderEdges();
@@ -142,6 +152,43 @@
           dragging = null; g.classList.remove("dragging");
         }
         g.classList.add("dragging");
+        document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
+        document.addEventListener("touchmove", move, { passive: false }); document.addEventListener("touchend", up);
+      }
+
+      /** BUG-03: conectar arrastrando desde el puerto de un nodo hasta otro,
+       * como alternativa a clic-origen/clic-destino ("modo Conectar"). */
+      function startConnectDrag(ev, fromNode) {
+        var phantom = el("path", { class: "os-canvas-connect-phantom" }, edgesLayer);
+        var fromPt = { x: fromNode.x + fromNode.w, y: fromNode.y + fromNode.h / 2 };
+        svgEl.classList.add("os-connecting");
+        function pathTo(p) { return "M " + fromPt.x + " " + fromPt.y + " L " + p.x + " " + p.y; }
+        function targetAt(worldPt) {
+          for (var i = nodes.length - 1; i >= 0; i--) {
+            var n = nodes[i];
+            if (n.id === fromNode.id) continue;
+            if (worldPt.x >= n.x && worldPt.x <= n.x + n.w && worldPt.y >= n.y && worldPt.y <= n.y + n.h) return n;
+          }
+          return null;
+        }
+        function move(e2) {
+          var pt = e2.touches ? e2.touches[0] : e2;
+          var w = screenToWorld(pt.clientX, pt.clientY);
+          phantom.setAttribute("d", pathTo(w));
+          var t = targetAt(w);
+          Object.keys(nodeEls).forEach(function (id) { nodeEls[id].g.classList.toggle("os-connect-target", !!t && id === t.id); });
+        }
+        function up(e2) {
+          document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up);
+          document.removeEventListener("touchmove", move); document.removeEventListener("touchend", up);
+          svgEl.classList.remove("os-connecting");
+          Object.keys(nodeEls).forEach(function (id) { nodeEls[id].g.classList.remove("os-connect-target"); });
+          var pt = e2.changedTouches ? e2.changedTouches[0] : e2;
+          var w = screenToWorld(pt.clientX, pt.clientY);
+          var target = targetAt(w);
+          phantom.remove();
+          if (target) opts.onDragConnect && opts.onDragConnect(fromNode.id, target.id);
+        }
         document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
         document.addEventListener("touchmove", move, { passive: false }); document.addEventListener("touchend", up);
       }

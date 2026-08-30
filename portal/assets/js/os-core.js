@@ -236,7 +236,7 @@
     return '<span class="os-badge risk-' + risk.toLowerCase() + '">' + util.escapeHtml(util.trValue(risk)) + '</span>';
   };
   ui.badgeExec = function (code) {
-    var map = { H: "exec-h", "H+AI": "exec-hai", "AI→H": "exec-aih", "AI→H": "exec-aih", AI: "exec-ai", SYS: "exec-sys" };
+    var map = { H: "exec-h", "H+AI": "exec-hai", "AI→H": "exec-aih", AI: "exec-ai", SYS: "exec-sys" };
     var cls = map[code] || "exec-h";
     var labels = { H: "Humano", "H+AI": "Humano + IA", "AI→H": "IA → Humano", AI: "IA autónoma", SYS: "Sistema" };
     return '<span class="os-badge ' + cls + '" title="' + (labels[code] || "") + '">' + util.escapeHtml(code) + '</span>';
@@ -482,15 +482,24 @@
     { path: "/policies", icon: "📜", label: "Políticas" }
   ];
 
+  /* UX-01: colapso de escritorio de la barra lateral, persistente entre sesiones
+   * (mismo patrón que livingorg-os/js/app.js: getSidebarCollapsed/setSidebarCollapsed). */
+  function getSidebarCollapsed() { try { return localStorage.getItem("os_sidebar_collapsed") === "1"; } catch (e) { return false; } }
+  function setSidebarCollapsed(v) { try { localStorage.setItem("os_sidebar_collapsed", v ? "1" : "0"); } catch (e) {} }
+
   function buildShell(root) {
+    var collapsed = getSidebarCollapsed();
     root.innerHTML =
-      '<div class="os-shell">' +
+      '<div class="os-shell' + (collapsed ? ' collapsed' : '') + '">' +
       '  <aside class="os-sidebar">' +
-      '    <div class="os-brand"><div class="os-logo">' + OS_MARK_SVG + '</div><div><div class="os-brand-title">LivingOrg OS</div>' +
+      '    <div class="os-brand"><div class="os-logo">' + OS_MARK_SVG + '</div><div class="os-brand-txt"><div class="os-brand-title">LivingOrg OS</div>' +
       '    <div class="os-brand-sub">sobre ERPNext / Frappe</div></div></div>' +
       '    <nav class="os-nav" id="os-nav"></nav>' +
       '    <div class="os-topo">' + OS_TOPO_SVG + '</div>' +
-      '    <div class="os-sidebar-foot">v1.0 · Portal HTML/CSS/JS<br>Sin modificar el core.</div>' +
+      '    <div class="os-sidebar-foot">' +
+      '      <div class="os-sidebar-foot-txt">v1.0 · Portal HTML/CSS/JS<br>Sin modificar el core.</div>' +
+      '      <button type="button" class="os-collapse-btn" id="os-collapse-btn" aria-expanded="' + (collapsed ? "false" : "true") + '" aria-label="' + (collapsed ? "Expandir menú" : "Contraer menú") + '"><span class="os-ico">«</span><span class="txt">Contraer menú</span></button>' +
+      '    </div>' +
       '  </aside>' +
       '  <div class="os-sidebar-scrim" id="os-sidebar-scrim"></div>' +
       '  <div class="os-main">' +
@@ -514,6 +523,7 @@
       var a = document.createElement("a");
       a.href = "#" + item.path;
       a.dataset.path = item.path;
+      a.title = item.label; /* con la barra colapsada (UX-01) solo se ve el ícono; el title da el nombre al pasar el cursor */
       a.innerHTML = '<span class="os-ico">' + item.icon + '</span><span>' + item.label + '</span>';
       navEl.appendChild(a);
     });
@@ -527,6 +537,15 @@
     };
     scrimEl.onclick = closeMobileNav;
     navEl.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeMobileNav); });
+
+    var shellEl = root.querySelector(".os-shell");
+    var collapseBtn = root.querySelector("#os-collapse-btn");
+    collapseBtn.onclick = function () {
+      var isCollapsed = shellEl.classList.toggle("collapsed");
+      setSidebarCollapsed(isCollapsed);
+      collapseBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+      collapseBtn.setAttribute("aria-label", isCollapsed ? "Expandir menú" : "Contraer menú");
+    };
 
     root.querySelector("#os-user-chip").onclick = function () {
       OS.ui.modal({

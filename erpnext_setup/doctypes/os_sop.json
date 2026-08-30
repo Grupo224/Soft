@@ -89,7 +89,7 @@
       "fieldtype": "Datetime"
     },
     {
-      "fieldname": "process",
+      "fieldname": "process_ref",
       "label": "Process",
       "fieldtype": "Link",
       "options": "OS Process",

@@ -20,7 +20,7 @@
       { name: "source_title", label: "Título" },
       { name: "source_type", label: "Tipo de fuente", type: "select", options: ["Document", "Email", "CRM", "Meeting", "ERP", "Policy", "Website", "Other"] },
       { name: "department", label: "Departamento", type: "link", linkDoctype: "Department" },
-      { name: "process", label: "Proceso relacionado", type: "link", linkDoctype: "OS Process" },
+      { name: "process_ref", label: "Proceso relacionado", type: "link", linkDoctype: "OS Process" },
       { name: "tags", label: "Etiquetas (área, cliente, confidencialidad…)" },
       { name: "sensitivity", label: "Sensibilidad", type: "select", options: ["Public", "Internal", "Confidential", "Restricted"] },
       { name: "valid_from", label: "Vigente desde" }, { name: "valid_until", label: "Vigente hasta" },

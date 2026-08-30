@@ -28,7 +28,20 @@
     var byId = {}; nodes.forEach(function (n) { byId[n.name] = n; });
     var parentOf = {}, childrenOf = {};
     relations.forEach(function (r) {
-      if (r.relation_type === HIER && !parentOf[r.from_node] && byId[r.from_node] && byId[r.to_node] && r.from_node !== r.to_node) parentOf[r.from_node] = r.to_node;
+      if (r.relation_type !== HIER || parentOf[r.from_node] || !byId[r.from_node] || !byId[r.to_node] || r.from_node === r.to_node) return;
+      // BUG-02: dos relaciones REPORTS_TO que se cierran entre sí (A→B y B→A,
+      // o una cadena más larga) provocaban recursión infinita en place() y
+      // subtreeIds(). Antes de aceptar esta relación, se recorre la cadena de
+      // padres YA aceptada desde to_node — si llega de vuelta a from_node,
+      // esta relación cerraría un ciclo y se ignora en el árbol (el registro
+      // en OS Org Relation no se borra, solo no participa del layout).
+      var cur = r.to_node, guard = 0, closesCycle = false;
+      while (cur && guard++ <= nodes.length) {
+        if (cur === r.from_node) { closesCycle = true; break; }
+        cur = parentOf[cur];
+      }
+      if (closesCycle) return;
+      parentOf[r.from_node] = r.to_node;
     });
     nodes.forEach(function (n) { var p = parentOf[n.name]; if (p) (childrenOf[p] = childrenOf[p] || []).push(n.name); });
     var roots = nodes.filter(function (n) { return !parentOf[n.name]; }).map(function (n) { return n.name; });
@@ -40,9 +53,15 @@
     return false;
   }
   function wouldCreateCycle(hier, childId, newParentId) { return childId === newParentId || isDescendant(hier, childId, newParentId); }
-  function subtreeIds(hier, rootId) {
+  function subtreeIds(hier, rootId, _seen) {
+    // Guarda de visitados (defensa en profundidad — buildHierarchy ya
+    // garantiza un árbol sin ciclos, pero esta función no debe poder
+    // recursión infinita aunque childrenOf llegara corrupto por otra vía).
+    _seen = _seen || {};
+    if (_seen[rootId]) return [];
+    _seen[rootId] = true;
     var out = [rootId];
-    (hier.childrenOf[rootId] || []).forEach(function (c) { out = out.concat(subtreeIds(hier, c)); });
+    (hier.childrenOf[rootId] || []).forEach(function (c) { out = out.concat(subtreeIds(hier, c, _seen)); });
     return out;
   }
   function computeWarnings(nodes, relations) {
@@ -66,8 +85,14 @@
     // Reinicia en cada pasada: un nodo que quedó visible/posicionado en el render
     // anterior no debe seguir marcado como tal si ahora su padre está contraído.
     nodes.forEach(function (n) { n._cx = undefined; n._hidden = true; });
+    var visiting = {};
     function place(id, depth) {
       var n = hier.byId[id]; if (!n) return;
+      // Guarda de visitados (defensa en profundidad, ver BUG-02): si un nodo
+      // vuelve a aparecer en su propia rama de recursión, se trata como hoja
+      // en vez de seguir bajando — nunca debe colgar el navegador.
+      if (visiting[id]) { n._hidden = false; n._depth = depth; n._cx = cursor * LEAF + LEAF / 2; cursor++; return; }
+      visiting[id] = true;
       n._hidden = false; n._depth = depth;
       var kids = collapsed[id] ? [] : (hier.childrenOf[id] || []);
       if (!kids.length) { n._cx = cursor * LEAF + LEAF / 2; cursor++; }
@@ -165,17 +190,39 @@
       var d = n.data;
       var svgNS = "http://www.w3.org/2000/svg";
       function txt(x, y, cls, content) { var t = document.createElementNS(svgNS, "text"); t.setAttribute("x", x); t.setAttribute("y", y); t.setAttribute("class", cls); t.textContent = content; g.appendChild(t); return t; }
-      txt(14, 22, "n-sub", TYPE_ICON[d.node_type] + " " + TYPE_LABEL[d.node_type]);
-      txt(14, 42, "n-title", (label(d) || "(sin nombre)").slice(0, 26));
+      // DIS-01: el punto de estado y el chevron viven en el borde derecho de la
+      // tarjeta; un título/subtítulo largo se dibujaba encima. Se trunca con
+      // elipsis según el ancho REAL de texto (getComputedTextLength), no un
+      // conteo de caracteres fijo, reservando el espacio de cada control.
+      function ellipsize(t, maxWidth) {
+        try {
+          if (t.textContent.length > 80) t.textContent = t.textContent.slice(0, 80); // cota barata antes de medir
+          if (t.getComputedTextLength() <= maxWidth) return;
+          var full = t.textContent;
+          for (var i = full.length - 1; i > 0; i--) {
+            t.textContent = full.slice(0, i) + "…";
+            if (t.getComputedTextLength() <= maxWidth) return;
+          }
+          t.textContent = "…";
+        } catch (e) { /* getComputedTextLength puede no estar disponible; el conteo previo de caracteres ya acota el peor caso */ }
+      }
+      var kids = hier.childrenOf[d.name] || [];
+      var DOT_RESERVE = 22, CHEV_RESERVE = 34;
+      var typeT = txt(14, 22, "n-sub", TYPE_ICON[d.node_type] + " " + TYPE_LABEL[d.node_type]);
+      ellipsize(typeT, n.w - 14 - DOT_RESERVE);
+      var titleT = txt(14, 42, "n-title", label(d) || "(sin nombre)");
+      ellipsize(titleT, n.w - 14 - 8);
       var sec = secondaryInfo(d);
-      if (sec) txt(14, 58, "n-sub", sec.slice(0, 30));
+      if (sec) {
+        var subT = txt(14, 58, "n-sub", sec);
+        ellipsize(subT, n.w - 14 - (kids.length ? CHEV_RESERVE : 8));
+      }
       // Estado (punto de color arriba a la derecha) — nunca solo color: el texto del badge también lo dice.
       var dot = document.createElementNS(svgNS, "circle");
       dot.setAttribute("cx", n.w - 14); dot.setAttribute("cy", 14); dot.setAttribute("r", 5);
       dot.setAttribute("fill", d.is_active === 0 ? "#8a8478" : "#1F9D6B");
       g.appendChild(dot);
       // Chevron expandir/contraer si tiene hijos.
-      var kids = hier.childrenOf[d.name] || [];
       if (kids.length) {
         var chev = document.createElementNS(svgNS, "g");
         chev.setAttribute("transform", "translate(" + (n.w - 26) + "," + (n.h - 20) + ")");

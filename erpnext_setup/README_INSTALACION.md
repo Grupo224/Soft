@@ -32,28 +32,40 @@ Carpeta `erpnext_setup/doctypes/*.json` contiene la especificación **campo por 
 de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de destino).
 Úsala como checklist mientras creas cada uno desde **Desk → DocType → New**.
 
-**Orden de creación (importante — las child tables deben existir antes que su padre):**
+**Orden de creación (importante — todo DocType con un campo Link debe apuntar a un
+DocType que ya exista; el orden anterior de esta guía tenía `OS SOP Step` antes que
+`OS Prompt`/`OS Agent`, a los que enlaza, y eso hace fallar su creación tanto por
+Desk como por la API REST — usa este orden, ya verificado campo por campo contra los
+`.json` de `erpnext_setup/doctypes/`):**
 
-1. `OS Process Step` — marcar **Is Child Table**.
-2. `OS Process Edge` — marcar **Is Child Table**.
-3. `OS Process Goal` — marcar **Is Child Table**.
-4. `OS SOP Step` — marcar **Is Child Table**.
-5. `OS Org Node`
-6. `OS Org Relation`
-7. `OS Role Card`
-8. `OS Prompt`
-9. `OS Agent`
-10. `OS SOP` — su campo `steps` es tipo **Table** apuntando al DocType del paso 4.
-11. `OS Process` — sus campos `steps`, `edges` y `goals` son tipo **Table** apuntando a los DocTypes de los pasos 1, 2 y 3.
-12. `OS Run`
-13. `OS Step Run`
-14. `OS Evidence`
-15. `OS Approval`
-16. `OS KPI Definition`
-17. `OS Integration`
-18. `OS Knowledge Source`
-19. `OS Skill`
-20. `OS Policy`
+1. `OS Prompt`
+2. `OS Agent` — su campo `prompt` enlaza a `OS Prompt` (paso 1).
+3. `OS Process Step` — marcar **Is Child Table**. Enlaza a `OS Agent` y `OS Prompt` (pasos 1-2).
+4. `OS Process Edge` — marcar **Is Child Table**. Sin dependencias con otros DocTypes OS.
+5. `OS Process Goal` — marcar **Is Child Table**. Sin dependencias con otros DocTypes OS.
+6. `OS SOP Step` — marcar **Is Child Table**. Enlaza a `OS Agent` y `OS Prompt` (pasos 1-2).
+7. `OS Org Node` — su campo `agent` enlaza a `OS Agent` (paso 2).
+8. `OS Org Relation` — sus campos `from_node`/`to_node` enlazan a `OS Org Node` (paso 7).
+9. `OS Role Card` — sin dependencias con otros DocTypes OS.
+10. `OS Policy` — sin dependencias con otros DocTypes OS.
+11. `OS SOP` — su campo `steps` es tipo **Table** apuntando a `OS SOP Step` (paso 6).
+    ⚠️ **Excepción circular**: `OS SOP` también tiene un campo `process_ref` (Link a
+    `OS Process`), pero `OS Process` todavía no existe en este punto — es la única
+    referencia circular real del modelo (`OS Process` a su vez enlaza a `OS SOP`).
+    Crea `OS SOP` **sin** el campo `process_ref` por ahora (agrégalo en el paso 12b).
+12. `OS Process` — sus campos `steps`, `edges` y `goals` son tipo **Table** apuntando
+    a los DocTypes de los pasos 3, 4 y 5; sus campos `sop`, `org_area`/`responsible_node`
+    y `policy` enlazan a los pasos 11, 7 y 10.
+    - **12b.** Vuelve a `OS SOP` y agrega ahora el campo `process_ref` (Link a
+      `OS Process`) que quedó pendiente en el paso 11 — `OS Process` ya existe.
+13. `OS Run` — su campo `process_ref` enlaza a `OS Process` (paso 12).
+14. `OS Step Run` — sus campos `run` y `actor_agent` enlazan a `OS Run` (paso 13) y `OS Agent` (paso 2).
+15. `OS Evidence` — sus campos `run`/`step_run` enlazan a `OS Run`/`OS Step Run` (pasos 13-14).
+16. `OS Approval` — sus campos `run`, `step_run` y `process_ref` enlazan a los pasos 13, 14 y 12.
+17. `OS KPI Definition` — sin dependencias con otros DocTypes OS.
+18. `OS Integration` — sin dependencias con otros DocTypes OS.
+19. `OS Knowledge Source` — su campo `process_ref` enlaza a `OS Process` (paso 12).
+20. `OS Skill` — sin dependencias con otros DocTypes OS.
 
 > **Nota de migración**: `OS SOP` cambió de un campo de texto libre (`procedure`) a una
 > tabla estructurada de pasos (`steps` → `OS SOP Step`). El campo anterior se conserva
@@ -143,7 +155,12 @@ Ve a **Desk → Sitio Web → Página Web (Web Page) → Nueva**:
 - **Content Type**: `HTML`
 - **Full Width** / oculta el sidebar de la página si tu versión lo permite.
 - En el campo de contenido HTML, pega el contenido completo de
-  `portal/pages/os-web-page.html`.
+  `portal/pages/os-web-page.html`. En **Frappe v15** este campo se llama
+  **`main_section_html`** ("Main Section (HTML)" en el formulario) — no
+  `main_section` (ese es el campo para contenido Markdown/Rich Text, se usa
+  solo cuando **Content Type** es `Markdown` o `Rich Text`, y con
+  `Content Type = HTML` queda deshabilitado). Si administras el sitio por la
+  API en vez de Desk, apunta al fieldname `main_section_html`.
 - Guarda y publica.
 
 El portal completo (Organigrama, Procesos, Mi Trabajo, Aprobaciones, Ejecución,

@@ -1381,6 +1381,19 @@
       btn.setAttribute("aria-label", collapsed?"Expandir menú":"Contraer menú"); }
   }
 
+  /* MOV-01: sidebar off-canvas en móvil (independiente del colapso a ícono
+   * de escritorio) — botón hamburguesa + scrim, igual patrón que el portal
+   * ERPNext. */
+  let mobileScrim;
+  function closeMobileNav(){
+    document.querySelector(".sidebar")?.classList.remove("mobile-open");
+    mobileScrim?.classList.remove("show");
+  }
+  function openMobileNav(){
+    document.querySelector(".sidebar")?.classList.add("mobile-open");
+    mobileScrim?.classList.add("show");
+  }
+
   function buildShell(){
     const app=document.getElementById("app");
     if (getSidebarCollapsed()) app.classList.add("collapsed");
@@ -1391,8 +1404,8 @@
         const count = i.entity? Store.all(i.entity).length : "";
         const item=el("div",{class:"nav-item","data-id":i.id,"data-entity":i.entity||"",
           title:i.label, "aria-label":i.label, role:"button", tabindex:"0",
-          onclick:()=>Router.go(i.id),
-          onkeydown:e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); Router.go(i.id); } }},[
+          onclick:()=>{ Router.go(i.id); closeMobileNav(); },
+          onkeydown:e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); Router.go(i.id); closeMobileNav(); } }},[
           icon(i.icon), el("span",{class:"txt"}, i.label),
           i.entity? el("span",{class:"count"}, count):null ]);
         grp.appendChild(item);
@@ -1458,7 +1471,12 @@
       ]});
     });
 
+    const mobileMenuBtn=el("button",{class:"top-btn mobile-menu-btn", title:"Abrir menú", "aria-label":"Abrir menú", onclick:openMobileNav}, icon("list"));
+    mobileScrim=el("div",{class:"mobile-scrim", onclick:closeMobileNav});
+    app.appendChild(mobileScrim);
+
     const topbar=el("header",{class:"topbar"},[
+      mobileMenuBtn,
       el("div",{class:"crumb", id:"crumb"}),
       el("div",{class:"top-spacer"}),
       el("div",{class:"search", onclick:openPalette},[ icon("search"), el("span",{class:"lbl"},"Buscar en todo…"), el("span",{class:"kbd"},"⌘K") ]),

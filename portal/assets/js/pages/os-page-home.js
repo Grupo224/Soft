@@ -55,7 +55,7 @@
       '<a class="os-btn primary" href="#/processes">＋ Nuevo proceso</a>' +
       '</div></div></div>' +
       '<div class="os-grid cols-4" id="os-home-kpis">' + [1, 2, 3, 4].map(function () { return '<div class="os-card">' + ui.skeleton(2) + '</div>'; }).join("") + '</div>' +
-      '<div class="os-grid" style="grid-template-columns:1.6fr 1fr;margin-top:16px" id="os-home-mid">' +
+      '<div class="os-grid os-grid-mid" style="margin-top:16px" id="os-home-mid">' +
       '  <div class="os-card"><div class="os-section-title">🗺 Mapa de ejecución</div><div id="os-home-execmap">' + ui.skeleton(3) + '</div></div>' +
       '  <div class="os-card"><div class="os-section-title">🛡 Health Score del sistema</div><div id="os-home-health">' + ui.skeleton(3) + '</div></div>' +
       '</div>' +
@@ -74,7 +74,7 @@
       '</div>';
 
     return Promise.all([
-      api.list("OS Run", { fields: ["name", "run_code", "process", "status", "started_at", "current_step_key"], filters: [["status", "in", ["Queued", "Running", "Waiting", "Failed"]]], orderBy: "started_at asc", limit: 8 }).catch(function () { return []; }),
+      api.list("OS Run", { fields: ["name", "run_code", "process_ref", "status", "started_at", "current_step_key"], filters: [["status", "in", ["Queued", "Running", "Waiting", "Failed"]]], orderBy: "started_at asc", limit: 8 }).catch(function () { return []; }),
       api.list("OS Approval", { fields: ["name", "run", "requested_to", "requested_role", "status", "requested_at"], filters: [["status", "=", "Pending"]], orderBy: "requested_at asc", limit: 8 }).catch(function () { return []; }),
       api.list("OS Process", { fields: ["name", "process_title", "status", "risk_level", "modified", "sop", "kpis", "definition_of_done", "sla_minutes"], orderBy: "modified desc", limit: 200 }).catch(function () { return []; }),
       api.list("OS Integration", { fields: ["name", "provider", "status"], limit: 0 }).catch(function () { return []; }),
@@ -113,7 +113,7 @@
 
       container.querySelector("#os-home-runs").innerHTML = runs.length ? runs.map(function (x) {
         return '<div class="os-flow-item"><div class="n">▶</div><div style="flex:1">' +
-          '<div><b>' + U.escapeHtml(x.run_code || x.name) + '</b> · ' + U.escapeHtml(x.process || "") + '</div>' +
+          '<div><b>' + U.escapeHtml(x.run_code || x.name) + '</b> · ' + U.escapeHtml(x.process_ref || "") + '</div>' +
           '<div class="muted" style="font-size:11.5px">paso actual: ' + U.escapeHtml(x.current_step_key || "—") + ' · ' + U.timeAgo(x.started_at) + '</div></div>' +
           ui.badgeStatus(x.status) + '</div>';
       }).join("") : ui.empty("✅", "Nada pendiente", "No hay runs bloqueados ni en espera.");

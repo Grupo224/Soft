@@ -54,8 +54,8 @@
    * en OS Step Run) para que quien ejecuta sepa qué se le pide antes de completar. */
   function fetchStepInstructions(stepRun) {
     return api.get("OS Run", stepRun.run).then(function (run) {
-      if (!run.process) return "";
-      return api.get("OS Process", run.process).then(function (proc) {
+      if (!run.process_ref) return "";
+      return api.get("OS Process", run.process_ref).then(function (proc) {
         var step = (proc.steps || []).find(function (s) { return s.step_key === stepRun.step_key; });
         return (step && step.instructions) || "";
       });
@@ -111,7 +111,7 @@
 
     function load() {
       api.list("OS Approval", {
-        fields: ["name", "run", "step_run", "process", "requested_to", "requested_role", "status", "requested_at", "due_by", "risk_level", "context_snapshot"],
+        fields: ["name", "run", "step_run", "process_ref", "requested_to", "requested_role", "status", "requested_at", "due_by", "risk_level", "context_snapshot"],
         filters: [["status", "=", "Pending"]], orderBy: "requested_at asc", limit: 100
       }).then(function (rows) {
         var host = container.querySelector("#os-appr-list");
@@ -119,7 +119,7 @@
         host.innerHTML = rows.map(function (r) {
           return '<div class="os-card" data-n="' + r.name + '">' +
             '<div style="display:flex;justify-content:space-between;gap:10px"><div>' +
-            '<div><b>Run ' + U.escapeHtml(r.run) + '</b>' + (r.process ? ' · <a href="#/processes/' + r.process + '">' + U.escapeHtml(r.process) + '</a>' : '') + ' ' + (r.risk_level ? ui.badgeRisk(r.risk_level) : '') + '</div>' +
+            '<div><b>Run ' + U.escapeHtml(r.run) + '</b>' + (r.process_ref ? ' · <a href="#/processes/' + r.process_ref + '">' + U.escapeHtml(r.process_ref) + '</a>' : '') + ' ' + (r.risk_level ? ui.badgeRisk(r.risk_level) : '') + '</div>' +
             '<div class="muted" style="font-size:12px">Paso: ' + U.escapeHtml(r.step_run || "—") + ' · solicitado a ' + U.escapeHtml(r.requested_to || r.requested_role || "—") + ' · ' + U.timeAgo(r.requested_at) +
             (r.due_by ? ' · vence ' + U.fmtDate(r.due_by) : '') + '</div>' +
             (r.context_snapshot ? '<pre style="white-space:pre-wrap;font-size:11.5px;color:var(--os-text-dim);margin-top:8px">' + U.escapeHtml(r.context_snapshot).slice(0, 400) + '</pre>' : "") +

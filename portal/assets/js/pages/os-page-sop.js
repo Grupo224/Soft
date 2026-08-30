@@ -34,13 +34,13 @@
       host.innerHTML = '<table class="os-table"><thead><tr><th>SOP</th><th>Área</th><th>Proceso</th><th>Estado</th><th>Versión</th><th>Modificado</th></tr></thead><tbody>' +
         rows.map(function (r) {
           return "<tr data-n='" + r.name + "'><td><b>" + U.escapeHtml(r.sop_title) + "</b><div class='muted' style='font-size:11.5px'>" + U.escapeHtml(r.sop_code || "") + "</div></td>" +
-            "<td>" + U.escapeHtml(r.department || "—") + "</td><td>" + U.escapeHtml(r.process || "—") + "</td>" +
+            "<td>" + U.escapeHtml(r.department || "—") + "</td><td>" + U.escapeHtml(r.process_ref || "—") + "</td>" +
             "<td>" + ui.badgeStatus(r.status) + "</td><td>" + U.escapeHtml(r.version_label || "—") + "</td>" +
             "<td class='muted'>" + U.timeAgo(r.modified) + "</td></tr>";
         }).join("") + "</tbody></table>";
       host.querySelectorAll("tr[data-n]").forEach(function (tr) { ui.clickableRow(tr, function () { OS.router.navigate("/sop/" + tr.dataset.n); }); });
     }
-    api.list("OS SOP", { fields: ["name", "sop_title", "sop_code", "department", "process", "status", "version_label", "modified"], orderBy: "modified desc", limit: 200 })
+    api.list("OS SOP", { fields: ["name", "sop_title", "sop_code", "department", "process_ref", "status", "version_label", "modified"], orderBy: "modified desc", limit: 200 })
       .then(function (rows) { all = rows; render(); }).catch(ui.error);
     container.querySelector("#sop-search").oninput = render;
     container.querySelector("#sop-new").onclick = function () {
@@ -81,7 +81,7 @@
         basicos: !!(sop.sop_title && sop.department && sop.objective && sop.trigger),
         pasos: sop.steps.length > 0,
         responsables: !!(sop.owner_user && sop.roles),
-        vinculos: !!(sop.process || sop.file || sop.steps.some(function (s) { return s.prompt || s.responsible_agent; })),
+        vinculos: !!(sop.process_ref || sop.file || sop.steps.some(function (s) { return s.prompt || s.responsible_agent; })),
         revision: !!(sop.definition_of_done && sop.evidence_required)
       };
     }
@@ -203,7 +203,7 @@
     function renderVinculos(host) {
       host.innerHTML =
         '<div class="os-card"><div class="os-section-title">4 · Vínculos</div>' +
-        fr("Proceso vinculado", '<input class="os-input" f="process" id="sop-process" value="' + U.escapeHtml(sop.process || "") + '">') +
+        fr("Proceso vinculado", '<input class="os-input" f="process_ref" id="sop-process" value="' + U.escapeHtml(sop.process_ref || "") + '">') +
         fr("Herramientas y permisos requeridos", '<textarea class="os-textarea" f="tools">' + U.escapeHtml(sop.tools || "") + '</textarea>') +
         '<div class="os-field"><label>Archivo del SOP completo</label><div id="sop-file"></div>' +
         '<div class="hint">Sube el archivo mediante el mecanismo de Frappe (nunca queda incrustado como texto); si es un paso específico el que necesita su propio archivo, agrégalo en esa tarjeta dentro de Pasos.</div></div>' +

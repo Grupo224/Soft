@@ -88,6 +88,24 @@
 .os-sidebar-foot{padding:10px 16px 14px;border-top:1px solid var(--os-ink-line);font-size:11.5px;color:var(--os-ink-mut);position:relative;z-index:1;background:var(--os-ink)}
 .os-nav{position:relative;z-index:1}
 
+/* ---------- Colapso de escritorio de la barra lateral (persistente, UX-01) ---------- */
+.os-collapse-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:transparent;
+  border:1px solid var(--os-ink-line);color:var(--os-ink-mut);padding:7px 10px;border-radius:8px;cursor:pointer;
+  font-size:12px;font-weight:600;margin-top:10px;transition:.14s}
+.os-collapse-btn:hover{background:var(--os-ink-2);color:#fff}
+.os-collapse-btn .os-ico{transition:transform .2s;width:auto}
+.os-shell.collapsed .os-collapse-btn .txt{display:none}
+.os-shell.collapsed .os-collapse-btn .os-ico{transform:rotate(180deg)}
+.os-shell.collapsed{--os-sidebar-w:76px}
+.os-shell.collapsed .os-brand{justify-content:center;padding:16px 0 14px}
+.os-shell.collapsed .os-brand-txt{display:none}
+.os-shell.collapsed .os-topo{display:none}
+.os-shell.collapsed .os-nav-group{opacity:0;height:0;padding:0;margin:0;overflow:hidden}
+.os-shell.collapsed .os-nav a{justify-content:center;padding:10px 0}
+.os-shell.collapsed .os-nav a span:not(.os-ico),.os-shell.collapsed .os-nav-badge{display:none}
+.os-shell.collapsed .os-nav a.active::before{display:none}
+.os-shell.collapsed .os-sidebar-foot-txt{display:none}
+
 .os-main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh}
 .os-topbar{height:var(--os-topbar-h);flex:none;display:flex;align-items:center;gap:14px;
   padding:0 20px;border-bottom:1px solid var(--os-border);position:sticky;top:0;
@@ -153,12 +171,13 @@
 .os-grid.cols-2{grid-template-columns:repeat(2,1fr)}
 .os-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .os-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.os-grid-mid{grid-template-columns:1.6fr 1fr}
 @media (max-width:1080px){.os-grid.cols-4,.os-grid.cols-3{grid-template-columns:repeat(2,1fr)}}
 .os-menu-toggle{display:none}
 .os-sidebar-scrim{position:fixed;inset:0;background:rgba(20,15,5,.45);z-index:19;opacity:0;pointer-events:none;transition:opacity .2s}
 .os-sidebar-scrim.show{opacity:1;pointer-events:auto}
 @media (max-width:720px){
-  .os-grid.cols-2,.os-grid.cols-3,.os-grid.cols-4{grid-template-columns:1fr}
+  .os-grid.cols-2,.os-grid.cols-3,.os-grid.cols-4,.os-grid-mid{grid-template-columns:1fr}
   .os-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:20;transform:translateX(-100%);transition:transform .2s ease}
   .os-sidebar.open{transform:none}
   .os-inspector{width:100%!important}
@@ -168,6 +187,18 @@
   .os-btn.sm{min-height:40px}
   .os-nav a{min-height:44px}
   .os-avatar,.os-search{min-height:44px}
+  /* El colapso a ícono es una preferencia de escritorio; en móvil la barra lateral
+   * siempre se muestra completa cuando está abierta (ver .os-sidebar.open arriba). */
+  .os-shell.collapsed{--os-sidebar-w:264px}
+  .os-shell.collapsed .os-brand{justify-content:flex-start;padding:16px 16px 14px}
+  .os-shell.collapsed .os-brand-txt{display:block}
+  .os-shell.collapsed .os-topo{display:block}
+  .os-shell.collapsed .os-nav-group{opacity:1;height:auto;padding:6px 10px 2px;margin-top:14px;overflow:visible}
+  .os-shell.collapsed .os-nav a{justify-content:flex-start;padding:8.5px 10px}
+  .os-shell.collapsed .os-nav a span:not(.os-ico),.os-shell.collapsed .os-nav-badge{display:inline}
+  .os-shell.collapsed .os-nav a.active::before{display:block}
+  .os-shell.collapsed .os-sidebar-foot-txt{display:block}
+  .os-shell.collapsed .os-collapse-btn{display:none}
 }
 
 .os-btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:8px 13px;
@@ -276,7 +307,13 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13.5px}
 .os-mode-card b{display:block;font-size:14.5px;margin-bottom:2px}
 .os-mode-card>span{display:block;font-size:11px;color:var(--os-brand);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
 .os-mode-card p{font-size:12px;color:var(--os-ink-mut);line-height:1.5;margin:0}
-@media(max-width:560px){.os-mode-choice{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .os-mode-choice{grid-template-columns:1fr}
+  /* MOV-02: con 3 botones (Cancelar / Guardar borrador / Siguiente) el pie del modal
+   * no entraba en pantallas angostas y "Cancelar" quedaba recortado a la izquierda. */
+  .os-modal-foot{flex-wrap:wrap}
+  .os-modal-foot .os-btn{flex:1 1 auto}
+}
 .os-modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--os-border);display:flex;align-items:center}
 .os-modal-title{font-weight:700;font-size:17px}
 .os-modal-body{padding:20px 22px;overflow:auto}
@@ -367,6 +404,13 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13.5px}
 .os-edge-label{fill:var(--os-text-dim);font-size:10px;font-weight:600;font-family:var(--os-font)}
 .os-edge-label-bg{fill:var(--os-bg);opacity:.9}
 .os-guide{stroke:var(--os-brand);stroke-width:1;stroke-dasharray:4 3;opacity:.7;pointer-events:none}
+/* BUG-03: puerto para conectar arrastrando (alternativa a clic-origen/clic-destino) */
+.os-canvas-port{fill:var(--os-panel);stroke:var(--os-brand);stroke-width:2;opacity:.55;transition:opacity .12s,r .12s}
+.os-node:hover .os-canvas-port,.os-node-glow:hover .os-canvas-port{opacity:1}
+.os-canvas-port:hover{r:8;opacity:1;fill:var(--os-brand)}
+.os-canvas-connect-phantom{stroke:var(--os-brand);stroke-width:2;stroke-dasharray:5 4;fill:none;pointer-events:none}
+.os-canvas-svg.os-connecting{cursor:crosshair}
+.os-node.os-connect-target rect,.os-node-glow.os-connect-target rect{stroke:var(--os-brand);stroke-width:3;filter:drop-shadow(0 0 6px rgba(242,107,31,.5))}
 .os-canvas-minimap{position:absolute;bottom:12px;right:12px;width:150px;height:100px;background:rgba(255,255,255,.9);
   border:1px solid var(--os-border);border-radius:8px;z-index:5;box-shadow:var(--os-shadow-sm)}
 

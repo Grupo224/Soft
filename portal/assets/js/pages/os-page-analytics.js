@@ -38,7 +38,7 @@
       '</div>';
 
     Promise.all([
-      api.list("OS Run", { fields: ["name", "process", "status", "started_at", "completed_at"], limit: 500 }).catch(function () { return []; }),
+      api.list("OS Run", { fields: ["name", "process_ref", "status", "started_at", "completed_at"], limit: 500 }).catch(function () { return []; }),
       api.list("OS Step Run", { fields: ["name", "status", "error_code"], filters: [["status", "=", "Failed"]], limit: 500 }).catch(function () { return []; }),
       api.list("OS Process", { fields: ["name", "status", "owner_user", "sop", "sla_minutes"], limit: 500 }).catch(function () { return []; }),
       api.list("OS Integration", { fields: ["name", "status"], limit: 200 }).catch(function () { return []; })
@@ -60,7 +60,7 @@
       var maxStatus = Math.max.apply(null, Object.keys(byStatus).map(function (k) { return byStatus[k]; }).concat([1]));
       container.querySelector("#an-status").innerHTML = Object.keys(byStatus).length ? Object.keys(byStatus).map(function (k) { return bar(k, byStatus[k], maxStatus); }).join("") : ui.empty("—", "Sin runs todavía");
 
-      var byProc = groupCount(runs, "process");
+      var byProc = groupCount(runs, "process_ref");
       var procKeys = Object.keys(byProc).sort(function (a, b) { return byProc[b] - byProc[a]; }).slice(0, 8);
       var maxProc = Math.max.apply(null, procKeys.map(function (k) { return byProc[k]; }).concat([1]));
       container.querySelector("#an-procs").innerHTML = procKeys.length ? procKeys.map(function (k) { return bar(k, byProc[k], maxProc); }).join("") : ui.empty("—", "Sin datos");

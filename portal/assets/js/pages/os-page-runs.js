@@ -16,13 +16,13 @@
       var filters = [];
       var st = container.querySelector("#r-status").value;
       if (st) filters.push(["status", "=", st]);
-      api.list("OS Run", { fields: ["name", "run_code", "process", "status", "started_at", "completed_at", "current_step_key"], filters: filters, orderBy: "started_at desc", limit: 150 })
+      api.list("OS Run", { fields: ["name", "run_code", "process_ref", "status", "started_at", "completed_at", "current_step_key"], filters: filters, orderBy: "started_at desc", limit: 150 })
         .then(function (rows) {
           var host = container.querySelector("#r-table");
           if (!rows.length) { host.innerHTML = ui.empty("▶", "Sin runs", "Ejecuta un proceso en modo prueba desde el Estudio de Procesos."); return; }
           host.innerHTML = '<table class="os-table"><thead><tr><th>Run</th><th>Proceso</th><th>Estado</th><th>Paso actual</th><th>Inicio</th><th>Fin</th></tr></thead><tbody>' +
             rows.map(function (r) {
-              return "<tr data-n='" + r.name + "'><td><b>" + U.escapeHtml(r.run_code || r.name) + "</b></td><td>" + U.escapeHtml(r.process || "") + "</td>" +
+              return "<tr data-n='" + r.name + "'><td><b>" + U.escapeHtml(r.run_code || r.name) + "</b></td><td>" + U.escapeHtml(r.process_ref || "") + "</td>" +
                 "<td>" + ui.badgeStatus(r.status) + "</td><td class='muted'>" + U.escapeHtml(r.current_step_key || "—") + "</td>" +
                 "<td class='muted'>" + U.timeAgo(r.started_at) + "</td><td class='muted'>" + (r.completed_at ? U.timeAgo(r.completed_at) : "—") + "</td></tr>";
             }).join("") + "</tbody></table>";
@@ -47,7 +47,7 @@
         container.querySelector("#r-head").innerHTML =
           '<div class="os-page-head"><div><div class="os-crumb" style="margin-bottom:4px"><a href="#/runs">Centro de Ejecución</a> / ' + U.escapeHtml(run.run_code || run.name) + '</div>' +
           '<div class="os-page-title">' + U.escapeHtml(run.run_code || run.name) + ' ' + ui.badgeStatus(run.status) + '</div>' +
-          '<div class="os-page-sub">Proceso <a href="#/processes/' + run.process + '">' + U.escapeHtml(run.process) + '</a> · versión ' + U.escapeHtml(run.process_version || "—") + ' · iniciado por ' + U.escapeHtml(run.initiated_by || "—") + '</div></div>' +
+          '<div class="os-page-sub">Proceso <a href="#/processes/' + run.process_ref + '">' + U.escapeHtml(run.process_ref) + '</a> · versión ' + U.escapeHtml(run.process_version || "—") + ' · iniciado por ' + U.escapeHtml(run.initiated_by || "—") + '</div></div>' +
           '<div class="os-page-actions">' +
           (TERMINAL.indexOf(run.status) === -1 ? '<button class="os-btn danger" id="r-cancel">Cancelar run</button>' : '') +
           '</div></div>' +

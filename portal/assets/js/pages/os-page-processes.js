@@ -389,6 +389,7 @@
       head.querySelector("#os-add-step").onclick = function () { guardActiveEdit().then(function (ok) { if (ok) openStepPalette(); }); };
       head.querySelector("#os-connect").onclick = function () {
         connectMode = !connectMode; connectFrom = null;
+        if (engine) engine.clearSelection();
         head.querySelector("#os-connect").classList.toggle("primary", connectMode);
         ui.toast(connectMode ? "Modo conectar: haz clic en el paso de origen y luego el de destino." : "Modo conectar desactivado", "warn");
       };
@@ -413,7 +414,7 @@
         if (!ok) return;
         api.create("OS Run", {
           run_code: (proc.process_code || proc.name) + "-" + Date.now().toString(36).toUpperCase(),
-          process: proc.name, process_version: proc.version_label, status: "Queued", trigger_type: "Manual",
+          process_ref: proc.name, process_version: proc.version_label, status: "Queued", trigger_type: "Manual",
           initiated_by: OS.session.user, started_at: new Date().toISOString().slice(0, 19).replace("T", " "),
           current_step_key: (proc.steps[0] || {}).step_key || ""
         }).then(function (run) { ui.toast("Run creado: " + run.name, "ok"); OS.router.navigate("/runs/" + run.name); }).catch(ui.error);
@@ -487,7 +488,9 @@
       if (!engine) {
         svg.innerHTML = '<div class="os-canvas-toolbar"><button class="os-btn sm" data-a="fit">⤢ Ajustar</button></div><svg class="os-canvas-svg"></svg>';
         engine = OS.canvas.create(svg.querySelector("svg"), {
-          edgeAnchor: "lr", onEdgeClick: function (edge) { if (!connectMode) openEdgeInspector(edge.data); },
+          edgeAnchor: "lr", connectPorts: true,
+          onDragConnect: function (fromId, toId) { openEdgeModal(fromId, toId); },
+          onEdgeClick: function (edge) { if (!connectMode) openEdgeInspector(edge.data); },
           renderNode: function (g, n) {
             var s = n.data;
             var t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -501,9 +504,9 @@
           },
           onNodeClick: function (n) {
             if (connectMode) {
-              if (!connectFrom) { connectFrom = n.id; ui.toast("Origen: " + n.id + ". Ahora elige el destino.", "warn"); return; }
-              if (connectFrom === n.id) { connectFrom = null; return; }
-              openEdgeModal(connectFrom, n.id); connectFrom = null; return;
+              if (!connectFrom) { connectFrom = n.id; engine.select(n.id); ui.toast("Origen: " + n.id + ". Ahora elige el destino (resaltado en naranja).", "warn"); return; }
+              if (connectFrom === n.id) { connectFrom = null; engine.clearSelection(); return; }
+              openEdgeModal(connectFrom, n.id); connectFrom = null; engine.clearSelection(); return;
             }
             openStepInspector(proc.steps.find(function (s) { return s.step_key === n.id; }));
           },
