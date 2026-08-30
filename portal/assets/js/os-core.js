@@ -195,44 +195,94 @@
   };
 
   /* ---- Inspector (panel lateral reutilizable) ---- */
+  /* Patrón común exigido para Procesos / SOP / Organigrama: Guardar y Cancelar
+   * siempre visibles, Ctrl+S guarda, Escape/✕ solo cierra sin avisar si no hay
+   * cambios pendientes, y se advierte antes de cerrar/recargar con cambios sin guardar. */
   ui.inspector = (function () {
-    var el;
+    var el, dirty = false, onCloseCb = null;
     function ensure() {
       if (!el) {
         el = document.createElement("div");
         el.className = "os-inspector";
         el.innerHTML = '<div class="os-inspector-head"></div><div class="os-inspector-body os-scroll"></div><div class="os-inspector-foot"></div>';
         appendToAppRoot(el);
+        el.addEventListener("input", markDirtyFromEvent, true);
+        el.addEventListener("change", markDirtyFromEvent, true);
       }
       return el;
     }
-    return {
+    function markDirtyFromEvent(e) {
+      if (e.target && e.target.hasAttribute && e.target.hasAttribute("data-no-dirty")) return;
+      dirty = true;
+      var stateEl = el.querySelector(".os-inspector-foot .os-save-state, .os-inspector-head .os-save-state");
+      if (stateEl && !/saving|error/.test(stateEl.className)) ui.saveState(stateEl, "dirty");
+    }
+    function doClose() {
+      if (el) el.classList.remove("open");
+      if (OS.rootEl) OS.rootEl.classList.remove("os-inspector-active");
+      dirty = false;
+      var cb = onCloseCb; onCloseCb = null;
+      if (cb) cb();
+    }
+    var api2 = {
       open: function (opts) {
         var box = ensure();
+        dirty = false; onCloseCb = opts.onClose || null;
         box.querySelector(".os-inspector-head").innerHTML =
-          '<div style="flex:1"><div style="font-weight:800;font-size:15px">' + util.escapeHtml(opts.title || "") + '</div>' +
-          (opts.subtitle ? '<div style="font-size:12px;color:var(--os-text-mute)">' + util.escapeHtml(opts.subtitle) + '</div>' : "") + '</div>' +
-          '<button class="os-btn ghost icon" data-close>✕</button>';
+          '<div style="flex:1"><div style="font-weight:700;font-size:15.5px">' + util.escapeHtml(opts.title || "") + '</div>' +
+          (opts.subtitle ? '<div style="font-size:12px;color:var(--os-text-mute);margin-top:2px">' + util.escapeHtml(opts.subtitle) + '</div>' : "") + '</div>' +
+          '<button class="os-btn ghost icon" data-close title="Cerrar (Esc)">✕</button>';
         var body = box.querySelector(".os-inspector-body");
         body.innerHTML = "";
         if (typeof opts.body === "string") body.innerHTML = opts.body; else if (opts.body) body.appendChild(opts.body);
         var foot = box.querySelector(".os-inspector-foot");
         foot.innerHTML = "";
         if (opts.foot) { if (typeof opts.foot === "string") foot.innerHTML = opts.foot; else foot.appendChild(opts.foot); }
-        box.querySelector("[data-close]").onclick = function () { ui.inspector.close(); if (opts.onClose) opts.onClose(); };
-        requestAnimationFrame(function () { box.classList.add("open"); });
+        box.querySelector("[data-close]").onclick = function () { api2.closeGuarded(); };
+        requestAnimationFrame(function () { box.classList.add("open"); dirty = false; });
         if (OS.rootEl) OS.rootEl.classList.add("os-inspector-active");
         return box;
       },
-      close: function () { if (el) el.classList.remove("open"); if (OS.rootEl) OS.rootEl.classList.remove("os-inspector-active"); },
-      body: function () { return el && el.querySelector(".os-inspector-body"); }
+      /** Cierre directo, sin preguntar (para usar tras guardar/eliminar con éxito). */
+      close: doClose,
+      /** Cierre "humano": si hay cambios sin guardar, confirma antes de descartarlos. */
+      closeGuarded: function () {
+        if (!el || !el.classList.contains("open")) return;
+        if (dirty) {
+          ui.confirm("Tienes cambios sin guardar en este panel. ¿Descartarlos y cerrar?", { okLabel: "Descartar y cerrar", danger: true })
+            .then(function (ok) { if (ok) doClose(); });
+        } else doClose();
+      },
+      isOpen: function () { return !!(el && el.classList.contains("open")); },
+      isDirty: function () { return dirty; },
+      markDirty: function () { dirty = true; },
+      /** Los formularios deben llamarlo tras un guardado exitoso del servidor. */
+      markClean: function () { dirty = false; },
+      body: function () { return el && el.querySelector(".os-inspector-body"); },
+      /** Botón "primary" del pie (el que normalmente guarda) — usado por Ctrl+S. */
+      primarySaveBtn: function () { return el && el.querySelector(".os-inspector-foot .os-btn.primary"); }
     };
+    document.addEventListener("keydown", function (e) {
+      if (!api2.isOpen()) return;
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        var btn = api2.primarySaveBtn();
+        if (btn) btn.click();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        api2.closeGuarded();
+      }
+    });
+    window.addEventListener("beforeunload", function (e) {
+      if (api2.isOpen() && api2.isDirty()) { e.preventDefault(); e.returnValue = ""; return ""; }
+    });
+    return api2;
   })();
 
   ui.saveState = function (el, status) {
-    // status: idle|saving|saved|error
+    // status: idle|dirty|saving|saved|error — los 5 estados que exige el patrón de guardado.
     el.className = "os-save-state " + (status === "idle" ? "" : status);
-    el.innerHTML = '<span class="dot"></span>' + ({ idle: "Sin cambios", saving: "Guardando…", saved: "Guardado", error: "Error al guardar" }[status] || "");
+    el.innerHTML = '<span class="dot"></span>' + ({ idle: "Sin cambios", dirty: "Cambios pendientes", saving: "Guardando…", saved: "Guardado", error: "Error al guardar" }[status] || "");
   };
 
   /** Autocompletado genérico para campos Link contra frappe.desk.search.search_link (mismo mecanismo que usa Desk). */
@@ -296,6 +346,7 @@
         var match = router.resolve();
         if (current && current.def.unmount) { try { current.def.unmount(); } catch (e) {} }
         OS.ui.inspector.close();
+        OS.history.clear();
         mountEl.innerHTML = "";
         if (!match) {
           mountEl.innerHTML = OS.ui.empty("🧭", "Página no encontrada", "Usa el menú lateral para navegar.");
@@ -312,6 +363,39 @@
     }
   };
   OS.router = router;
+
+  /* ============================= Deshacer / Rehacer ============================= */
+  /* Genérico: cualquier pantalla con canvas (Organigrama, Process Studio) empuja
+   * comandos {label, undo, redo}. Ctrl+Z / Ctrl+Shift+Z (o Cmd) los ejecutan,
+   * salvo que el foco esté en un campo de texto (para no romper su undo nativo). */
+  OS.history = (function () {
+    var stack = [], pointer = -1, MAX = 100;
+    function isTextEditable(elx) {
+      if (!elx) return false;
+      var tag = (elx.tagName || "").toLowerCase();
+      return tag === "input" || tag === "textarea" || elx.isContentEditable;
+    }
+    var h = {
+      push: function (cmd) {
+        stack = stack.slice(0, pointer + 1); stack.push(cmd); pointer++;
+        if (stack.length > MAX) { stack.shift(); pointer--; }
+      },
+      undo: function () { if (pointer < 0) return false; var c = stack[pointer]; pointer--; c.undo(); return true; },
+      redo: function () { if (pointer + 1 >= stack.length) return false; pointer++; stack[pointer].redo(); return true; },
+      clear: function () { stack = []; pointer = -1; },
+      canUndo: function () { return pointer >= 0; },
+      canRedo: function () { return pointer + 1 < stack.length; },
+      lastLabel: function () { return pointer >= 0 ? stack[pointer].label : null; }
+    };
+    document.addEventListener("keydown", function (e) {
+      if (isTextEditable(document.activeElement)) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      var k = e.key.toLowerCase();
+      if (k === "z") { var ok = e.shiftKey ? h.redo() : h.undo(); if (ok) { e.preventDefault(); ui.toast(e.shiftKey ? "Rehecho" : "Deshecho", "warn", 1400); } }
+      else if (k === "y") { if (h.redo()) { e.preventDefault(); ui.toast("Rehecho", "warn", 1400); } }
+    });
+    return h;
+  })();
 
   /* ============================= Polling helper ============================= */
   OS.poll = function (fn, ms) {

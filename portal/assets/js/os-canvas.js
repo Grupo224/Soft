@@ -39,8 +39,10 @@
         '<path d="M0,0 L7,3.5 L0,7 Z" fill="#3a4568"></path></marker>';
 
       var tx = 0, ty = 0, scale = 1;
-      var nodes = [], edges = [], nodeEls = {}, selected = null;
+      var nodes = [], edges = [], nodeEls = {}, selected = null, selectedEdge = null;
       var dragging = null, panStart = null;
+      var snap = opts.snap === false ? 0 : (opts.snap || 10);
+      function snapVal(v) { return snap ? Math.round(v / snap) * snap : v; }
 
       function applyTransform() { vp.setAttribute("transform", "translate(" + tx + "," + ty + ") scale(" + scale + ")"); }
 
@@ -63,17 +65,31 @@
       var glowStyle = opts.edgeStyle === "glow";
       function renderEdges() {
         edgesLayer.innerHTML = "";
-        edges.forEach(function (e) {
+        edges.forEach(function (e, idx) {
           var a = nodeEls[e.from] && nodeEls[e.from].node, b = nodeEls[e.to] && nodeEls[e.to].node;
           if (!a || !b) return;
-          var attrs = { d: edgePath(a, b) };
-          if (glowStyle) attrs.class = "os-edge-glow" + (e.glowClass ? " " + e.glowClass : "") + (e.dim ? " dim" : "");
-          else { attrs.class = "os-edge" + (e.cls ? " " + e.cls : "") + (e.dim ? " dim" : ""); attrs["marker-end"] = "url(#os-arrow)"; }
-          var p = el("path", attrs, edgesLayer);
+          var eid = e.id != null ? e.id : idx;
+          var d = edgePath(a, b);
+          var attrs = { d: d };
+          var selCls = (selectedEdge === eid ? " selected" : "");
+          if (glowStyle) attrs.class = "os-edge-glow" + (e.glowClass ? " " + e.glowClass : "") + (e.dim ? " dim" : "") + selCls;
+          else { attrs.class = "os-edge" + (e.cls ? " " + e.cls : "") + (e.dim ? " dim" : "") + selCls; attrs["marker-end"] = "url(#os-arrow)"; }
+          var visiblePath = el("path", attrs, edgesLayer);
+          if (opts.onEdgeClick || opts.selectableEdges) {
+            var hit = el("path", { d: d, class: "os-edge-hit" }, edgesLayer);
+            hit.addEventListener("click", function (ev) {
+              ev.stopPropagation();
+              selectedEdge = eid; selected = null;
+              renderNodes();
+              opts.onEdgeClick && opts.onEdgeClick(e, eid);
+            });
+          }
           if (e.label) {
             // Al 32% del trazo (cerca del origen) para no chocar con la etiqueta del nodo destino.
-            var mid = p.getPointAtLength ? p.getPointAtLength(p.getTotalLength() * 0.32) : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-            el("text", { class: "os-edge-label", x: mid.x, y: mid.y - 4, "text-anchor": "middle" }, edgesLayer).textContent = e.label;
+            var mid = visiblePath.getPointAtLength ? visiblePath.getPointAtLength(visiblePath.getTotalLength() * 0.32) : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+            var lbl = String(e.label);
+            el("rect", { class: "os-edge-label-bg", x: mid.x - lbl.length * 3 - 3, y: mid.y - 13, width: lbl.length * 6 + 6, height: 13, rx: 3 }, edgesLayer);
+            el("text", { class: "os-edge-label", x: mid.x, y: mid.y - 4, "text-anchor": "middle" }, edgesLayer).textContent = lbl;
           }
         });
       }
@@ -91,7 +107,7 @@
           g.addEventListener("touchstart", function (ev) { startDrag(ev.touches[0], n, g); ev.preventDefault(); }, { passive: false });
           g.addEventListener("click", function (ev) {
             if (dragMoved) return;
-            selected = n.id; renderNodes(); renderEdges();
+            selected = n.id; selectedEdge = null; renderNodes(); renderEdges();
             opts.onNodeClick && opts.onNodeClick(n);
           });
           nodeEls[n.id] = { node: n, g: g };
@@ -102,6 +118,7 @@
       var dragMoved = false;
       function startDrag(ev, n, g) {
         dragMoved = false;
+        var origX = n.x, origY = n.y;
         var startWorld = screenToWorld(ev.clientX, ev.clientY);
         dragging = { node: n, offX: startWorld.x - n.x, offY: startWorld.y - n.y };
         function move(e2) {
@@ -116,9 +133,15 @@
         function up() {
           document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up);
           document.removeEventListener("touchmove", move); document.removeEventListener("touchend", up);
-          if (dragMoved) opts.onNodeDragEnd && opts.onNodeDragEnd(n, n.x, n.y);
-          dragging = null;
+          if (dragMoved) {
+            n.x = snapVal(n.x); n.y = snapVal(n.y);
+            g.setAttribute("transform", "translate(" + n.x + "," + n.y + ")");
+            renderEdges();
+            opts.onNodeDragEnd && opts.onNodeDragEnd(n, n.x, n.y, { fromX: origX, fromY: origY });
+          }
+          dragging = null; g.classList.remove("dragging");
         }
+        g.classList.add("dragging");
         document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
         document.addEventListener("touchmove", move, { passive: false }); document.addEventListener("touchend", up);
       }
@@ -134,7 +157,7 @@
         applyTransform();
       });
       window.addEventListener("mouseup", function () { panStart = null; });
-      svgEl.addEventListener("click", function (ev) { if (ev.target === svgEl) { selected = null; renderNodes(); opts.onBackgroundClick && opts.onBackgroundClick(); } });
+      svgEl.addEventListener("click", function (ev) { if (ev.target === svgEl) { selected = null; selectedEdge = null; renderNodes(); opts.onBackgroundClick && opts.onBackgroundClick(); } });
 
       svgEl.addEventListener("wheel", function (ev) {
         ev.preventDefault();
@@ -148,9 +171,19 @@
 
       var api = {
         setData: function (n, e) { nodes = n || []; edges = e || []; renderNodes(); },
-        select: function (id) { selected = id; renderNodes(); },
+        select: function (id) { selected = id; selectedEdge = null; renderNodes(); },
+        selectEdge: function (id) { selectedEdge = id; selected = null; renderNodes(); },
+        clearSelection: function () { selected = null; selectedEdge = null; renderNodes(); },
         zoom: function (delta) { scale = OS.util.clamp(scale + delta, 0.25, 2.5); applyTransform(); },
         resetView: function () { tx = 40; ty = 40; scale = 1; applyTransform(); },
+        /** Centra la vista sobre un nodo (por id) sin cambiar el zoom. */
+        centerOn: function (id) {
+          var ne = nodeEls[id]; if (!ne) return;
+          var rect = svgEl.getBoundingClientRect();
+          tx = rect.width / 2 - (ne.node.x + ne.node.w / 2) * scale;
+          ty = rect.height / 2 - (ne.node.y + ne.node.h / 2) * scale;
+          applyTransform();
+        },
         fit: function () {
           if (!nodes.length) return api.resetView();
           var minX = Math.min.apply(null, nodes.map(function (n) { return n.x; }));

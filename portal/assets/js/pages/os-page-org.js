@@ -159,13 +159,24 @@
       '<div class="os-section-title">Procesos relacionados</div>' +
       '<div id="os-org-procs">' + ui.skeleton(2) + '</div>';
 
+    // Pie fijo: Cancelar y Guardar siempre visibles (patrón obligatorio para los 3 constructores).
     var foot = document.createElement("div");
-    foot.innerHTML = '<button class="os-btn danger sm" id="os-org-del">Eliminar nodo</button><div class="os-spacer"></div>' +
-      '<a class="os-btn sm" href="/app/os-org-node/' + encodeURIComponent(node.name) + '" target="_blank">Abrir en ERPNext ↗</a>';
+    foot.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px"><span class="os-save-state" id="os-org-state"></span></div>' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+      '<a class="os-btn ghost sm" href="/app/os-org-node/' + encodeURIComponent(node.name) + '" target="_blank" title="Abrir documento en ERPNext">ERPNext ↗</a>' +
+      '<button class="os-btn danger sm" id="os-org-del">Eliminar nodo</button>' +
+      '<button class="os-btn ghost sm" id="os-org-cancel">Cancelar</button>' +
+      (node.node_type === "Designation" ? '<button class="os-btn primary sm" id="os-org-save-role">Guardar</button>' : "") +
+      '</div>';
 
     ui.inspector.open({ title: label(node) || node.name, subtitle: node.node_type + " · clic para agregar información del rol", body: body, foot: foot });
+    ui.saveState(foot.querySelector("#os-org-state"), "idle");
+    foot.querySelector("#os-org-cancel").onclick = function () { ui.inspector.closeGuarded(); };
 
-    if (node.node_type === "Designation") mountRoleCardEditor(body.querySelector("#os-org-rolecard"), node);
+    if (node.node_type === "Designation") {
+      mountRoleCardEditor(body.querySelector("#os-org-rolecard"), foot.querySelector("#os-org-save-role"), foot.querySelector("#os-org-state"), node);
+    }
 
     if (node.designation) {
       api.list("OS Process Step", { fields: ["parent"], filters: [["approval_role", "=", node.designation]], limit: 5 }).catch(function () { return []; })
@@ -184,7 +195,7 @@
 
   /** Ficha operativa del rol (OS Role Card) editable directamente desde el organigrama —
    * responde al North Star de ambos SOP: abrir un nodo y ver/completar su contrato operativo. */
-  function mountRoleCardEditor(host, node) {
+  function mountRoleCardEditor(host, saveBtn, stateEl, node) {
     host.innerHTML = '<div class="os-section-title">Ficha del rol — agregar información</div>' + ui.skeleton(3);
     api.list("OS Role Card", { fields: ["name", "role_title", "mission", "expected_results", "responsibilities", "kpis", "owner_user"], filters: [["designation", "=", node.designation]], limit: 1 })
       .catch(function () { return []; })
@@ -195,19 +206,17 @@
           '<div class="os-field"><label>Misión</label><textarea class="os-textarea" id="rc-mission" placeholder="Para qué existe este rol">' + U.escapeHtml(card ? card.mission : "") + '</textarea></div>' +
           '<div class="os-field"><label>Resultados esperados</label><textarea class="os-textarea" id="rc-results" placeholder="Qué produce cuando funciona bien">' + U.escapeHtml(card ? card.expected_results : "") + '</textarea></div>' +
           '<div class="os-field"><label>Responsabilidades</label><textarea class="os-textarea" id="rc-resp">' + U.escapeHtml(card ? card.responsibilities : "") + '</textarea></div>' +
-          '<div class="os-field"><label>KPIs del rol</label><textarea class="os-textarea" id="rc-kpis" placeholder="Cómo se mide">' + U.escapeHtml(card ? card.kpis : "") + '</textarea></div>' +
-          '<button class="os-btn primary sm" id="rc-save">💾 Guardar información del rol</button> ' +
-          '<span class="os-save-state" id="rc-state" style="margin-left:8px"></span>';
-        host.querySelector("#rc-save").onclick = function () {
-          ui.saveState(host.querySelector("#rc-state"), "saving");
+          '<div class="os-field"><label>KPIs del rol</label><textarea class="os-textarea" id="rc-kpis">' + U.escapeHtml(card ? card.kpis : "") + '</textarea></div>';
+        saveBtn.onclick = function () {
+          ui.saveState(stateEl, "saving");
           var payload = {
             role_title: label(node), designation: node.designation, owner_user: card ? card.owner_user : OS.session.user,
             mission: host.querySelector("#rc-mission").value, expected_results: host.querySelector("#rc-results").value,
             responsibilities: host.querySelector("#rc-resp").value, kpis: host.querySelector("#rc-kpis").value
           };
           var p = card ? api.update("OS Role Card", card.name, payload) : api.create("OS Role Card", payload);
-          p.then(function (doc) { card = doc; ui.saveState(host.querySelector("#rc-state"), "saved"); ui.toast("Ficha del rol guardada", "ok"); })
-            .catch(function (e) { ui.saveState(host.querySelector("#rc-state"), "error"); ui.error(e); });
+          p.then(function (doc) { card = doc; ui.saveState(stateEl, "saved"); ui.inspector.markClean(); ui.toast("Ficha del rol guardada", "ok"); })
+            .catch(function (e) { ui.saveState(stateEl, "error"); ui.error(e); });
         };
       });
   }

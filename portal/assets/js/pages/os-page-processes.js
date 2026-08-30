@@ -174,7 +174,7 @@
 
     function toCanvasData() {
       var cn = (proc.steps || []).map(function (s) { return { id: s.step_key, x: s.x || 0, y: s.y || 0, w: 176, h: 62, data: s }; });
-      var ce = (proc.edges || []).map(function (e) { return { from: e.source_step_key, to: e.target_step_key, label: e.relation_type + (e.label ? ": " + e.label : ""), cls: e.relation_type === "ERROR" ? "error" : (e.relation_type === "TRUE" ? "true" : e.relation_type === "FALSE" ? "false" : "") }; });
+      var ce = (proc.edges || []).map(function (e) { return { id: e.edge_key, data: e, from: e.source_step_key, to: e.target_step_key, label: e.relation_type + (e.label ? ": " + e.label : ""), cls: e.relation_type === "ERROR" ? "error" : (e.relation_type === "TRUE" ? "true" : e.relation_type === "FALSE" ? "false" : "") }; });
       if (cn.some(function (n) { return !n.x && !n.y; })) cn.forEach(function (n, i) { if (!n.x && !n.y) { n.x = 60 + i * 230; n.y = 60; } });
       return { cn: cn, ce: ce };
     }
@@ -185,7 +185,7 @@
       if (!engine) {
         svg.innerHTML = '<div class="os-canvas-toolbar"><button class="os-btn sm" data-a="fit">⤢ Ajustar</button></div><svg class="os-canvas-svg"></svg>';
         engine = OS.canvas.create(svg.querySelector("svg"), {
-          edgeAnchor: "lr",
+          edgeAnchor: "lr", onEdgeClick: function (edge) { if (!connectMode) openEdgeInspector(edge.data); },
           renderNode: function (g, n) {
             var s = n.data;
             var t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -205,9 +205,16 @@
             }
             openStepInspector(proc.steps.find(function (s) { return s.step_key === n.id; }));
           },
-          onNodeDragEnd: function (n) {
-            var s = proc.steps.find(function (x) { return x.step_key === n.id; });
-            s.x = Math.round(n.x); s.y = Math.round(n.y);
+          onNodeDragEnd: function (n, x, y, meta) {
+            var s = proc.steps.find(function (x2) { return x2.step_key === n.id; });
+            var before = { x: meta.fromX, y: meta.fromY };
+            s.x = Math.round(x); s.y = Math.round(y);
+            var after = { x: s.x, y: s.y };
+            OS.history.push({
+              label: "mover paso",
+              undo: function () { s.x = before.x; s.y = before.y; persistDebounced(); renderCanvas(); },
+              redo: function () { s.x = after.x; s.y = after.y; persistDebounced(); renderCanvas(); }
+            });
             persistDebounced();
           }
         });
@@ -236,12 +243,77 @@
           {
             label: "Crear conexión", cls: "primary", onClick: function () {
               proc.edges = proc.edges || [];
-              proc.edges.push({ edge_key: U.uid("edge"), source_step_key: from, target_step_key: to, relation_type: body.querySelector("#e-type").value, condition_expression: body.querySelector("#e-cond").value, label: body.querySelector("#e-label").value });
+              var newEdge = { edge_key: U.uid("edge"), source_step_key: from, target_step_key: to, relation_type: body.querySelector("#e-type").value, condition_expression: body.querySelector("#e-cond").value, label: body.querySelector("#e-label").value };
+              proc.edges.push(newEdge);
+              OS.history.push({
+                label: "crear conexión",
+                undo: function () { var i = proc.edges.indexOf(newEdge); if (i >= 0) proc.edges.splice(i, 1); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); },
+                redo: function () { proc.edges.push(newEdge); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); }
+              });
               persist({ steps: proc.steps, edges: proc.edges }).then(function () { renderCanvas(); });
             }
           }]
         });
       });
+    }
+
+    /** Seleccionar una línea la abre para editar tipo/condición/etiqueta o eliminarla — P0. */
+    function openEdgeInspector(edge) {
+      if (!edge) return;
+      var body = document.createElement("div");
+      body.innerHTML =
+        '<div class="os-section-title">Conexión</div>' +
+        fieldRow("Origen", '<div class="os-tag">' + U.escapeHtml(edge.source_step_key) + '</div>') +
+        fieldRow("Destino", '<div class="os-tag">' + U.escapeHtml(edge.target_step_key) + '</div>') +
+        fieldRow("Tipo de relación", '<select class="os-select" f="relation_type">' + opt(["NEXT", "TRUE", "FALSE", "ERROR", "TIMEOUT", "HANDOFF"], edge.relation_type) + '</select>') +
+        fieldRow("Condición (declarativa)", '<input class="os-input" f="condition_expression" value="' + U.escapeHtml(edge.condition_expression || "") + '">') +
+        fieldRow("Etiqueta visual", '<input class="os-input" f="label" value="' + U.escapeHtml(edge.label || "") + '">');
+
+      var foot = document.createElement("div");
+      foot.innerHTML = '<span class="os-save-state" id="edge-state"></span>' +
+        '<div style="display:flex;gap:8px"><button class="os-btn danger sm" id="edge-del">Eliminar</button>' +
+        '<button class="os-btn ghost sm" id="edge-cancel">Cancelar</button>' +
+        '<button class="os-btn primary sm" id="edge-save">Guardar</button></div>';
+
+      ui.inspector.open({ title: "Conexión", subtitle: edge.source_step_key + " → " + edge.target_step_key, body: body, foot: foot, onClose: function () { engine.clearSelection(); } });
+      ui.saveState(foot.querySelector("#edge-state"), "idle");
+      foot.querySelector("#edge-cancel").onclick = function () { ui.inspector.closeGuarded(); };
+
+      foot.querySelector("#edge-save").onclick = function () {
+        guardActiveEdit().then(function (ok) {
+          if (!ok) return;
+          var before = Object.assign({}, edge);
+          ui.saveState(foot.querySelector("#edge-state"), "saving");
+          body.querySelectorAll("[f]").forEach(function (elx) { edge[elx.getAttribute("f")] = elx.value; });
+          var after = Object.assign({}, edge);
+          OS.history.push({
+            label: "editar conexión",
+            undo: function () { Object.assign(edge, before); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); },
+            redo: function () { Object.assign(edge, after); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); }
+          });
+          persist({ steps: proc.steps, edges: proc.edges }).then(function () {
+            ui.saveState(foot.querySelector("#edge-state"), "saved"); ui.inspector.markClean();
+            ui.toast("Conexión actualizada", "ok"); renderCanvas();
+          }).catch(function () { ui.saveState(foot.querySelector("#edge-state"), "error"); });
+        });
+      };
+      foot.querySelector("#edge-del").onclick = function () {
+        ui.confirm("¿Eliminar la conexión " + edge.source_step_key + " → " + edge.target_step_key + "?", { danger: true }).then(function (ok) {
+          if (!ok) return;
+          guardActiveEdit().then(function (ok2) {
+            if (!ok2) return;
+            var idx = proc.edges.indexOf(edge);
+            if (idx < 0) return;
+            proc.edges.splice(idx, 1);
+            OS.history.push({
+              label: "eliminar conexión",
+              undo: function () { proc.edges.splice(idx, 0, edge); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); },
+              redo: function () { var i2 = proc.edges.indexOf(edge); if (i2 >= 0) proc.edges.splice(i2, 1); persist({ steps: proc.steps, edges: proc.edges }); renderCanvas(); }
+            });
+            persist({ steps: proc.steps, edges: proc.edges }).then(function () { ui.toast("Conexión eliminada", "ok"); ui.inspector.markClean(); ui.inspector.close(); renderCanvas(); });
+          });
+        });
+      };
     }
 
     function openStepInspector(step) {
@@ -280,18 +352,39 @@
       ui.attachLinkSearch(body.querySelector("#ai-prompt"), "OS Prompt");
 
       var foot = document.createElement("div");
-      foot.innerHTML = '<button class="os-btn danger sm" id="step-del">Eliminar paso</button><div class="os-spacer"></div><button class="os-btn primary sm" id="step-save">Guardar paso</button>';
+      foot.innerHTML =
+        '<span class="os-save-state" id="step-state"></span>' +
+        '<div style="display:flex;gap:8px"><button class="os-btn danger sm" id="step-del">Eliminar</button>' +
+        '<button class="os-btn ghost sm" id="step-dup">Duplicar</button>' +
+        '<button class="os-btn ghost sm" id="step-cancel">Cancelar</button>' +
+        '<button class="os-btn primary sm" id="step-save">Guardar paso</button></div>';
 
       ui.inspector.open({ title: step.step_title || step.step_key, subtitle: step.step_key, body: body, foot: foot });
+      ui.saveState(foot.querySelector("#step-state"), "idle");
+      foot.querySelector("#step-cancel").onclick = function () { ui.inspector.closeGuarded(); };
 
       foot.querySelector("#step-save").onclick = function () {
         guardActiveEdit().then(function (ok) {
           if (!ok) return;
+          ui.saveState(foot.querySelector("#step-state"), "saving");
           body.querySelectorAll("[f]").forEach(function (elx) {
             var f = elx.getAttribute("f");
             step[f] = elx.type === "checkbox" ? (elx.checked ? 1 : 0) : elx.value;
           });
-          persist({ steps: proc.steps, edges: proc.edges }).then(function () { ui.toast("Paso guardado", "ok"); renderCanvas(); });
+          persist({ steps: proc.steps, edges: proc.edges }).then(function () {
+            ui.saveState(foot.querySelector("#step-state"), "saved"); ui.inspector.markClean();
+            ui.toast("Paso guardado", "ok"); renderCanvas();
+          }).catch(function () { ui.saveState(foot.querySelector("#step-state"), "error"); });
+        });
+      };
+      foot.querySelector("#step-dup").onclick = function () {
+        guardActiveEdit().then(function (ok) {
+          if (!ok) return;
+          var copy = Object.assign({}, step, { step_key: U.uid("step"), step_title: (step.step_title || step.step_key) + " (copia)", x: (step.x || 0) + 40, y: (step.y || 0) + 40 });
+          proc.steps.push(copy);
+          persist({ steps: proc.steps, edges: proc.edges }).then(function () {
+            ui.toast("Paso duplicado", "ok"); ui.inspector.markClean(); ui.inspector.close(); renderCanvas(); openStepInspector(copy);
+          });
         });
       };
       foot.querySelector("#step-del").onclick = function () {
@@ -301,7 +394,7 @@
             if (!ok) return;
             proc.steps = proc.steps.filter(function (s) { return s.step_key !== step.step_key; });
             proc.edges = (proc.edges || []).filter(function (e) { return e.source_step_key !== step.step_key && e.target_step_key !== step.step_key; });
-            persist({ steps: proc.steps, edges: proc.edges }).then(function () { ui.inspector.close(); renderCanvas(); });
+            persist({ steps: proc.steps, edges: proc.edges }).then(function () { ui.inspector.markClean(); ui.inspector.close(); renderCanvas(); });
           });
         });
       };
