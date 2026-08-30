@@ -1,4 +1,4 @@
-/*! Página: SOP Builder (/sop, /sop/:name) — estructura híbrida que exige la
+/*! Página: Constructor de SOP (/sop, /sop/:name) — estructura híbrida que exige la
  * "Instrucción maestra de mejoras": metadatos filtrables (Bloque A), pasos
  * repetibles con campos independientes y editor enriquecido (Bloque B), y
  * archivos reales del mecanismo de Frappe (Bloque C). Página amplia por
@@ -19,7 +19,7 @@
   /* ================= Lista ================= */
   function mountList(container) {
     container.innerHTML =
-      '<div class="os-page-head"><div><div class="os-page-title">SOP Builder</div>' +
+      '<div class="os-page-head"><div><div class="os-page-title">Constructor de SOP</div>' +
       '<div class="os-page-sub">Procedimiento vivo, versionado y enlazado a un proceso — nunca un PDF suelto.</div></div>' +
       '<div class="os-page-actions"><button class="os-btn primary" id="sop-new">＋ Nuevo SOP</button></div></div>' +
       '<div class="os-toolbar"><input class="os-input" id="sop-search" placeholder="Buscar por título o código…" style="max-width:260px"></div>' +
@@ -38,7 +38,7 @@
             "<td>" + ui.badgeStatus(r.status) + "</td><td>" + U.escapeHtml(r.version_label || "—") + "</td>" +
             "<td class='muted'>" + U.timeAgo(r.modified) + "</td></tr>";
         }).join("") + "</tbody></table>";
-      host.querySelectorAll("tr[data-n]").forEach(function (tr) { tr.onclick = function () { OS.router.navigate("/sop/" + tr.dataset.n); }; });
+      host.querySelectorAll("tr[data-n]").forEach(function (tr) { ui.clickableRow(tr, function () { OS.router.navigate("/sop/" + tr.dataset.n); }); });
     }
     api.list("OS SOP", { fields: ["name", "sop_title", "sop_code", "department", "process", "status", "version_label", "modified"], orderBy: "modified desc", limit: 200 })
       .then(function (rows) { all = rows; render(); }).catch(ui.error);
@@ -90,7 +90,7 @@
       var done = completeness();
       container.innerHTML =
         '<div class="os-page-head"><div>' +
-        '<div class="os-crumb" style="margin-bottom:4px"><a href="#/sop">SOP Builder</a> / ' + U.escapeHtml(sop.sop_code || sop.name) + '</div>' +
+        '<div class="os-crumb" style="margin-bottom:4px"><a href="#/sop">Constructor de SOP</a> / ' + U.escapeHtml(sop.sop_code || sop.name) + '</div>' +
         '<div class="os-page-title">' + U.escapeHtml(sop.sop_title) + ' ' + ui.badgeStatus(sop.status) + '</div>' +
         '<div class="os-page-sub">' + U.escapeHtml(sop.objective || "Sin objetivo declarado todavía.") + '</div></div>' +
         '<div class="os-page-actions"><span class="os-save-state" id="sop-savestate"></span>' +
@@ -191,7 +191,7 @@
       host.innerHTML =
         '<div class="os-card"><div class="os-section-title">3 · Responsabilidad</div>' +
         '<div class="os-row">' +
-        fr("Owner", '<input class="os-input" f="owner_user" id="sop-owner" value="' + U.escapeHtml(sop.owner_user || "") + '">') +
+        fr("Responsable", '<input class="os-input" f="owner_user" id="sop-owner" value="' + U.escapeHtml(sop.owner_user || "") + '">') +
         fr("Aprobador", '<input class="os-input" f="approved_by" id="sop-approver" value="' + U.escapeHtml(sop.approved_by || "") + '">') + '</div>' +
         fr("Responsables (lista libre)", '<textarea class="os-textarea" f="responsible_users">' + U.escapeHtml(sop.responsible_users || "") + '</textarea>') +
         fr("Roles participantes", '<textarea class="os-textarea" f="roles">' + U.escapeHtml(sop.roles || "") + '</textarea>', "Los permisos reales se controlan desde Role Permission Manager en ERPNext.") +
@@ -276,10 +276,10 @@
       head.innerHTML = '<div class="n" style="width:24px;height:24px;border-radius:7px;background:var(--os-border-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex:none">' + (step.sequence || idx + 1) + '</div>' +
         '<div style="flex:1"><b>' + U.escapeHtml(step.step_title || "Paso sin título") + '</b> ' + ui.badgeExec(step.execution_type === "Humano" ? "H" : step.execution_type === "IA" ? "AI" : "H+AI") +
         (step.evidence_required ? ' <span class="os-tag">evidencia obligatoria</span>' : "") + '</div>' +
-        '<button class="os-btn ghost icon sm" data-a="up" title="Mover arriba">↑</button>' +
-        '<button class="os-btn ghost icon sm" data-a="down" title="Mover abajo">↓</button>' +
-        '<button class="os-btn ghost icon sm" data-a="dup" title="Duplicar">⧉</button>' +
-        '<button class="os-btn ghost icon sm" data-a="del" title="Eliminar">✕</button>' +
+        '<button class="os-btn ghost icon sm" data-a="up" title="Mover arriba" aria-label="Mover arriba">↑</button>' +
+        '<button class="os-btn ghost icon sm" data-a="down" title="Mover abajo" aria-label="Mover abajo">↓</button>' +
+        '<button class="os-btn ghost icon sm" data-a="dup" title="Duplicar" aria-label="Duplicar">⧉</button>' +
+        '<button class="os-btn ghost icon sm" data-a="del" title="Eliminar" aria-label="Eliminar">✕</button>' +
         '<span class="os-tag">' + (open ? "▾" : "▸") + '</span>';
       card.appendChild(head);
       var body = document.createElement("div");
@@ -361,7 +361,7 @@
     }
   }
 
-  OS.router.register("/sop", { title: "SOP Builder", mount: mountList, unmount: function () {} });
+  OS.router.register("/sop", { title: "Constructor de SOP", mount: mountList, unmount: function () {} });
   OS.router.register("/sop/:name", {
     title: "SOP",
     mount: mountDetail,

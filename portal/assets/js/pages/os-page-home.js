@@ -10,7 +10,7 @@
 
   function load(container) {
     container.innerHTML =
-      '<div class="os-page-head"><div><div class="os-page-title">Command Center</div>' +
+      '<div class="os-page-head"><div><div class="os-page-title">Centro de Mando</div>' +
       '<div class="os-page-sub">Pulso de procesos, aprobaciones y salud del sistema en tiempo casi real.</div></div>' +
       '<div class="os-page-actions">' +
       '<a class="os-btn primary" href="#/processes">＋ Nuevo proceso</a>' +
@@ -77,7 +77,7 @@
   }
 
   OS.router.register("/", {
-    title: "Command Center",
+    title: "Centro de Mando",
     mount: function (container) {
       load(container);
       stopPoll = OS.poll(function () { return load(container); }, 25000);

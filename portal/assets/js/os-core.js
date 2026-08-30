@@ -51,6 +51,32 @@
       return m ? decodeURIComponent(m[1]) : null;
     },
     clamp: function (n, min, max) { return Math.max(min, Math.min(max, n)); },
+    /* Diccionario central de valores de catálogo (estados, riesgo, tipos de relación, tipos de
+     * actor/nodo…) — el DocType guarda el valor en inglés (estable, no rompe integraciones ni
+     * reportes), pero ningún texto visible en la interfaz debe quedar sin traducir. */
+    _es: {
+      Draft: "Borrador", Pilot: "Piloto", Active: "Activo", Degraded: "Degradado", Blocked: "Bloqueado",
+      Waiting: "Esperando", Retired: "Retirado", Queued: "En cola", Running: "En curso", Approved: "Aprobado",
+      Completed: "Completado", Failed: "Fallido", Skipped: "Omitido", Cancelled: "Cancelado", Pending: "Pendiente",
+      Rejected: "Rechazado", Connected: "Conectado", Disconnected: "Desconectado", "In Review": "En revisión",
+      Published: "Publicado", Obsolete: "Obsoleto", Disabled: "Deshabilitado", Tested: "Probado",
+      Deprecated: "Obsoleto", Verified: "Verificado", "Under Review": "En revisión", Outdated: "Desactualizado",
+      Low: "Bajo", Medium: "Medio", High: "Alto", Critical: "Crítico",
+      User: "Usuario", Role: "Rol", Agent: "Agente", System: "Sistema", Both: "Ambos",
+      START: "Inicio", HUMAN: "Humano", HYBRID: "Híbrido", AI: "IA", SYSTEM: "Sistema",
+      GATEWAY: "Compuerta", APPROVAL: "Aprobación", WAIT: "Espera", END: "Fin",
+      NEXT: "Siguiente", TRUE: "Sí", FALSE: "No", ERROR: "Error", TIMEOUT: "Tiempo agotado", HANDOFF: "Entrega",
+      REPORTS_TO: "Reporta a", COLLABORATES_WITH: "Colabora con", SUPPORTS: "Apoya a", OWNS: "Es dueño de",
+      APPROVES: "Aprueba", EXECUTES: "Ejecuta", USES: "Usa", READS: "Lee", WRITES: "Escribe",
+      TRIGGERS: "Dispara", HANDOFF_TO: "Entrega a", DEPENDS_ON: "Depende de", MEASURES: "Mide",
+      Company: "Empresa", Department: "Área / Depto.", Designation: "Puesto", Employee: "Persona", Custom: "Personalizado",
+      Document: "Documento", Email: "Correo", Meeting: "Reunión", Policy: "Política", Website: "Sitio web", Other: "Otro",
+      CRM: "CRM", Comms: "Comunicaciones", Docs: "Documentos", Calendar: "Calendario", Finance: "Finanzas",
+      Automation: "Automatización", CustomAPI: "API personalizada", Connector: "Conector", Process: "Proceso", Step: "Paso"
+    },
+    /** Traduce un valor de catálogo si existe en el diccionario; si no, lo deja igual
+     * (nombres propios, códigos L0-L4, etc. no necesitan traducción). */
+    trValue: function (v) { return (v != null && util._es[v] !== undefined) ? util._es[v] : v; },
     downloadText: function (filename, text) {
       var blob = new Blob([text], { type: "text/plain" });
       var a = document.createElement("a");
@@ -126,7 +152,7 @@
     box.className = "os-modal";
     box.innerHTML =
       '<div class="os-modal-head"><div class="os-modal-title">' + util.escapeHtml(opts.title || "") +
-      '</div><div class="os-spacer"></div><button class="os-btn ghost icon" data-close>✕</button></div>' +
+      '</div><div class="os-spacer"></div><button class="os-btn ghost icon" data-close title="Cerrar" aria-label="Cerrar">✕</button></div>' +
       '<div class="os-modal-body"></div><div class="os-modal-foot"></div>';
     box.querySelector(".os-modal-body").appendChild(opts.body || document.createTextNode(""));
     var foot = box.querySelector(".os-modal-foot");
@@ -178,14 +204,16 @@
       Blocked: "st-blocked", Waiting: "st-waiting", Retired: "st-retired",
       Queued: "st-waiting", Running: "st-active", Approved: "st-active",
       Completed: "st-active", Failed: "st-blocked", Skipped: "st-retired", Cancelled: "st-retired",
-      Pending: "st-waiting", Rejected: "st-blocked", Connected: "st-active", Disconnected: "st-blocked"
+      Pending: "st-waiting", Rejected: "st-blocked", Connected: "st-active", Disconnected: "st-blocked",
+      "In Review": "st-pilot", Published: "st-active", Obsolete: "st-retired", Disabled: "st-retired",
+      Tested: "st-pilot", Deprecated: "st-retired", Verified: "st-active", "Under Review": "st-pilot", Outdated: "st-degraded"
     };
     var cls = map[status] || "st-draft";
-    return '<span class="os-badge ' + cls + '"><span class="dot"></span>' + util.escapeHtml(status || "—") + '</span>';
+    return '<span class="os-badge ' + cls + '"><span class="dot"></span>' + util.escapeHtml(util.trValue(status) || "—") + '</span>';
   };
   ui.badgeRisk = function (risk) {
     if (!risk) return "";
-    return '<span class="os-badge risk-' + risk.toLowerCase() + '">' + util.escapeHtml(risk) + '</span>';
+    return '<span class="os-badge risk-' + risk.toLowerCase() + '">' + util.escapeHtml(util.trValue(risk)) + '</span>';
   };
   ui.badgeExec = function (code) {
     var map = { H: "exec-h", "H+AI": "exec-hai", "AI→H": "exec-aih", "AI→H": "exec-aih", AI: "exec-ai", SYS: "exec-sys" };
@@ -231,7 +259,7 @@
         box.querySelector(".os-inspector-head").innerHTML =
           '<div style="flex:1"><div style="font-weight:700;font-size:15.5px">' + util.escapeHtml(opts.title || "") + '</div>' +
           (opts.subtitle ? '<div style="font-size:12px;color:var(--os-text-mute);margin-top:2px">' + util.escapeHtml(opts.subtitle) + '</div>' : "") + '</div>' +
-          '<button class="os-btn ghost icon" data-close title="Cerrar (Esc)">✕</button>';
+          '<button class="os-btn ghost icon" data-close title="Cerrar (Esc)" aria-label="Cerrar (Esc)">✕</button>';
         var body = box.querySelector(".os-inspector-body");
         body.innerHTML = "";
         if (typeof opts.body === "string") body.innerHTML = opts.body; else if (opts.body) body.appendChild(opts.body);
@@ -412,7 +440,7 @@
   /* ============================= App shell (sidebar + topbar) ============================= */
   var NAV = [
     { group: "Operación" },
-    { path: "/", icon: "⌘", label: "Command Center" },
+    { path: "/", icon: "⌘", label: "Centro de Mando" },
     { path: "/work", icon: "🗂", label: "Mi Trabajo" },
     { path: "/approvals", icon: "✅", label: "Aprobaciones" },
     { path: "/runs", icon: "▶", label: "Ejecución" },
@@ -429,7 +457,7 @@
     { path: "/skills", icon: "🧩", label: "Skills" },
     { group: "Gobierno" },
     { path: "/integrations", icon: "🔌", label: "Integraciones" },
-    { path: "/roles", icon: "🎖", label: "Role Cards" },
+    { path: "/roles", icon: "🎖", label: "Fichas de Rol" },
     { path: "/kpis", icon: "🎯", label: "KPIs" }
   ];
 
@@ -442,11 +470,13 @@
       '    <nav class="os-nav" id="os-nav"></nav>' +
       '    <div class="os-sidebar-foot">v1.0 · Portal HTML/CSS/JS<br>Sin modificar el core.</div>' +
       '  </aside>' +
+      '  <div class="os-sidebar-scrim" id="os-sidebar-scrim"></div>' +
       '  <div class="os-main">' +
       '    <header class="os-topbar">' +
+      '      <button class="os-btn ghost icon os-menu-toggle" id="os-menu-toggle" title="Abrir menú" aria-label="Abrir menú">☰</button>' +
       '      <div class="os-crumb" id="os-crumb">Cargando…</div>' +
       '      <div class="os-spacer"></div>' +
-      '      <div class="os-search" id="os-open-palette"><span>🔎</span><span>Buscar o saltar a…</span><span class="os-spacer"></span><kbd>Ctrl</kbd><kbd>K</kbd></div>' +
+      '      <div class="os-search" id="os-open-palette"><span>🔎</span><span class="lbl">Buscar o saltar a…</span><span class="os-spacer"></span><kbd>Ctrl</kbd><kbd>K</kbd></div>' +
       '      <div class="os-user-chip" id="os-user-chip"><div class="os-avatar" id="os-avatar">?</div><div><div id="os-user-name" style="font-size:12.5px;font-weight:700">—</div></div></div>' +
       '    </header>' +
       '    <main class="os-content" id="os-view"></main>' +
@@ -465,6 +495,16 @@
       a.innerHTML = '<span class="os-ico">' + item.icon + '</span><span>' + item.label + '</span>';
       navEl.appendChild(a);
     });
+
+    var sidebarEl = root.querySelector(".os-sidebar");
+    var scrimEl = root.querySelector("#os-sidebar-scrim");
+    function closeMobileNav() { sidebarEl.classList.remove("open"); scrimEl.classList.remove("show"); }
+    function openMobileNav() { sidebarEl.classList.add("open"); scrimEl.classList.add("show"); }
+    root.querySelector("#os-menu-toggle").onclick = function () {
+      if (sidebarEl.classList.contains("open")) closeMobileNav(); else openMobileNav();
+    };
+    scrimEl.onclick = closeMobileNav;
+    navEl.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", closeMobileNav); });
 
     root.querySelector("#os-user-chip").onclick = function () {
       OS.ui.modal({
@@ -594,7 +634,18 @@
   /* Fábrica de páginas lista+detalle para DocTypes de gobierno/configuración
    * (Agentes, Prompts, SOP, Integraciones, Role Cards, KPIs) sin repetir boilerplate. */
   ui.fieldRow = function (l, html, hint) { return '<div class="os-field"><label>' + l + (hint ? ' <span class="hint">' + hint + "</span>" : "") + '</label>' + html + '</div>'; };
-  ui.opt = function (list, sel) { return list.map(function (v) { return '<option' + (v === sel ? " selected" : "") + '>' + v + '</option>'; }).join(""); };
+  /** Hace operable por teclado una fila/tarjeta clicable (Enter o Espacio activan el mismo
+   * handler) — las tablas del portal no dependen solo del mouse. */
+  ui.clickableRow = function (el, handler) {
+    el.tabIndex = 0; el.setAttribute("role", "button"); el.onclick = handler;
+    el.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handler(e); } };
+  };
+
+  ui.opt = function (list, sel) {
+    return list.map(function (v) {
+      return '<option value="' + util.escapeHtml(v) + '"' + (v === sel ? " selected" : "") + '>' + util.escapeHtml(util.trValue(v)) + '</option>';
+    }).join("");
+  };
 
   function renderFieldHtml(f, value) {
     var v = value === undefined || value === null ? "" : value;
@@ -634,9 +685,9 @@
         if (!rows.length) { host.innerHTML = ui.empty(cfg.icon || "▦", "Sin registros", cfg.emptyHint || "Crea el primero."); return; }
         host.innerHTML = '<table class="os-table"><thead><tr>' + (cfg.columns || []).map(function (c) { return "<th>" + c.label + "</th>"; }).join("") + '</tr></thead><tbody>' +
           rows.map(function (r) {
-            return "<tr data-n='" + r.name + "'>" + (cfg.columns || []).map(function (c) { return "<td>" + (c.render ? c.render(r) : util.escapeHtml(r[c.field] || "—")) + "</td>"; }).join("") + "</tr>";
+            return "<tr data-n='" + r.name + "'>" + (cfg.columns || []).map(function (c) { return "<td>" + (c.render ? c.render(r) : util.escapeHtml(util.trValue(r[c.field]) || "—")) + "</td>"; }).join("") + "</tr>";
           }).join("") + "</tbody></table>";
-        host.querySelectorAll("tr[data-n]").forEach(function (tr) { tr.onclick = function () { router.navigate(cfg.path + "/" + tr.dataset.n); }; });
+        host.querySelectorAll("tr[data-n]").forEach(function (tr) { ui.clickableRow(tr, function () { router.navigate(cfg.path + "/" + tr.dataset.n); }); });
       }
       api.list(cfg.doctype, { fields: fields.concat(["name"]), orderBy: "modified desc", limit: 300 }).then(function (rows) { all = rows; render(); }).catch(ui.error);
       container.querySelector("#sm-search").oninput = render;

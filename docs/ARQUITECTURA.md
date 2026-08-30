@@ -76,6 +76,28 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
 | `/integrations`, `/roles`, `/kpis` | Gobierno | OS Integration, OS Role Card, OS KPI Definition |
 | `/knowledge`, `/skills` | Knowledge Brain (acotado a MVP) | OS Knowledge Source, OS Skill |
 
+## Pendientes documentados de esta entrega
+
+Siguiendo la regla de "nunca descartar en silencio", estos ítems de la
+Instrucción Maestra quedan fuera de esta entrega y su razón:
+
+- **Campos de tarjeta configurables por DocType.** Hoy el tamaño/campos de
+  cada tarjeta (Organigrama, Process Studio) están fijados en el código de
+  cada página. Un configurador visual genérico requiere una pantalla de
+  ajustes propia y un esquema de metadatos nuevo; no es indispensable para
+  operar los DocTypes actuales y se prioriza para una iteración siguiente.
+- **Selección múltiple + alinear/distribuir en el canvas.** El motor soporta
+  selección y arrastre de un nodo a la vez (suficiente para reordenar
+  jerarquías y pasos). Selección múltiple con alineación/distribución es una
+  mejora de productividad, no bloquea ningún flujo de administración.
+- **Panel de diff visual de versiones** para Procesos/SOP. Frappe ya guarda
+  el historial completo (Track Changes, activado en estos DocTypes) y es
+  consultable desde el Escritorio ERPNext; falta construir un panel que lo
+  muestre embebido dentro del portal en vez de saltar al Desk.
+
+Ninguno de estos bloquea la operación diaria del portal ni compromete los
+principios no negociables (persistencia real vía API, sin datos simulados).
+
 ## Extensión futura sin romper nada de esto
 
 Cuando exista despliegue administrado (bench/SSH), el paso natural es una Custom

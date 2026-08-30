@@ -87,6 +87,7 @@
     var nodes = [], relations = [], hier = null, engine = null;
 
     root.innerHTML =
+      '<div class="os-canvas-toolbar-stack">' +
       '<div class="os-canvas-toolbar">' +
       '<button class="os-btn sm" data-act="fit">⤢ Ajustar</button>' +
       '<button class="os-btn sm" data-act="zin">＋</button><button class="os-btn sm" data-act="zout">－</button>' +
@@ -97,11 +98,12 @@
       '<button class="os-btn sm" data-act="new-rel">↔ Relación</button>' +
       '<button class="os-btn sm" data-act="warn" style="display:none">⚠ 0 advertencias</button>' +
       '</div>' +
-      '<div class="os-canvas-toolbar" style="top:56px">' +
+      '<div class="os-canvas-toolbar">' +
       '<input class="os-input" data-act="search" placeholder="Buscar por nombre…" style="width:190px">' +
       '<select class="os-select" data-act="f-type" style="width:150px"><option value="">Todos los tipos</option>' +
       Object.keys(TYPE_LABEL).map(function (t) { return '<option value="' + t + '">' + TYPE_LABEL[t] + '</option>'; }).join("") + '</select>' +
       '<select class="os-select" data-act="f-status" style="width:130px"><option value="">Cualquier estado</option><option value="1">Activo</option><option value="0">Inactivo</option></select>' +
+      '</div>' +
       '</div>' +
       '<div class="os-canvas-legend"></div>' +
       '<div class="os-canvas-hint">Sólida = jerarquía (Reporta a) · Discontinua = colaboración/apoyo. Arrastra un nodo sobre otro para reasignar su jerarquía.</div>' +

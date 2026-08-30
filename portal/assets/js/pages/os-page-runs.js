@@ -1,4 +1,4 @@
-/*! Páginas: Execution Center (/runs) y Timeline de un Run (/runs/:name). */
+/*! Páginas: Centro de Ejecución (/runs) y Timeline de un Run (/runs/:name). */
 (function (global) {
   "use strict";
   var OS = global.OS, api = OS.api, ui = OS.ui, U = OS.util;
@@ -6,10 +6,10 @@
 
   function mountList(container) {
     container.innerHTML =
-      '<div class="os-page-head"><div><div class="os-page-title">Execution Center</div>' +
+      '<div class="os-page-head"><div><div class="os-page-title">Centro de Ejecución</div>' +
       '<div class="os-page-sub">Instancias reales de procesos: timeline, estados, errores y evidencia.</div></div></div>' +
       '<div class="os-toolbar"><select class="os-select" id="r-status" style="max-width:200px"><option value="">Todos los estados</option>' +
-      ["Queued", "Running", "Waiting", "Approved", "Completed", "Failed", "Skipped", "Cancelled"].map(function (s) { return "<option>" + s + "</option>"; }).join("") +
+      ui.opt(["Queued", "Running", "Waiting", "Approved", "Completed", "Failed", "Skipped", "Cancelled"]) +
       '</select></div><div class="os-table-wrap"><div class="os-card" id="r-table">' + ui.skeleton(6) + '</div></div>';
 
     function load() {
@@ -19,14 +19,14 @@
       api.list("OS Run", { fields: ["name", "run_code", "process", "status", "started_at", "completed_at", "current_step_key"], filters: filters, orderBy: "started_at desc", limit: 150 })
         .then(function (rows) {
           var host = container.querySelector("#r-table");
-          if (!rows.length) { host.innerHTML = ui.empty("▶", "Sin runs", "Ejecuta un proceso en modo prueba desde Process Studio."); return; }
+          if (!rows.length) { host.innerHTML = ui.empty("▶", "Sin runs", "Ejecuta un proceso en modo prueba desde el Estudio de Procesos."); return; }
           host.innerHTML = '<table class="os-table"><thead><tr><th>Run</th><th>Proceso</th><th>Estado</th><th>Paso actual</th><th>Inicio</th><th>Fin</th></tr></thead><tbody>' +
             rows.map(function (r) {
               return "<tr data-n='" + r.name + "'><td><b>" + U.escapeHtml(r.run_code || r.name) + "</b></td><td>" + U.escapeHtml(r.process || "") + "</td>" +
                 "<td>" + ui.badgeStatus(r.status) + "</td><td class='muted'>" + U.escapeHtml(r.current_step_key || "—") + "</td>" +
                 "<td class='muted'>" + U.timeAgo(r.started_at) + "</td><td class='muted'>" + (r.completed_at ? U.timeAgo(r.completed_at) : "—") + "</td></tr>";
             }).join("") + "</tbody></table>";
-          host.querySelectorAll("tr[data-n]").forEach(function (tr) { tr.onclick = function () { OS.router.navigate("/runs/" + tr.dataset.n); }; });
+          host.querySelectorAll("tr[data-n]").forEach(function (tr) { ui.clickableRow(tr, function () { OS.router.navigate("/runs/" + tr.dataset.n); }); });
         }).catch(ui.error);
     }
     load();
@@ -45,7 +45,7 @@
       ]).then(function (r) {
         var run = r[0], steps = r[1];
         container.querySelector("#r-head").innerHTML =
-          '<div class="os-page-head"><div><div class="os-crumb" style="margin-bottom:4px"><a href="#/runs">Execution Center</a> / ' + U.escapeHtml(run.run_code || run.name) + '</div>' +
+          '<div class="os-page-head"><div><div class="os-crumb" style="margin-bottom:4px"><a href="#/runs">Centro de Ejecución</a> / ' + U.escapeHtml(run.run_code || run.name) + '</div>' +
           '<div class="os-page-title">' + U.escapeHtml(run.run_code || run.name) + ' ' + ui.badgeStatus(run.status) + '</div>' +
           '<div class="os-page-sub">Proceso <a href="#/processes/' + run.process + '">' + U.escapeHtml(run.process) + '</a> · versión ' + U.escapeHtml(run.process_version || "—") + ' · iniciado por ' + U.escapeHtml(run.initiated_by || "—") + '</div></div>' +
           '<div class="os-page-actions">' +
@@ -100,7 +100,7 @@
                 (e.file ? ' — <a href="' + e.file + '" target="_blank">archivo</a>' : '') +
                 (e.summary ? '<div class="muted" style="font-size:11.5px">' + U.escapeHtml(e.summary) + '</div>' : '') + '</div>' + ui.badgeStatus(e.verification_status) + '</div>';
             }).join("") : ui.empty("—", "Sin evidencia registrada", step.evidence_required ? "Este paso la exige." : ""));
-          ui.inspector.open({ title: step.step_title_snapshot || step.step_key, subtitle: "Step Run " + id, body: body });
+          ui.inspector.open({ title: step.step_title_snapshot || step.step_key, subtitle: "Ejecución del paso " + id, body: body });
         });
     }
 
@@ -108,6 +108,6 @@
     return OS.poll(load, 15000);
   }
 
-  OS.router.register("/runs", { title: "Execution Center", mount: function (c) { this._stop = mountList(c); }, unmount: function () { this._stop && this._stop(); } });
-  OS.router.register("/runs/:name", { title: "Run", mount: function (c, p) { this._stop = mountDetail(c, p); }, unmount: function () { this._stop && this._stop(); } });
+  OS.router.register("/runs", { title: "Centro de Ejecución", mount: function (c) { this._stop = mountList(c); }, unmount: function () { this._stop && this._stop(); } });
+  OS.router.register("/runs/:name", { title: "Ejecución", mount: function (c, p) { this._stop = mountDetail(c, p); }, unmount: function () { this._stop && this._stop(); } });
 })(window);

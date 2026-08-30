@@ -37,6 +37,12 @@
 .os-app a{color:var(--os-brand);text-decoration:none}
 .os-app button{font-family:inherit}
 .os-app ::selection{background:var(--os-brand-soft)}
+/* Foco visible por teclado en todo elemento interactivo (accesibilidad — nunca solo color). */
+.os-app a:focus-visible,.os-app button:focus-visible,.os-app [tabindex]:focus-visible,
+.os-app input:focus-visible,.os-app select:focus-visible,.os-app textarea:focus-visible,
+.os-app [role="button"]:focus-visible{
+  outline:2px solid var(--os-brand);outline-offset:2px;border-radius:4px}
+.os-nav a:focus-visible{outline-offset:-2px}
 .os-hidden{display:none!important}
 .os-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:#cdc4b3 transparent}
 .os-scroll::-webkit-scrollbar{width:9px;height:9px}
@@ -97,7 +103,21 @@
 .os-grid.cols-3{grid-template-columns:repeat(3,1fr)}
 .os-grid.cols-4{grid-template-columns:repeat(4,1fr)}
 @media (max-width:1080px){.os-grid.cols-4,.os-grid.cols-3{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:720px){.os-grid.cols-2,.os-grid.cols-3,.os-grid.cols-4{grid-template-columns:1fr}.os-sidebar{position:fixed;left:0;transform:translateX(-100%);transition:transform .2s ease}.os-sidebar.open{transform:none}.os-inspector{width:100%!important}}
+.os-menu-toggle{display:none}
+.os-sidebar-scrim{position:fixed;inset:0;background:rgba(20,15,5,.45);z-index:19;opacity:0;pointer-events:none;transition:opacity .2s}
+.os-sidebar-scrim.show{opacity:1;pointer-events:auto}
+@media (max-width:720px){
+  .os-grid.cols-2,.os-grid.cols-3,.os-grid.cols-4{grid-template-columns:1fr}
+  .os-sidebar{position:fixed;left:0;top:0;bottom:0;z-index:20;transform:translateX(-100%);transition:transform .2s ease}
+  .os-sidebar.open{transform:none}
+  .os-inspector{width:100%!important}
+  .os-menu-toggle{display:flex}
+  /* Objetivos táctiles de al menos 44×44px en móvil. */
+  .os-btn{min-height:44px}
+  .os-btn.sm{min-height:40px}
+  .os-nav a{min-height:44px}
+  .os-avatar,.os-search{min-height:44px}
+}
 
 .os-btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:8px 13px;
   border-radius:var(--os-radius-sm);border:1px solid var(--os-border);background:var(--os-panel);
@@ -248,9 +268,18 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13.5px}
 .os-canvas-toolbar{position:absolute;top:12px;left:12px;display:flex;gap:6px;z-index:5;flex-wrap:wrap;max-width:calc(100% - 24px)}
 .os-canvas-toolbar .os-btn:not(.primary){background:var(--os-panel)}
 .os-canvas-toolbar .os-btn{box-shadow:var(--os-shadow-sm)}
+.os-canvas-toolbar-stack{position:absolute;top:12px;left:12px;right:12px;z-index:5;display:flex;flex-direction:column;gap:6px}
+.os-canvas-toolbar-stack .os-canvas-toolbar{position:static;top:auto;left:auto;max-width:100%}
 .os-canvas-legend{position:absolute;bottom:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap;max-width:70%;z-index:5}
 .os-canvas-hint{position:absolute;bottom:12px;right:12px;font-size:11.5px;color:var(--os-text-mute);
   background:var(--os-panel);border:1px solid var(--os-border);border-radius:9px;padding:7px 11px;box-shadow:var(--os-shadow-sm);z-index:5;max-width:40%}
+@media(max-width:720px){
+  .os-canvas-toolbar-stack input.os-input[data-act="search"],
+  .os-canvas-toolbar-stack select.os-select[data-act="f-type"],
+  .os-canvas-toolbar-stack select.os-select[data-act="f-status"]{width:100%!important;max-width:none}
+  .os-canvas-hint{display:none}
+  .os-canvas-legend{max-width:100%;right:12px}
+}
 .os-node rect{fill:var(--os-panel);stroke:var(--os-border);stroke-width:1.5;rx:10}
 .os-node{cursor:grab}
 .os-node.selected rect{stroke:var(--os-brand);stroke-width:2.5}
@@ -378,5 +407,12 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13.5px}
 /* ---------- Responsivo ---------- */
 @media(max-width:860px){
   .os-topbar .os-search .lbl,.os-topbar .os-search kbd{display:none}
-  .os-search{width:auto}
+  .os-search{width:auto;min-width:0}
+}
+@media(max-width:720px){
+  .os-topbar{padding:0 12px;gap:8px}
+  .os-crumb{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34vw}
+  .os-search{padding:9px;min-width:0}
+  .os-user-chip>div:not(.os-avatar){display:none}
+  .os-user-chip{padding:0;background:transparent}
 }

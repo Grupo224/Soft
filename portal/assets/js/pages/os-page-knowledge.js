@@ -14,7 +14,7 @@
       { field: "source_title", label: "Fuente" }, { field: "source_type", label: "Tipo" },
       { field: "sensitivity", label: "Sensibilidad", render: function (r) { return '<span class="os-tag">' + U.escapeHtml(r.sensitivity || "—") + '</span>'; } },
       { field: "status", label: "Estado", render: function (r) { return ui.badgeStatus(r.status); } },
-      { field: "owner_user", label: "Owner" }
+      { field: "owner_user", label: "Responsable" }
     ],
     fields: [
       { name: "source_title", label: "Título" },
@@ -26,7 +26,7 @@
       { name: "valid_from", label: "Vigente desde" }, { name: "valid_until", label: "Vigente hasta" },
       { name: "url_or_reference", label: "URL o referencia — cita de vuelta a la fuente original" },
       { name: "summary", label: "Resumen", type: "textarea" },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
     ],
     related: function (host, doc) {
       host.innerHTML = '<div class="os-section-title">Feedback</div>' +
@@ -35,7 +35,7 @@
   });
 
   ui.simpleModule({
-    path: "/skills", title: "Skill Library", doctype: "OS Skill", icon: "🧩",
+    path: "/skills", title: "Catálogo de Skills", doctype: "OS Skill", icon: "🧩",
     subtitle: "Capacidades reutilizables que agentes y procesos pueden invocar por nombre.",
     titleField: "skill_title", statusField: "status", statusOptions: ["Draft", "Active", "Deprecated"],
     emptyHint: "Ejemplo: “Calificar oportunidad”, “Redactar seguimiento”, “Consultar disponibilidad”.",
@@ -48,7 +48,7 @@
       { name: "description", label: "Qué hace", type: "textarea" },
       { name: "inputs", label: "Entradas esperadas", type: "textarea" }, { name: "outputs", label: "Salida que produce", type: "textarea" },
       { name: "reusable_by", label: "Reutilizable por", type: "select", options: ["Agent", "Process", "Both"] },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
     ]
   });
 })(window);

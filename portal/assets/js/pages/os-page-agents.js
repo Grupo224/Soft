@@ -11,13 +11,13 @@
     columns: [
       { field: "agent_title", label: "Agente" }, { field: "agent_code", label: "Código" },
       { field: "status", label: "Estado", render: function (r) { return ui.badgeStatus(r.status); } },
-      { field: "autonomy_max", label: "Autonomía" }, { field: "owner_user", label: "Owner" }
+      { field: "autonomy_max", label: "Autonomía" }, { field: "owner_user", label: "Responsable" }
     ],
     fields: [
       { name: "agent_title", label: "Nombre del agente" }, { name: "agent_code", label: "Código" },
       { name: "purpose", label: "Propósito", type: "textarea" },
       { name: "department", label: "Departamento", type: "link", linkDoctype: "Department" },
-      { name: "owner_user", label: "Owner humano", type: "link", linkDoctype: "User" },
+      { name: "owner_user", label: "Responsable humano", type: "link", linkDoctype: "User" },
       { name: "autonomy_max", label: "Autonomía máxima", type: "select", options: ["L0", "L1", "L2", "L3", "L4"] },
       { name: "prompt", label: "Prompt vinculado", type: "link", linkDoctype: "OS Prompt" },
       { name: "skills", label: "Skills habilitadas", type: "textarea" },
@@ -44,7 +44,7 @@
   });
 
   ui.simpleModule({
-    path: "/prompts", title: "Prompt Library", doctype: "OS Prompt", icon: "✳",
+    path: "/prompts", title: "Biblioteca de Prompts", doctype: "OS Prompt", icon: "✳",
     subtitle: "Plantillas versionadas. Nunca se sobrescriben silenciosamente: crea una nueva versión o duplica.",
     titleField: "prompt_title", statusField: "status", statusOptions: ["Draft", "Tested", "Approved", "Deprecated"],
     columns: [
@@ -60,7 +60,7 @@
       { name: "output_schema", label: "Output schema (JSON)", type: "code" },
       { name: "fallback", label: "Fallback si faltan datos o falla una herramienta", type: "textarea" },
       { name: "approval_policy", label: "Cuándo requiere humano", type: "textarea" },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
     ],
     related: function (host, doc) {
       host.innerHTML =
@@ -102,16 +102,16 @@
   });
 
   ui.simpleModule({
-    path: "/roles", title: "Role Cards", doctype: "OS Role Card", icon: "🎖",
+    path: "/roles", title: "Fichas de Rol", doctype: "OS Role Card", icon: "🎖",
     subtitle: "Misión, resultados, responsabilidades y KPIs de cada puesto.",
     titleField: "role_title",
-    columns: [{ field: "role_title", label: "Rol" }, { field: "designation", label: "Designation" }, { field: "owner_user", label: "Owner" }],
+    columns: [{ field: "role_title", label: "Rol" }, { field: "designation", label: "Puesto" }, { field: "owner_user", label: "Responsable" }],
     fields: [
       { name: "role_title", label: "Nombre del rol" },
-      { name: "designation", label: "Designation ERPNext", type: "link", linkDoctype: "Designation" },
+      { name: "designation", label: "Puesto (Designation ERPNext)", type: "link", linkDoctype: "Designation" },
       { name: "mission", label: "Misión", type: "textarea" }, { name: "expected_results", label: "Resultados esperados", type: "textarea" },
       { name: "responsibilities", label: "Responsabilidades", type: "textarea" }, { name: "kpis", label: "KPIs del rol", type: "textarea" },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
     ]
   });
 
@@ -119,13 +119,13 @@
     path: "/kpis", title: "Definición de KPIs", doctype: "OS KPI Definition", icon: "🎯",
     subtitle: "Métrica, fórmula y fuente — vinculada a proceso, área o agente.",
     titleField: "kpi_title",
-    columns: [{ field: "kpi_title", label: "KPI" }, { field: "kpi_code", label: "Código" }, { field: "entity_type", label: "Aplica a" }, { field: "owner_user", label: "Owner" }],
+    columns: [{ field: "kpi_title", label: "KPI" }, { field: "kpi_code", label: "Código" }, { field: "entity_type", label: "Aplica a" }, { field: "owner_user", label: "Responsable" }],
     fields: [
       { name: "kpi_title", label: "Nombre" }, { name: "kpi_code", label: "Código" },
       { name: "entity_type", label: "Nivel", type: "select", options: ["Company", "Process", "Step", "Agent", "Connector"] },
       { name: "formula", label: "Fórmula", type: "textarea" }, { name: "source", label: "Fuente de datos" }, { name: "frequency", label: "Frecuencia de medición" },
       { name: "threshold_warning", label: "Umbral de alerta" }, { name: "threshold_critical", label: "Umbral crítico" },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" }
+      { name: "owner_user", label: "Responsable", type: "link", linkDoctype: "User" }
     ]
   });
 })(window);

@@ -30,14 +30,14 @@
       });
       var host = container.querySelector("#os-proc-table");
       if (!rows.length) { host.innerHTML = ui.empty("🔀", "Sin procesos", "Crea el primero con “Nuevo proceso”."); return; }
-      host.innerHTML = '<table class="os-table"><thead><tr><th>Proceso</th><th>Owner</th><th>Estado</th><th>Riesgo</th><th>Autonomía</th><th>Versión</th><th>Modificado</th></tr></thead><tbody>' +
+      host.innerHTML = '<table class="os-table"><thead><tr><th>Proceso</th><th>Responsable</th><th>Estado</th><th>Riesgo</th><th>Autonomía</th><th>Versión</th><th>Modificado</th></tr></thead><tbody>' +
         rows.map(function (p) {
           return "<tr data-n='" + p.name + "'><td><b>" + U.escapeHtml(p.process_title) + "</b><div class='muted' style='font-size:11.5px'>" + U.escapeHtml(p.process_code || "") + "</div></td>" +
             "<td>" + U.escapeHtml(p.owner_user || "—") + "</td><td>" + ui.badgeStatus(p.status) + "</td><td>" + ui.badgeRisk(p.risk_level) + "</td>" +
             "<td><span class='os-tag'>" + U.escapeHtml(p.max_autonomy || "—") + "</span></td><td>" + U.escapeHtml(p.version_label || "—") + "</td>" +
             "<td class='muted'>" + U.timeAgo(p.modified) + "</td></tr>";
         }).join("") + "</tbody></table>";
-      host.querySelectorAll("tr[data-n]").forEach(function (tr) { tr.onclick = function () { OS.router.navigate("/processes/" + tr.dataset.n); }; });
+      host.querySelectorAll("tr[data-n]").forEach(function (tr) { ui.clickableRow(tr, function () { OS.router.navigate("/processes/" + tr.dataset.n); }); });
     }
 
     api.list("OS Process", { fields: ["name", "process_title", "process_code", "owner_user", "status", "risk_level", "max_autonomy", "version_label", "modified"], orderBy: "modified desc", limit: 200 })
@@ -492,5 +492,5 @@
   }
 
   OS.router.register("/processes", { title: "Biblioteca de Procesos", mount: mountList, unmount: function () {} });
-  OS.router.register("/processes/:name", { title: "Process Studio", mount: mountStudio, unmount: function () {} });
+  OS.router.register("/processes/:name", { title: "Estudio de Procesos", mount: mountStudio, unmount: function () {} });
 })(window);
