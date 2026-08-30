@@ -22,13 +22,6 @@
       "in_list_view": 1
     },
     {
-      "fieldname": "process",
-      "label": "Process",
-      "fieldtype": "Link",
-      "options": "OS Process",
-      "in_list_view": 1
-    },
-    {
       "fieldname": "version_label",
       "label": "Version Label",
       "fieldtype": "Data"
@@ -37,68 +30,34 @@
       "fieldname": "status",
       "label": "Status",
       "fieldtype": "Select",
-      "options": "Draft\nPilot\nActive\nRetired",
+      "options": "Draft\nIn Review\nApproved\nPublished\nObsolete",
       "default": "Draft",
       "in_list_view": 1
     },
     {
+      "fieldname": "department",
+      "label": "Department (Área)",
+      "fieldtype": "Link",
+      "options": "Department"
+    },
+    {
       "fieldname": "objective",
-      "label": "1. Objective",
+      "label": "Objective",
       "fieldtype": "Small Text"
     },
     {
       "fieldname": "scope",
-      "label": "2. Scope",
+      "label": "Scope",
       "fieldtype": "Small Text"
     },
     {
       "fieldname": "trigger",
-      "label": "3. Trigger",
+      "label": "Trigger",
       "fieldtype": "Data"
     },
     {
-      "fieldname": "inputs",
-      "label": "4. Inputs",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "roles",
-      "label": "5. Roles",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "tools",
-      "label": "6. Tools",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "procedure",
-      "label": "7. Procedure",
-      "fieldtype": "Text Editor"
-    },
-    {
-      "fieldname": "definition_of_done",
-      "label": "8. Definition of Done",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "evidence_required",
-      "label": "9. Evidence",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "exceptions",
-      "label": "10. Exceptions",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "controls",
-      "label": "11. Controls",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "metrics",
-      "label": "12. Metrics",
+      "fieldname": "expected_result",
+      "label": "Expected Result",
       "fieldtype": "Small Text"
     },
     {
@@ -106,6 +65,17 @@
       "label": "Owner User",
       "fieldtype": "Link",
       "options": "User"
+    },
+    {
+      "fieldname": "responsible_users",
+      "label": "Responsible Users",
+      "fieldtype": "Small Text",
+      "description": "Lista libre; para permisos reales usa Role Permission Manager."
+    },
+    {
+      "fieldname": "roles",
+      "label": "Participating Roles",
+      "fieldtype": "Small Text"
     },
     {
       "fieldname": "approved_by",
@@ -117,6 +87,92 @@
       "fieldname": "approved_on",
       "label": "Approved On",
       "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "process",
+      "label": "Process",
+      "fieldtype": "Link",
+      "options": "OS Process",
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "tools",
+      "label": "Tools",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "file",
+      "label": "SOP-level File",
+      "fieldtype": "Attach",
+      "description": "Documento asociado al SOP completo (no a un paso)."
+    },
+    {
+      "fieldname": "risk_level",
+      "label": "Risk Level",
+      "fieldtype": "Select",
+      "options": "Low\nMedium\nHigh\nCritical"
+    },
+    {
+      "fieldname": "valid_from",
+      "label": "Valid From",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "valid_until",
+      "label": "Valid Until",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "last_reviewed_on",
+      "label": "Last Reviewed On",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "next_review_on",
+      "label": "Next Review On",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "estimated_time_minutes",
+      "label": "Estimated Time (minutes)",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "steps",
+      "label": "Steps",
+      "fieldtype": "Table",
+      "options": "OS SOP Step"
+    },
+    {
+      "fieldname": "definition_of_done",
+      "label": "Definition of Done",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "evidence_required",
+      "label": "Evidence Policy",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "exceptions",
+      "label": "Exceptions",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "controls",
+      "label": "Controls",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "metrics",
+      "label": "Metrics",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "procedure_legacy",
+      "label": "Procedure (legacy free text)",
+      "fieldtype": "Text Editor",
+      "description": "Campo heredado de la versión anterior; el procedimiento vivo ahora es la tabla Steps."
     }
   ],
   "permissions": [

@@ -1,0 +1,135 @@
+{
+  "doctype": "DocType",
+  "name": "OS SOP Step",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 1,
+  "editable_grid": 1,
+  "track_changes": 0,
+  "fields": [
+    {
+      "fieldname": "sequence",
+      "label": "Sequence",
+      "fieldtype": "Int",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "step_title",
+      "label": "Step Title",
+      "fieldtype": "Data",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "instruction",
+      "label": "Instruction",
+      "fieldtype": "Text Editor",
+      "description": "Editor enriquecido: listas, enlaces, tablas, imágenes."
+    },
+    {
+      "fieldname": "execution_type",
+      "label": "Execution Type",
+      "fieldtype": "Select",
+      "options": "Humano\nIA\nHíbrido",
+      "reqd": 1,
+      "in_list_view": 1
+    },
+    {
+      "fieldname": "responsible_user",
+      "label": "Responsible User",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "responsible_role",
+      "label": "Responsible Role",
+      "fieldtype": "Link",
+      "options": "Role"
+    },
+    {
+      "fieldname": "responsible_agent",
+      "label": "Responsible Agent",
+      "fieldtype": "Link",
+      "options": "OS Agent"
+    },
+    {
+      "fieldname": "input_required",
+      "label": "Input Required",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "action",
+      "label": "Action",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "output_expected",
+      "label": "Output Expected",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "done_criteria",
+      "label": "Done Criteria",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "prompt",
+      "label": "Prompt",
+      "fieldtype": "Link",
+      "options": "OS Prompt",
+      "description": "Cuando la ejecución incluya IA."
+    },
+    {
+      "fieldname": "estimated_time",
+      "label": "Estimated Time",
+      "fieldtype": "Data",
+      "description": "Ej. '15 min'."
+    },
+    {
+      "fieldname": "condition",
+      "label": "Condition",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "exception",
+      "label": "Exception",
+      "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "next_step_hint",
+      "label": "Next Step (reference)",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "evidence_required",
+      "label": "Evidence Required",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "file",
+      "label": "File",
+      "fieldtype": "Attach"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "OS Admin",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "report": 1,
+      "export": 1
+    }
+  ]
+}

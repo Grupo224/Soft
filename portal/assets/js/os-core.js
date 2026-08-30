@@ -517,6 +517,79 @@
     setTimeout(function () { input.focus(); }, 30);
   }
 
+  /* ============================= Archivo y editor enriquecido ============================= */
+  /* Mecanismo de archivos autorizado por Frappe (upload_file / Attach) — nunca base64 en un
+   * campo. Muestra nombre/tipo/tamaño implícito por extensión, vista previa/descarga y
+   * validación de tamaño en cliente antes de subir (el servidor valida de nuevo por su cuenta). */
+  ui.fileField = function (container, opts) {
+    opts = opts || {};
+    var maxMB = opts.maxSizeMB || 10;
+    function render(url) {
+      container.innerHTML = "";
+      if (url) {
+        var name = decodeURIComponent(url.split("/").pop() || url);
+        var ext = (name.split(".").pop() || "F").slice(0, 4).toUpperCase();
+        var chip = document.createElement("div"); chip.className = "filechip";
+        chip.innerHTML = '<div class="fi">' + util.escapeHtml(ext) + '</div>' +
+          '<div class="fmeta"><b>' + util.escapeHtml(name) + '</b><span>Adjunto</span></div>' +
+          '<a class="dl" href="' + url + '" target="_blank" rel="noopener" title="Ver o descargar">⤓</a>' +
+          '<button type="button" class="rm" title="Quitar">✕</button>';
+        chip.querySelector(".rm").onclick = function () { render(null); opts.onChange && opts.onChange(null); };
+        container.appendChild(chip);
+      } else {
+        var dz = document.createElement("label"); dz.className = "dropzone"; dz.style.display = "block"; dz.style.cursor = "pointer";
+        dz.innerHTML = '<b>Haz clic para adjuntar un archivo</b><small>Máximo ' + maxMB + ' MB' + (opts.accept ? " · " + opts.accept : "") + '</small>' +
+          '<input type="file" style="display:none"' + (opts.accept ? ' accept="' + opts.accept + '"' : "") + '>';
+        dz.querySelector("input").onchange = function (e) {
+          var file = e.target.files[0]; if (!file) return;
+          if (file.size > maxMB * 1024 * 1024) { ui.toast("El archivo supera el máximo de " + maxMB + " MB.", "warn"); return; }
+          api.uploadFile(file, opts.uploadMeta || {}).then(function (f) { render(f.file_url); opts.onChange && opts.onChange(f.file_url); }).catch(ui.error);
+        };
+        container.appendChild(dz);
+      }
+    }
+    render(opts.value);
+    return { refresh: render };
+  };
+
+  /* Editor de texto enriquecido mínimo (contenteditable): negrita/cursiva/subrayado, listas,
+   * enlaces, tabla simple e imágenes (subidas por el mismo mecanismo de archivos — nunca
+   * incrustadas como base64). Sin librerías externas. */
+  ui.richEditor = function (container, opts) {
+    opts = opts || {};
+    container.innerHTML = "";
+    container.classList.add("os-rte");
+    var toolbar = document.createElement("div"); toolbar.className = "os-rte-toolbar";
+    toolbar.innerHTML = [
+      ["bold", "<b>N</b>"], ["italic", "<i>K</i>"], ["underline", "<u>S</u>"],
+      ["insertUnorderedList", "• Lista"], ["insertOrderedList", "1. Lista"]
+    ].map(function (b) { return '<button type="button" class="os-btn ghost sm" data-cmd="' + b[0] + '">' + b[1] + '</button>'; }).join("") +
+      '<button type="button" class="os-btn ghost sm" data-cmd="link">🔗 Enlace</button>' +
+      '<button type="button" class="os-btn ghost sm" data-cmd="table">▦ Tabla</button>' +
+      '<button type="button" class="os-btn ghost sm" data-cmd="image">🖼 Imagen</button>';
+    var area = document.createElement("div"); area.className = "os-rte-area"; area.contentEditable = "true";
+    area.innerHTML = opts.value || "";
+    container.appendChild(toolbar); container.appendChild(area);
+    toolbar.addEventListener("mousedown", function (e) { e.preventDefault(); }); // conserva la selección de texto
+    toolbar.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-cmd]"); if (!btn) return;
+      area.focus();
+      var cmd = btn.getAttribute("data-cmd");
+      if (cmd === "link") { var url = prompt("URL del enlace:", "https://"); if (url) document.execCommand("createLink", false, url); }
+      else if (cmd === "table") document.execCommand("insertHTML", false, "<table><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></table><p><br></p>");
+      else if (cmd === "image") {
+        var input = document.createElement("input"); input.type = "file"; input.accept = "image/*";
+        input.onchange = function () {
+          var file = input.files[0]; if (!file) return;
+          if (file.size > 5 * 1024 * 1024) { ui.toast("La imagen supera el máximo de 5 MB.", "warn"); return; }
+          api.uploadFile(file, {}).then(function (f) { area.focus(); document.execCommand("insertImage", false, f.file_url); }).catch(ui.error);
+        };
+        input.click();
+      } else document.execCommand(cmd, false, null);
+    });
+    return { getHTML: function () { return area.innerHTML; }, setHTML: function (h) { area.innerHTML = h || ""; }, el: area };
+  };
+
   /* ============================= Módulo CRUD genérico ============================= */
   /* Fábrica de páginas lista+detalle para DocTypes de gobierno/configuración
    * (Agentes, Prompts, SOP, Integraciones, Role Cards, KPIs) sin repetir boilerplate. */

@@ -15,7 +15,7 @@ FRAPPE / ERPNEXT (sin tocar core, sin Server Script obligatorio)
   ├─ User / Role / Permission          ← identidad y permisos reales
   ├─ Company / Department / Designation / Employee   ← estructura ya existente
   ├─ Lead / Opportunity / Quotation / Project / Task  ← transacciones reales
-  └─ 17 Custom DocTypes OS_* (erpnext_setup/doctypes)
+  └─ 18 Custom DocTypes OS_* (erpnext_setup/doctypes)
        OS Org Node / OS Org Relation / OS Role Card
        OS Process (+ Steps/Edges child tables) / OS SOP
        OS Prompt / OS Agent / OS Skill

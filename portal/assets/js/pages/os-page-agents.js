@@ -79,40 +79,9 @@
     }
   });
 
-  ui.simpleModule({
-    path: "/sop", title: "SOP Builder", doctype: "OS SOP", icon: "📘",
-    subtitle: "Procedimiento vivo, versionado y enlazado a un proceso — nunca un PDF suelto.",
-    titleField: "sop_title", statusField: "status", statusOptions: ["Draft", "Pilot", "Active", "Retired"],
-    columns: [
-      { field: "sop_title", label: "SOP" }, { field: "sop_code", label: "Código" }, { field: "process", label: "Proceso" },
-      { field: "status", label: "Estado", render: function (r) { return ui.badgeStatus(r.status); } }, { field: "version_label", label: "Versión" }
-    ],
-    fields: [
-      { name: "sop_title", label: "Título" }, { name: "sop_code", label: "Código" },
-      { name: "process", label: "Proceso vinculado", type: "link", linkDoctype: "OS Process" },
-      { name: "version_label", label: "Versión" },
-      { name: "objective", label: "1. Objetivo", type: "textarea" }, { name: "scope", label: "2. Alcance", type: "textarea" },
-      { name: "trigger", label: "3. Trigger" }, { name: "inputs", label: "4. Entradas", type: "textarea" },
-      { name: "roles", label: "5. Roles: owner, ejecutores, aprobadores, escalación", type: "textarea" },
-      { name: "tools", label: "6. Herramientas y permisos requeridos", type: "textarea" },
-      { name: "procedure", label: "7. Procedimiento paso a paso", type: "textarea" },
-      { name: "definition_of_done", label: "8. Definition of Done", type: "textarea" },
-      { name: "evidence_required", label: "9. Evidencia a guardar", type: "textarea" },
-      { name: "exceptions", label: "10. Excepciones", type: "textarea" }, { name: "controls", label: "11. Controles", type: "textarea" },
-      { name: "metrics", label: "12. Métricas: SLA, calidad, costo", type: "textarea" },
-      { name: "owner_user", label: "Owner", type: "link", linkDoctype: "User" },
-      { name: "approved_by", label: "Aprobado por", type: "link", linkDoctype: "User" }
-    ],
-    related: function (host, doc) {
-      host.innerHTML = '<button class="os-btn" id="sop-export">⬇ Exportar SOP (.txt) para uso fuera de la plataforma</button>';
-      host.querySelector("#sop-export").onclick = function () {
-        var lines = ["SOP: " + (doc.sop_title || doc.name), "Código: " + (doc.sop_code || "—"), "Versión: " + (doc.version_label || "—"), ""];
-        ["objective", "scope", "trigger", "inputs", "roles", "tools", "procedure", "definition_of_done", "evidence_required", "exceptions", "controls", "metrics"]
-          .forEach(function (k) { lines.push("## " + k.toUpperCase(), doc[k] || "—", ""); });
-        U.downloadText((doc.sop_code || doc.name) + ".txt", lines.join("\n"));
-      };
-    }
-  });
+  // SOP tiene su propia página (os-page-sop.js): estructura híbrida con pasos
+  // repetibles, archivos reales y progreso por secciones — no encaja en la
+  // fábrica genérica de lista+formulario plano.
 
   ui.simpleModule({
     path: "/integrations", title: "Integraciones", doctype: "OS Integration", icon: "🔌",

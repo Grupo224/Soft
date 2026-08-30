@@ -26,7 +26,7 @@ Ve a **Desk → Usuarios y permisos → Rol → Nuevo** y crea estos 8 roles (no
 Ver `roles_permission_matrix.md` para qué puede hacer cada rol. Asigna estos roles
 a los usuarios reales desde **Usuario → Roles** antes de continuar.
 
-## 2. Crear los 17 Custom DocTypes
+## 2. Crear los 18 Custom DocTypes
 
 Carpeta `erpnext_setup/doctypes/*.json` contiene la especificación **campo por campo**
 de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de destino).
@@ -36,21 +36,27 @@ de cada DocType (nombre, tipo, opciones de Select, obligatoriedad, Link de desti
 
 1. `OS Process Step` — marcar **Is Child Table**.
 2. `OS Process Edge` — marcar **Is Child Table**.
-3. `OS Org Node`
-4. `OS Org Relation`
-5. `OS Role Card`
-6. `OS Prompt`
-7. `OS Agent`
-8. `OS SOP`
-9. `OS Process` — sus campos `steps` y `edges` son tipo **Table** apuntando a los DocTypes de los pasos 1 y 2.
-10. `OS Run`
-11. `OS Step Run`
-12. `OS Evidence`
-13. `OS Approval`
-14. `OS KPI Definition`
-15. `OS Integration`
-16. `OS Knowledge Source`
-17. `OS Skill`
+3. `OS SOP Step` — marcar **Is Child Table**.
+4. `OS Org Node`
+5. `OS Org Relation`
+6. `OS Role Card`
+7. `OS Prompt`
+8. `OS Agent`
+9. `OS SOP` — su campo `steps` es tipo **Table** apuntando al DocType del paso 3.
+10. `OS Process` — sus campos `steps` y `edges` son tipo **Table** apuntando a los DocTypes de los pasos 1 y 2.
+11. `OS Run`
+12. `OS Step Run`
+13. `OS Evidence`
+14. `OS Approval`
+15. `OS KPI Definition`
+16. `OS Integration`
+17. `OS Knowledge Source`
+18. `OS Skill`
+
+> **Nota de migración**: `OS SOP` cambió de un campo de texto libre (`procedure`) a una
+> tabla estructurada de pasos (`steps` → `OS SOP Step`). El campo anterior se conserva
+> como `procedure_legacy` (solo lectura funcional) para no perder contenido ya
+> capturado; el procedimiento vivo de ahora en adelante es la tabla de pasos.
 
 Para cada uno:
 
@@ -92,6 +98,7 @@ os-page-processes.js
 os-page-work.js
 os-page-runs.js
 os-page-agents.js
+os-page-sop.js
 os-page-knowledge.js
 os-page-analytics.js
 os-app.js
