@@ -112,6 +112,9 @@ LO.ENTITIES = {
       { key: "kpis",  label: "KPIs",          type: "tags" },
       { key: "tools", label: "Herramientas",  type: "tags" },
       { key: "docs",  label: "Documentos",    type: "files", help: "Adjunta manuales, cartas de rol, políticas (.docx, .pdf…)." },
+      { key: "employees", label: "Empleados vinculados", type: "tags", help: "IDs de empleados de este nodo." },
+      { key: "agent_ref", label: "Agente IA vinculado", type: "link", linkTo: "agente", col: 1 },
+      { key: "skill_refs", label: "Skills IA del nodo", type: "tags", col: 1 },
     ],
   },
 
@@ -138,6 +141,8 @@ LO.ENTITIES = {
       { key: "outcome",  label: "Resultado esperado", type: "textarea", help: "La salida de valor concreta cuando el proceso sale bien." },
       { key: "owner",    label: "Dueño / responsable (Aprobador)", type: "text", col: 1, required: true,
         help: "Único responsable rendidor de cuentas del proceso." },
+      { key: "owner_employee", label: "Empleado dueño", type: "link", linkTo: "empleado", col: 1 },
+      { key: "participants", label: "Equipo / empleados", type: "tags", help: "IDs de empleados participantes." },
       { key: "priority", label: "Criticidad", type: "select", col: 1, options: ["Baja","Media","Alta","Crítica"] },
       { key: "status",   label: "Estado", type: "status", col: 1, required: true },
 
@@ -233,6 +238,10 @@ LO.ENTITIES = {
       { key: "name",    label: "Nombre", type: "text", required: true, col: 1 },
       { key: "dept",    label: "Departamento", type: "text", col: 1 },
       { key: "owner",   label: "Owner humano", type: "text", col: 1 },
+      { key: "owner_employee", label: "Empleado owner", type: "link", linkTo: "empleado", col: 1 },
+      { key: "primary_prompt", label: "Prompt gobernado", type: "link", linkTo: "prompt", col: 1 },
+      { key: "skill_refs", label: "Skills IA vinculadas", type: "tags", col: 1 },
+      { key: "process_refs", label: "Procesos donde participa", type: "tags" },
       { key: "status",  label: "Estado", type: "status", col: 1 },
       { key: "purpose", label: "Propósito / identidad", type: "textarea", help: "Responsabilidad estable y límites del agente." },
       { key: "rolePrompt", label: "Role prompt", type: "longtext", help: "Instrucción base del agente." },
@@ -375,6 +384,89 @@ LO.ENTITIES = {
       { key: "docs",   label: "Documentos", type: "files" },
     ],
   },
+
+  /* ------------------------------------------------------------------ EMPLEADO */
+  empleado: {
+    label: "Empleado", plural: "Empleados", icon: "org", color: "#C8862F",
+    listColumns: ["name","position","department","status"],
+    fields: [
+      { key: "name", label: "Nombre completo", type: "text", required: true, col: 1 },
+      { key: "source", label: "Fuente", type: "select", col: 1, options: ["ERPNext Employee","Local demo"], help: "En producción, ERPNext Employee es la fuente de verdad." },
+      { key: "employee_id", label: "Employee ID / clave", type: "text", col: 1, placeholder: "EMP-001" },
+      { key: "user_id", label: "Usuario ERPNext", type: "text", col: 1 },
+      { key: "company", label: "Company", type: "text", col: 1 },
+      { key: "position", label: "Puesto / Designation", type: "text", col: 1 },
+      { key: "department", label: "Área / departamento", type: "link", linkTo: "orgnode", col: 1 },
+      { key: "manager", label: "Reporta a", type: "link", linkTo: "empleado", col: 1 },
+      { key: "email", label: "Correo", type: "text", col: 1 },
+      { key: "phone", label: "Teléfono", type: "text", col: 1 },
+      { key: "status", label: "Estado", type: "status", col: 1 },
+      { key: "human_skills", label: "Habilidades / competencias", type: "tags" },
+      { key: "processes", label: "Procesos vinculados", type: "tags", help: "Referencias PROC-…" },
+      { key: "notes", label: "Notas", type: "textarea" },
+      { key: "docs", label: "Documentos", type: "files" },
+    ],
+  },
+
+  /* -------------------------------------------------------------------- SKILL */
+  skill: {
+    label: "Skill IA", plural: "Skills", icon: "agent", color: "#6D5AE6",
+    listColumns: ["name","category","version","status"],
+    fields: [
+      { key: "name", label: "Nombre de la skill", type: "text", required: true, col: 1 },
+      { key: "skill_key", label: "Clave estable", type: "text", col: 1, placeholder: "skill.lead_scoring" },
+      { key: "owner_employee", label: "Owner humano", type: "link", linkTo: "empleado", col: 1 },
+      { key: "category", label: "Categoría", type: "select", col: 1, options: ["Análisis","Redacción","Clasificación","Datos","Automatización","Investigación","Atención","Ventas","Operaciones","Otra"] },
+      { key: "version", label: "Versión", type: "text", col: 1, placeholder: "v1.0" },
+      { key: "status", label: "Estado", type: "select", col: 1, options: ["Draft","Tested","Approved","Deprecated"] },
+      { key: "risk", label: "Riesgo", type: "risk", col: 1 },
+      { key: "description", label: "Qué hace", type: "textarea", required: true },
+      { key: "instructions", label: "Instrucciones / comportamiento", type: "longtext" },
+      { key: "inputs", label: "Entradas esperadas", type: "tags", col: 1 },
+      { key: "outputs", label: "Salidas esperadas", type: "tags", col: 1 },
+      { key: "tools", label: "Herramientas permitidas", type: "tags", col: 1 },
+      { key: "permissions", label: "Scopes / permisos", type: "tags", col: 1 },
+      { key: "knowledge", label: "Conocimiento requerido", type: "tags", col: 1 },
+      { key: "evidence_policy", label: "Evidencia esperada", type: "textarea" },
+      { key: "fallback", label: "Fallback / escalación", type: "textarea" },
+      { key: "output_schema", label: "Contrato de salida (schema)", type: "longtext" },
+      { key: "agents", label: "Agentes habilitados", type: "tags", help: "Referencias AGT-…" },
+      { key: "docs", label: "Documentos / pruebas", type: "files" },
+    ],
+  },
+
+  /* ----------------------------------------------------------------- RELATION */
+  relation: {
+    label: "Relación", plural: "Relaciones", icon: "org", color: "#B87BD6",
+    listColumns: ["from","to","type"],
+    fields: [
+      { key: "from", label: "Origen", type: "link", linkTo: "orgnode", required: true, col: 1 },
+      { key: "to", label: "Destino", type: "link", linkTo: "orgnode", required: true, col: 1 },
+      { key: "type", label: "Tipo semántico", type: "select", required: true, col: 1, options: ["REPORTS_TO","OWNS","EXECUTES","APPROVES","USES","READS","WRITES","TRIGGERS","HANDOFF_TO","DEPENDS_ON","MEASURES"] },
+      { key: "label", label: "Etiqueta visual", type: "text", col: 1 },
+      { key: "notes", label: "Contexto / regla", type: "textarea" },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- EVIDENCIA */
+  evidencia: {
+    label: "Evidencia", plural: "Evidencias", icon: "upload", color: "#0FA3A3",
+    listColumns: ["name","evidence_type","verification_status"],
+    fields: [
+      { key: "name", label: "Evidencia / referencia", type: "text", required: true },
+      { key: "process", label: "Proceso", type: "link", linkTo: "proceso", col: 1 },
+      { key: "run", label: "Run", type: "link", linkTo: "run", col: 1 },
+      { key: "step_key", label: "Step key", type: "text", col: 1 },
+      { key: "evidence_type", label: "Tipo", type: "select", col: 1, options: ["Archivo","Documento ERPNext","Salida JSON","Log","Captura","Referencia externa","Aprobación"] },
+      { key: "reference_doctype", label: "Reference DocType", type: "text", col: 1 },
+      { key: "reference_name", label: "Reference Name", type: "text", col: 1 },
+      { key: "summary", label: "Resumen verificable", type: "textarea" },
+      { key: "verification_status", label: "Verificación", type: "select", col: 1, options: ["Pendiente","Verificada","Rechazada"] },
+      { key: "verified_by_employee", label: "Verificada por", type: "link", linkTo: "empleado", col: 1 },
+      { key: "created_on", label: "Fecha", type: "date", col: 1 },
+      { key: "docs", label: "Archivos", type: "files" },
+    ],
+  },
 };
 
 /* ============================================================================
@@ -390,15 +482,19 @@ LO.NAV = [
     { id: "org",       label: "Organigrama Vivo", icon: "org",     view: "org" },
     { id: "procesos",  label: "Procesos",         icon: "process", entity: "proceso" },
     { id: "sops",      label: "SOPs",             icon: "sop",     entity: "sop" },
+    { id: "empleados", label: "Empleados",        icon: "org",     entity: "empleado" },
+    { id: "relaciones",label: "Relaciones",       icon: "org",     entity: "relation" },
   ]},
   { group: "Ejecutar", items: [
     { id: "runs",       label: "Centro de Ejecución", icon: "run",      entity: "run" },
     { id: "tareas",     label: "Mi Trabajo",          icon: "task",     entity: "tarea" },
     { id: "aprobaciones",label:"Aprobaciones",         icon: "approval", entity: "aprobacion" },
+    { id: "evidencias", label: "Evidencias",          icon: "upload",   entity: "evidencia" },
   ]},
   { group: "Inteligencia", items: [
     { id: "agentes",    label: "Agentes",       icon: "agent",     entity: "agente" },
     { id: "prompts",    label: "Prompts",       icon: "prompt",    entity: "prompt" },
+    { id: "skills",     label: "Skills",        icon: "agent",     entity: "skill" },
     { id: "conocimiento",label:"Conocimiento",  icon: "knowledge", entity: "fuente" },
   ]},
   { group: "Conectar y medir", items: [
