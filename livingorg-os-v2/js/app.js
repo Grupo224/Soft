@@ -48,6 +48,8 @@
     zin:"M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4M11 8v6M8 11h6",
     zout:"M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4M8 11h6",
     fit:"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5",
+    refresh:"M21 12a9 9 0 11-2.64-6.36M21 4v6h-6",
+    save:"M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-9H7v9M7 3v5h7",
     sparkle:"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z",
     alert:"M12 4l9 16H3zM12 10v5M12 18h.01",
     clock:"M12 4a8 8 0 100 16 8 8 0 000-16zM12 8v4l3 2",
@@ -1648,6 +1650,8 @@
         {label:"Conector", icon:"plug", color:LO.ENTITIES.conector.color, onClick:()=>openForm("conector")},
       ]});
     });
+    const saveBtn=el("button",{class:"btn", title:"Guardar ahora", onclick:()=>{ persist(); toast("Guardado ✓"); }},[ icon("save"), el("span",{class:"txt"},"Guardar") ]);
+    const refreshBtn=el("button",{class:"btn", title:"Actualizar / recargar", onclick:()=>{ mem=null; load(); Router.render(); toast("Actualizado ✓"); }},[ icon("refresh"), el("span",{class:"txt"},"Actualizar") ]);
     const avatar=el("div",{class:"avatar", title:"Cuenta"}, "GA");
     avatar.addEventListener("click",()=>{
       menu(avatar,{ align:"right", items:[
@@ -1668,6 +1672,8 @@
       el("div",{class:"top-spacer"}),
       el("div",{class:"search", onclick:openPalette},[ icon("search"), el("span",{class:"lbl"},"Buscar en todo…"), el("span",{class:"kbd"},"⌘K") ]),
       addBtn,
+      saveBtn,
+      refreshBtn,
       themeBtn,
       bellBtn,
       wsBtn,
