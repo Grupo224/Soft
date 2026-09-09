@@ -71,3 +71,19 @@ La configuración demostrativa de módulos vive en `js/module-data.js`. El rende
 - **Comando global (`⌘K` / `Ctrl+K`)**: búsqueda funcional de módulos, acciones y nodos.
 - **Modal de atajos de teclado** (`?`).
 - **Fluidez**: micro-interacciones, transiciones y persistencia de la sidebar.
+
+---
+
+## v5 · Versión FUNCIONAL (formularios de captura)
+
+El archivo **`livingorg-flow-studio-all-modules.html`** es la versión funcional (un solo archivo,
+autocontenido): integra los **formularios de captura** al tema Control Room.
+
+- Captura real de: procesos (con pasos anidados, metas por cadencia, RACI, gates, risk), SOPs,
+  empleados, agentes IA, prompts, skills, fuentes de conocimiento, ejecuciones, tareas,
+  aprobaciones, evidencias, relaciones, conexiones, KPIs y políticas.
+- Guardado local en `localStorage` (clave `livingorg.capture.v1`) para probar el flujo completo.
+- Navegación por hash, tema claro/oscuro, y los 15 módulos con formularios de alta.
+- Deploy: se sirve como `main_section_html` del Web Page `livingorg-flow-studio-v3` (ruta `/livingorg-v3`).
+
+El resto de archivos (`index.html`, `js/`, `styles.css`) son la demo visual anterior.
