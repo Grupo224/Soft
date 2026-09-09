@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LIVINGORG OS · Sistema operativo vivo de tu empresa</title>
+  <meta name="description" content="Dibuja cómo funciona tu empresa, decide qué hace una persona y qué la IA, ejecuta y guarda evidencia desde un solo mapa vivo." />
+  <meta name="theme-color" content="#0C1420" />
+
+  <!-- Tipografías Grupo Altoplano: Montserrat (display) + Inter (texto) + IBM Plex Mono (datos).
+       Se cargan de internet; sin conexión, el sistema usa fuentes locales de respaldo. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/files/livingorg-styles.css?v=202608301815" />
+</head>
+<body>
+  <!-- El motor construye toda la interfaz dentro de #app -->
+  <div id="app" class="app"></div>
+
+  <!-- 1) Configuración (esto editas)   2) Motor (esto normalmente no)
+       El "?v=" evita que el navegador sirva una versión vieja en caché tras
+       cada despliegue. Súbelo (fecha de hoy) cada vez que publiques cambios
+       de config.js, app.js o styles.css. -->
+  <script src="/files/livingorg-config.js?v=202608301815"></script>
+  <script src="/files/livingorg-app.js?v=202608301815"></script>
+</body>
+</html>
