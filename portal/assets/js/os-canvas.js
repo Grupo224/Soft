@@ -115,7 +115,7 @@
             opts.onNodeClick && opts.onNodeClick(n);
           });
           if (opts.connectPorts) {
-            var port = el("circle", { class: "os-canvas-port", cx: n.w, cy: n.h / 2, r: 6 }, g);
+            var port = el("circle", { class: "os-canvas-port", cx: n.w, cy: n.h / 2, r: 7 }, g);
             port.style.cursor = "crosshair";
             port.addEventListener("mousedown", function (ev) { ev.stopPropagation(); startConnectDrag(ev, n); });
             port.addEventListener("touchstart", function (ev) { ev.stopPropagation(); ev.preventDefault(); startConnectDrag(ev.touches[0], n); }, { passive: false });

@@ -405,9 +405,9 @@ table.os-table{width:100%;border-collapse:collapse;font-size:13.5px}
 .os-edge-label-bg{fill:var(--os-bg);opacity:.9}
 .os-guide{stroke:var(--os-brand);stroke-width:1;stroke-dasharray:4 3;opacity:.7;pointer-events:none}
 /* BUG-03: puerto para conectar arrastrando (alternativa a clic-origen/clic-destino) */
-.os-canvas-port{fill:var(--os-panel);stroke:var(--os-brand);stroke-width:2;opacity:.55;transition:opacity .12s,r .12s}
+.os-canvas-port{fill:var(--os-brand);stroke:#fff;stroke-width:2;opacity:.9;cursor:crosshair;transition:opacity .12s,r .12s}
 .os-node:hover .os-canvas-port,.os-node-glow:hover .os-canvas-port{opacity:1}
-.os-canvas-port:hover{r:8;opacity:1;fill:var(--os-brand)}
+.os-canvas-port:hover{r:9;opacity:1;fill:var(--os-brand-strong)}
 .os-canvas-connect-phantom{stroke:var(--os-brand);stroke-width:2;stroke-dasharray:5 4;fill:none;pointer-events:none}
 .os-canvas-svg.os-connecting{cursor:crosshair}
 .os-node.os-connect-target rect,.os-node-glow.os-connect-target rect{stroke:var(--os-brand);stroke-width:3;filter:drop-shadow(0 0 6px rgba(242,107,31,.5))}
