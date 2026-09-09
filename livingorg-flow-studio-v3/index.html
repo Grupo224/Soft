@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0C1420">
+  <title>LivingOrg Flow Studio · Altoplano</title>
+  <meta name="description" content="Editor visual de procesos LivingOrg con canvas, nodos, conexiones e inspector operativo.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="global-sidebar" id="globalSidebar" aria-label="Navegación principal">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span>⌁</span></div>
+        <div class="brand-copy">
+          <strong>LIVINGORG<span>OS</span></strong>
+          <small>El sistema operativo vivo</small>
+        </div>
+      </div>
+
+      <nav class="global-nav">
+        <div class="nav-group">
+          <div class="nav-label">Panorama</div>
+          <button class="nav-item" data-view="dashboard" title="Centro de mando"><span class="nav-icon">⌂</span><span>Centro de Mando</span></button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Diseñar</div>
+          <button class="nav-item" data-view="org" title="Organigrama vivo"><span class="nav-icon">⌘</span><span>Organigrama Vivo</span></button>
+          <button class="nav-item is-active" data-view="flows" title="Procesos"><span class="nav-icon">⌘</span><span>Procesos</span><b class="nav-count">3</b></button>
+          <button class="nav-item" data-view="sops" title="SOPs"><span class="nav-icon">▤</span><span>SOPs</span><b class="nav-count">2</b></button>
+          <button class="nav-item" data-view="templates" title="Plantillas"><span class="nav-icon">▧</span><span>Plantillas</span><b class="nav-count">6</b></button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Ejecutar</div>
+          <button class="nav-item" data-view="execution" title="Centro de ejecución"><span class="nav-icon">▷</span><span>Centro de Ejecución</span><b class="nav-count">2</b></button>
+          <button class="nav-item" data-view="work" title="Mi trabajo"><span class="nav-icon">✓</span><span>Mi Trabajo</span><b class="nav-count">2</b></button>
+          <button class="nav-item" data-view="approvals" title="Aprobaciones"><span class="nav-icon">□</span><span>Aprobaciones</span><b class="nav-count is-alert">2</b></button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Inteligencia</div>
+          <button class="nav-item" data-view="agents" title="Agentes"><span class="nav-icon">✦</span><span>Agentes</span><b class="nav-count">2</b></button>
+          <button class="nav-item" data-view="prompts" title="Prompts"><span class="nav-icon">◌</span><span>Prompts</span><b class="nav-count">1</b></button>
+          <button class="nav-item" data-view="skills" title="Skills"><span class="nav-icon">◇</span><span>Skills</span><b class="nav-count">4</b></button>
+          <button class="nav-item" data-view="knowledge" title="Conocimiento"><span class="nav-icon">▧</span><span>Conocimiento</span><b class="nav-count">2</b></button>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">Conectar y medir</div>
+          <button class="nav-item" data-view="connections" title="Conexiones"><span class="nav-icon">⌁</span><span>Conexiones</span><b class="nav-count">4</b></button>
+          <button class="nav-item" data-view="analytics" title="Analítica"><span class="nav-icon">▥</span><span>Analítica</span></button>
+          <button class="nav-item" data-view="governance" title="Gobierno"><span class="nav-icon">◈</span><span>Gobierno</span><b class="nav-count">2</b></button>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="workspace-switcher" type="button" title="Cambiar workspace">
+          <span class="workspace-avatar">GA</span>
+          <span class="workspace-copy"><strong>Grupo Altoplano</strong><small>Altoplano · Mérida</small></span>
+          <span class="chevron">⌄</span>
+        </button>
+        <button class="collapse-sidebar" id="collapseSidebar" type="button" title="Contraer menú"><span>‹</span><span class="collapse-label">Contraer menú</span></button>
+      </div>
+    </aside>
+
+    <button class="mobile-scrim" id="mobileScrim" type="button" aria-label="Cerrar menú"></button>
+
+    <main class="main-shell">
+      <header class="global-topbar">
+        <button class="icon-button mobile-menu" id="mobileMenu" type="button" title="Abrir menú" aria-label="Abrir menú">☰</button>
+        <div class="global-search" role="search"><span>⌕</span><input id="globalSearch" type="search" placeholder="Buscar en todo…" aria-label="Buscar en todo"><kbd>⌘K</kbd></div>
+        <div class="topbar-spacer"></div>
+        <button class="icon-button theme-button" id="themeToggle" type="button" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+        <button class="icon-button notification-button" type="button" title="Aprobaciones pendientes" aria-label="Aprobaciones pendientes">♧<b>2</b></button>
+        <button class="workspace-pill" type="button" title="Cambiar workspace"><span class="status-dot"></span> Altoplano · Mérida <span>⌄</span></button>
+        <button class="account-avatar" type="button" title="Cuenta">GA</button>
+      </header>
+
+      <div class="content-stage" id="contentStage">
+      <section class="flow-editor" id="flowEditor" aria-label="Editor de procesos">
+        <header class="editor-header">
+          <div class="editor-title-group">
+            <button class="back-button" id="backToFlows" type="button"><span>←</span><span class="back-label">Procesos</span></button>
+            <span class="header-divider"></span>
+            <span class="process-symbol">⌁</span>
+            <div class="process-title-wrap">
+              <span class="eyebrow">Proceso comercial · PROC-COM-001</span>
+              <h1 id="processTitle">Lead → Calificación → Cotización → Seguimiento</h1>
+            </div>
+            <span class="status-badge"><i></i> Activo</span>
+            <span class="version-badge">v1.4</span>
+          </div>
+          <div class="editor-actions">
+            <span class="save-state" id="saveState"><i></i> Guardado</span>
+            <button class="icon-button" id="undoButton" type="button" title="Deshacer · Ctrl/Cmd + Z" aria-label="Deshacer">↶</button>
+            <button class="icon-button" id="redoButton" type="button" title="Rehacer · Ctrl/Cmd + Shift + Z" aria-label="Rehacer">↷</button>
+            <button class="secondary-button share-button" id="shareButton" type="button"><span>↗</span><span>Compartir</span></button>
+            <button class="primary-button publish-button" id="publishButton" type="button"><span>✓</span><span>Publicar</span></button>
+            <button class="icon-button more-button" id="moreButton" type="button" title="Más acciones" aria-label="Más acciones">•••</button>
+          </div>
+        </header>
+
+        <div class="flow-workspace">
+          <aside class="tool-rail" aria-label="Herramientas del editor">
+            <button class="rail-tool is-active" data-tool="select" type="button" title="Seleccionar · V"><span>↖</span><small>V</small></button>
+            <button class="rail-tool" id="openPaletteButton" data-tool="add" type="button" title="Agregar nodo · N"><span>＋</span><small>N</small></button>
+            <button class="rail-tool" id="connectTool" data-tool="connect" type="button" title="Conectar nodos · C"><span>⌁</span><small>C</small></button>
+            <button class="rail-tool" data-tool="comment" type="button" title="Comentario"><span>◌</span><small></small></button>
+            <span class="rail-separator"></span>
+            <button class="rail-tool" id="toggleGrid" type="button" title="Mostrar u ocultar cuadrícula"><span>▦</span><small></small></button>
+            <button class="rail-tool" id="fitButtonRail" type="button" title="Reencuadrar · F"><span>⌗</span><small>F</small></button>
+            <span class="rail-grow"></span>
+            <button class="rail-tool" id="helpButton" type="button" title="Ayuda y atajos"><span>?</span><small></small></button>
+          </aside>
+
+          <section class="canvas-panel" id="canvasPanel" aria-label="Canvas del proceso">
+            <div class="canvas-toolbar">
+              <div class="canvas-mode-group">
+                <button class="toolbar-button back-to-list" id="toolbarBack" type="button"><span>←</span><span>Procesos</span></button>
+                <span class="toolbar-divider"></span>
+                <button class="toolbar-button primary-toolbar" id="addNodeToolbar" type="button"><span>＋</span><span>Agregar nodo</span></button>
+                <button class="toolbar-button" id="connectToolbar" type="button"><span>⌁</span><span>Conectar</span></button>
+                <button class="toolbar-button" id="organizeToolbar" type="button"><span>✧</span><span>Organizar</span><span class="toolbar-caret">⌄</span></button>
+              </div>
+              <div class="canvas-view-group">
+                <button class="icon-button canvas-icon" id="zoomOut" type="button" title="Alejar">−</button>
+                <span class="zoom-value" id="zoomValue">100%</span>
+                <button class="icon-button canvas-icon" id="zoomIn" type="button" title="Acercar">＋</button>
+                <span class="toolbar-divider"></span>
+                <button class="icon-button canvas-icon" id="fitButton" type="button" title="Reencuadrar">⌗</button>
+                <button class="icon-button canvas-icon" id="miniMapButton" type="button" title="Minimapa">▧</button>
+              </div>
+            </div>
+
+            <div class="canvas-viewport" id="canvasViewport">
+              <div class="canvas-grid-layer" id="canvasGrid"></div>
+              <div class="graph-scene" id="graphScene">
+                <svg class="edge-layer" id="edgeLayer" aria-hidden="true"></svg>
+                <div class="nodes-layer" id="nodesLayer"></div>
+              </div>
+              <div class="canvas-empty-state" id="canvasEmpty" hidden>
+                <div class="empty-icon">⌁</div>
+                <h2>Construye el proceso</h2>
+                <p>Agrega un nodo inicial o elige una plantilla para comenzar.</p>
+                <button class="primary-button" id="emptyAddNode" type="button">＋ Agregar primer nodo</button>
+              </div>
+              <div class="canvas-hint" id="canvasHint"><span>⌘</span> Selecciona un nodo para editarlo · Arrastra el fondo para desplazarte</div>
+              <div class="zoom-control-floating">
+                <button class="icon-button" id="zoomOutFloat" type="button" title="Alejar">−</button>
+                <span id="zoomFloatValue">100%</span>
+                <button class="icon-button" id="zoomInFloat" type="button" title="Acercar">＋</button>
+              </div>
+              <div class="minimap" id="miniMap" hidden><div class="minimap-viewport"></div><div class="minimap-nodes"></div></div>
+            </div>
+          </section>
+
+          <aside class="inspector-panel" id="inspectorPanel" aria-label="Inspector del proceso">
+            <div class="inspector-mobile-handle"></div>
+            <div class="inspector-header">
+              <div><span class="eyebrow" id="inspectorEyebrow">PROCESO</span><h2 id="inspectorTitle">Resumen operativo</h2></div>
+              <button class="icon-button inspector-close" id="closeInspector" type="button" title="Cerrar inspector">×</button>
+            </div>
+            <div class="inspector-body" id="inspectorBody"></div>
+            <div class="inspector-footer" id="inspectorFooter"></div>
+          </aside>
+        </div>
+
+        <footer class="editor-statusbar">
+          <div class="status-left"><span class="status-live"><i></i> Motor listo</span><span class="status-separator"></span><span id="nodeCount">8 nodos</span><span>·</span><span id="edgeCount">7 conexiones</span></div>
+          <div class="status-center" id="connectionMessage">Modo selección</div>
+          <div class="status-right"><span id="validationStatus" class="validation-ok">✓ Sin errores críticos</span><span class="status-separator"></span><span>Espacio de trabajo seguro</span></div>
+        </footer>
+      </section>
+      <section class="module-view" id="moduleView" aria-live="polite" hidden></section>
+      </div>
+    </main>
+  </div>
+
+  <section class="node-palette" id="nodePalette" aria-label="Agregar nodo" hidden>
+    <div class="palette-header"><div><span class="eyebrow">BIBLIOTECA</span><h2>Agregar nodo</h2></div><button class="icon-button" id="closePalette" type="button" title="Cerrar">×</button></div>
+    <label class="palette-search"><span>⌕</span><input id="paletteSearch" type="search" placeholder="Buscar tipo de nodo…" aria-label="Buscar tipo de nodo"></label>
+    <div class="palette-list" id="paletteList"></div>
+    <div class="palette-footer"><span>Arrastra o haz clic para insertar</span><kbd>Esc</kbd></div>
+  </section>
+
+  <section class="command-popover" id="organizeMenu" hidden>
+    <button type="button" data-layout="vertical"><span>↕</span><span><strong>Flujo vertical</strong><small>Ideal para procesos secuenciales</small></span></button>
+    <button type="button" data-layout="horizontal"><span>↔</span><span><strong>Flujo horizontal</strong><small>Ideal para presentaciones</small></span></button>
+    <button type="button" data-layout="lanes"><span>▥</span><span><strong>Ordenar por responsables</strong><small>Agrupa por actor o área</small></span></button>
+  </section>
+
+  <section class="command-popover more-menu" id="moreMenu" hidden>
+    <button type="button" data-export="json"><span>⇩</span><span><strong>Exportar JSON</strong><small>Definición del proceso</small></span></button>
+    <button type="button" data-export="svg"><span>◧</span><span><strong>Exportar SVG</strong><small>Diagrama vectorial</small></span></button>
+    <button type="button" data-export="png"><span>▣</span><span><strong>Exportar PNG</strong><small>Imagen del diagrama</small></span></button>
+    <button type="button" data-export="import"><span>⇧</span><span><strong>Importar JSON</strong><small>Cargar proceso desde archivo</small></span></button>
+  </section>
+  <input type="file" id="importFileInput" accept="application/json,.json" hidden>
+
+  <section class="command-palette" id="commandPalette" aria-label="Búsqueda global" hidden>
+    <div class="command-backdrop" data-command-close></div>
+    <div class="command-dialog" role="dialog" aria-modal="true" aria-label="Búsqueda global">
+      <label class="command-search"><span>⌕</span><input id="commandSearch" type="search" placeholder="Buscar módulos, acciones o nodos…" autocomplete="off"></label>
+      <div class="command-results" id="commandResults"></div>
+      <div class="command-footer"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
+    </div>
+  </section>
+
+  <div class="shortcuts-modal" id="shortcutsModal" hidden>
+    <div class="shortcuts-backdrop" data-shortcuts-close></div>
+    <div class="shortcuts-card" role="dialog" aria-modal="true" aria-label="Atajos de teclado">
+      <header class="shortcuts-head"><div><span class="eyebrow">REFERENCIA RÁPIDA</span><h2>Atajos de teclado</h2></div><button class="icon-button" id="closeShortcuts" type="button" title="Cerrar" aria-label="Cerrar">×</button></header>
+      <div class="shortcuts-grid" id="shortcutsGrid"></div>
+    </div>
+  </div>
+
+  <section class="toast-region" id="toastRegion" aria-live="polite"></section>
+  <script src="js/module-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
