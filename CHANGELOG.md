@@ -5,6 +5,20 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 
 ## [Unreleased]
 
+## [Flow Studio v3] — 2026-09-09
+
+Nueva generación del editor de procesos **Flow Studio** (autocontenido, sin backend),
+evolución del editor de LivingOrg OS hacia una herramienta utilizable por sí misma.
+Carpeta: `livingorg-flow-studio-v3/`.
+
+### Añadido
+- **Biblioteca multi-proceso**: "Procesos" como lista (crear, abrir, duplicar, eliminar) persistida en `localStorage`.
+- **Exportar / Importar JSON**: portabilidad y respaldo del proceso.
+- **Exportar SVG / PNG**: salida visual del diagrama.
+- **Comando global (`⌘K` / `Ctrl+K`)**: búsqueda funcional de módulos, acciones y nodos.
+- **Modal de atajos** (`?`) y persistencia del colapso de la sidebar.
+- **Fluidez UX/UI**: micro-interacciones y transiciones.
+
 ## [1.1.0] — Auditoría de bugs y correcciones (Solicitud_Cambios_LivingOrgOS)
 
 Corrige los 12 hallazgos de la auditoría técnica realizada sobre la instancia
