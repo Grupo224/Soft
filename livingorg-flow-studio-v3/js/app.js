@@ -56,6 +56,11 @@
     grid: true
   };
 
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const uid = prefix => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+
   let state = loadState();
   let selectedNodeId = null;
   let mode = "select";
@@ -67,11 +72,6 @@
   let panDrag = null;
   let paletteQuery = "";
   let toastTimer = null;
-
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const clone = value => JSON.parse(JSON.stringify(value));
-  const uid = prefix => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
   const shell = $("#appShell");
   const flowEditor = $("#flowEditor");
