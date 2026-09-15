@@ -33,6 +33,8 @@ DT_PLAN = [
     ("os_document_link", None), ("os_evidence", None), ("os_approval", None),
 ]
 
+SERVER_SCRIPTS_DIR = "deployment/server_scripts"
+
 PORTAL_ASSETS = [
     "css/os-portal.css", "css/os-hardening.css", "css/os-operational.css", "css/os-org-v2.css", "css/os-org-profile-v2.css",
     "js/os-api.js", "js/os-runtime.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
@@ -117,6 +119,38 @@ def sync_portal(client: FrappeClient, root: Path, dry_run: bool) -> None:
         client.create("Web Page", payload)
 
 
+def sync_server_scripts(client: FrappeClient, root: Path, dry_run: bool) -> None:
+    """Publica los Server Scripts (API) que el portal necesita para escribir.
+
+    La Web Page `/os` sirve `frappe.csrf_token = "None"`, así que el portal pide el
+    token real de sesión a `livingorg_api_csrf`. Sin ese endpoint, todo POST/PUT/DELETE
+    de una sesión autenticada falla en silencio: por eso viaja con el despliegue.
+    Aditivo: si el script ya existe se conserva tal cual (nunca se sobrescribe).
+    """
+    script_dir = root / SERVER_SCRIPTS_DIR
+    if not script_dir.is_dir():
+        return
+    for script_path in sorted(script_dir.glob("*.json")):
+        with script_path.open(encoding="utf-8") as handle:
+            spec = json.load(handle)
+        name = spec.get("name")
+        if not name:
+            raise ValueError(f"Server Script sin 'name': {script_path}")
+        print(f"[server-script] {name}")
+        if dry_run:
+            continue
+        try:
+            if client.exists("Server Script", name):
+                print(f"  SKIP ya existe (se conserva): {name}")
+                continue
+            client.create("Server Script", spec)
+            print(f"  OK creado: {name}")
+        except FrappeRequestError as exc:
+            # Server Scripts pueden estar deshabilitados en el hosting (perfil demo): el
+            # despliegue no se aborta, pero verify.py lo reporta como WARN de portal.
+            print(f"  WARN no se pudo publicar {name}: {exc}")
+
+
 def sync_standalone(client: FrappeClient, root: Path, dry_run: bool) -> None:
     standalone = root / "livingorg-os"
     mapping = [
@@ -171,6 +205,7 @@ def main() -> int:
             ensure_module_and_roles(client, args.dry_run)
             sync_doctypes(client, root, args.dry_run)
             sync_portal(client, root, args.dry_run)
+            sync_server_scripts(client, root, args.dry_run)
             if not args.dry_run:
                 check_bridge(client, required=args.require_bridge)
         if args.mode == "standalone":

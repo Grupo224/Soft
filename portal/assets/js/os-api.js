@@ -15,18 +15,38 @@
     return "os-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   }
 
+  var csrfToken = null;
+  function isValidCsrf(t) {
+    return !!(t && t !== "None" && t !== "none" && t !== "null" && t !== "undefined" && t !== "{{ csrf_token }}");
+  }
   function getCsrfToken() {
+    if (isValidCsrf(csrfToken)) return csrfToken;
     try {
-      if (global.frappe && global.frappe.csrf_token && global.frappe.csrf_token !== "{{ csrf_token }}") {
-        return global.frappe.csrf_token;
+      if (global.frappe) {
+        if (isValidCsrf(global.frappe.csrf_token)) { csrfToken = global.frappe.csrf_token; return csrfToken; }
+        if (global.frappe.boot && isValidCsrf(global.frappe.boot.csrf_token)) { csrfToken = global.frappe.boot.csrf_token; return csrfToken; }
       }
     } catch (e) {
       // Frappe puede no estar expuesto en Website; se usan los fallbacks siguientes.
     }
     var meta = document.querySelector('meta[name="csrf-token"]');
-    if (meta) return meta.getAttribute("content");
-    if (global.csrf_token) return global.csrf_token;
+    if (meta && isValidCsrf(meta.getAttribute("content"))) { csrfToken = meta.getAttribute("content"); return csrfToken; }
+    if (isValidCsrf(global.csrf_token)) { csrfToken = global.csrf_token; return csrfToken; }
     return null;
+  }
+  // La Web Page /os sirve frappe.csrf_token = "None": se obtiene el CSRF real de la sesión.
+  function fetchCsrfToken() {
+    return fetch("/api/method/livingorg_api_csrf", { credentials: "same-origin", headers: { "Accept": "application/json" } })
+      .then(function (r) { return r.text(); })
+      .then(function (text) {
+        try {
+          var payload = JSON.parse(text);
+          var t = payload && payload.message;
+          if (isValidCsrf(t)) csrfToken = t;
+        } catch (e) {}
+        return csrfToken;
+      })
+      .catch(function () { return null; });
   }
 
   function buildQuery(params) {
@@ -52,9 +72,23 @@
     }
   }
 
+  // Frappe valida los campos Link contra la base: un valor que no existe devuelve
+  // "No se pudo encontrar Compañía: 1, Owner User: 1" (HTTP 417). Se traduce a un
+  // mensaje accionable en lugar del texto crudo del motor.
+  function humanizeLinkValidation(msg) {
+    var m = /(?:No se pudo encontrar|Could not find)\s+(.+)/i.exec(msg || "");
+    if (!m) return null;
+    var parts = m[1].split(",").map(function (piece) {
+      var kv = /^\s*(.+?):\s*(.+?)\s*$/.exec(piece);
+      return kv ? "\u00ab" + kv[2] + "\u00bb no existe en " + kv[1] : null;
+    }).filter(Boolean);
+    if (!parts.length) return null;
+    return "Valor no v\u00e1lido: " + parts.join("; ") + ". Elige un valor de la lista de sugerencias del campo.";
+  }
+
   function friendlyMessage(status, payload) {
     var serverMessage = parseServerMessage(payload);
-    if (serverMessage) return serverMessage;
+    if (serverMessage) return humanizeLinkValidation(serverMessage) || serverMessage;
     if (payload && payload.message && typeof payload.message === "string") return payload.message;
     if (payload && payload.exc_type) return payload.exc_type + ": revisa el identificador de correlación.";
     switch (status) {
@@ -222,4 +256,7 @@
 
   global.OS = global.OS || {};
   global.OS.api = api;
+
+  // Precarga el CSRF real (la Web Page no lo expone válido) para escrituras posteriores.
+  fetchCsrfToken();
 })(window);

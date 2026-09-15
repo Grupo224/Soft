@@ -304,11 +304,13 @@
       }).catch(function (e) { ui.error(e); return false; });
     }
     function finish() {
-      saveRec({}).then(function () {
+      // Devuelve la promesa al modal: si ERPNext rechaza los datos (por ejemplo un Link
+      // inexistente), el asistente permanece abierto y no se pierde lo capturado.
+      return saveRec({}).then(function () {
         ui.toast(editing ? "Cambios guardados ✓" : "Proceso creado en Draft ✓", "ok");
         afterSave();
-      }).catch(ui.error);
-      return true;
+        return true;
+      }).catch(function (e) { ui.error(e); return false; });
     }
 
     render();

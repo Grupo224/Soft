@@ -9,6 +9,7 @@ Esta matriz evita confundir "desplegable por API" con "runtime Python instalado"
 | Sincronizar permisos del DocType | Sí | Sí | Sí | Sí |
 | Subir CSS/JS | Sí | Sí | Sí | Sí |
 | Crear/actualizar `/os` | Sí | Sí | Sí | Sí |
+| Escrituras del navegador (token CSRF de sesión vía `livingorg_api_csrf`) | Sí | Sí, si Server Scripts están habilitados | Sí, si Server Scripts están habilitados | Sí |
 | Hooks Python `doc_events` | Sí | No | No | Parcial/equivalente |
 | `permission_query_conditions` Python | Sí | No | No | No equivalente directo garantizado |
 | `has_permission` Python | Sí | No | No | No equivalente directo garantizado |

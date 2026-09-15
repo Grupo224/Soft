@@ -16,6 +16,10 @@ dist/
 build/
 .cache/
 
+# Cachés de Python (el despliegue API-first ejecuta los scripts del repo)
+__pycache__/
+*.pyc
+
 # Variables de entorno / secretos — nunca se suben al repositorio
 .env
 .env.*

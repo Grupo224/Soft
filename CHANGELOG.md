@@ -5,6 +5,10 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 
 ## [Unreleased]
 
+### Correcciones de portal y guardado (2026-09-15)
+- **Escrituras del portal (`/os`)**: la Web Page se servía con `frappe.csrf_token = "None"` y sin meta `csrf-token`, así que todo POST/PUT/DELETE de una sesión autenticada fallaba en silencio. `os-api.js` ahora precarga el token real de sesión desde el endpoint `livingorg_api_csrf`, lo cachea, descarta valores inválidos (`None`, `null`, plantilla) y `os-core.js` distingue "sin sesión" de "sin conexión" en el arranque.
+- **Guardado de procesos (`/os#/processes`)**: un valor inexistente en un campo Link devolvía el error crudo del motor (`No se pudo encontrar Compañía: 1, Owner User: 1`, HTTP 417) y el asistente se cerraba perdiendo lo capturado. Ahora el asistente permanece abierto si el servidor rechaza el registro, el mensaje se traduce a algo accionable (*«1» no existe en Compañía*) y los campos Link ofrecen sugerencias al enfocar en lugar de esperar texto tecleado.
+
 ### Operación ERPNext
 - Nuevo Custom App `livingorg_bridge` sin modificaciones al core de ERPNext/Frappe.
 - Nuevo child DocType `OS Process Action` para declarar acciones estructuradas por paso: abrir, crear, crear desde origen, actualizar, submit y vincular documentos.
@@ -45,6 +49,7 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 - Añadidos `scripts/preflight.py`, `scripts/deploy_api.py` y `scripts/verify.py` para preflight de sólo lectura, despliegue API explícito y clasificación de runtime `FULL`/`DEGRADED`.
 - Añadida matriz de capacidades para diferenciar schema/portal vía API de hooks Python y runtime operativo real.
 - `scripts/validate_repo.py` valida ahora el contrato dual, safe mode y archivos requeridos de ambos modos.
+- Nuevo `deployment/server_scripts/` con los Server Scripts (API) que el portal necesita: `scripts/deploy.py` los publica de forma aditiva (crea si falta, nunca sobrescribe) y `scripts/verify.py` reporta el endpoint CSRF de sesión como `[portal] OK/WARN`.
 
 ### Frontend / responsive
 - Capa `os-hardening.css` para 430/360/320 px, modales, inspector, toolbars, tablas y contención de overflow.

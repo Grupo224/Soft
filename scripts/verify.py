@@ -85,6 +85,20 @@ def main() -> int:
             else:
                 failures.append(f"File: {asset}")
 
+        # El portal escribe con el CSRF real de la sesión (la Web Page lo sirve como "None"):
+        # sin este endpoint, todo POST/PUT/DELETE del navegador falla en silencio.
+        try:
+            csrf = client.request("GET", "/api/method/livingorg_api_csrf", allow_404=True)
+            if csrf.status_code == 200 and "message" in (csrf.json() or {}):
+                print("[portal] OK livingorg_api_csrf (token CSRF de sesión)")
+            else:
+                print(
+                    "[portal] WARN livingorg_api_csrf no disponible "
+                    f"(HTTP {csrf.status_code}): las escrituras del navegador fallarán"
+                )
+        except FrappeRequestError as exc:
+            print(f"[portal] WARN livingorg_api_csrf no verificable: {exc}")
+
         try:
             response = client.request(
                 "GET",
