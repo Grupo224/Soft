@@ -57,6 +57,57 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 - Documentación completa de instalación, deployment, rollback, seguridad, compatibilidad, acciones operativas y agentes IA.
 - OpenClaw recibe un contrato explícito de instalación/update/verify para no improvisar rutas, credenciales ni operaciones destructivas.
 
+## [2.0.0] — 2026-09-15 — Organigrama Vivo 2.0
+
+Versión recomendada del módulo `/os#/org`. Se construye sobre el modelo y canvas existentes, preserva la implementación 1.x y añade una UX contextual basada en **Empresa → Departamento → Puesto → Persona**.
+
+### Added
+- Nueva implementación aditiva `portal/assets/js/pages/os-page-org-v2.js`, cargada antes del módulo 1.x sin borrar `os-page-org.js`.
+- Capa visual `portal/assets/css/os-org-v2.css` con toolbar contextual, estados vacíos, tabs del inspector y responsive específico.
+- Acciones contextuales: Empresa → Departamento; Departamento → Puesto/Subdepartamento; Puesto → Persona/Puesto subordinado/Agente.
+- Menú **Avanzado** para conservar creación técnica de elementos y relaciones sin exponerla como flujo principal.
+- Sidebar por contexto con Resumen, Rol, Personas, KPIs, Procesos, SOPs y Documentos para puestos.
+- Role Card ampliada de forma aditiva con `org_node`, propósito, objetivos, funciones, competencias, herramientas y referencias de compatibilidad.
+- KPI estructurado por puesto mediante `org_node`, `role_card`, `designation` y nuevos tipos `Position`/`RoleCard`.
+- Vínculo `OS SOP.responsible_node` para relacionar procedimientos con puestos sin mezclar SOP Builder con el organigrama.
+- Documentos del puesto adjuntos a `OS Role Card` mediante `File` nativo de Frappe.
+- Reglas semánticas de jerarquía para evitar relaciones organizacionalmente inválidas.
+- Validación server-side de `OS Org Relation` en `livingorg_bridge`: tipo padre/hijo, un padre jerárquico y prevención de ciclos.
+- `scripts/validate_org_v2.py` para validar contrato, schema aditivo, orden de carga, bug de display name y hooks.
+- CI de `release/**` ejecuta el contrato Organigrama 2.0 además de validación general, compilación Python y sintaxis JavaScript.
+- Documentación específica de arquitectura, migración/rollback y testing en `docs/ORGANIGRAMA_*.md`.
+
+### Changed
+- La experiencia principal deja de pedir al usuario que piense en `Node`, `Relation`, `Designation` o `REPORTS_TO`.
+- `title` pasa a ser el nombre visual canónico del organigrama; la entidad ERPNext vinculada se muestra por separado.
+- Las cards de Departamento y Puesto muestran información operativa de baja densidad: puestos/personas o ocupación/KPIs/procesos.
+- La asignación de Employee a un Puesto no modifica silenciosamente `Employee.designation`, `Employee.department` ni `Employee.reports_to`.
+- Process Studio y SOP permanecen como módulos independientes; el Organigrama sólo enlaza y navega hacia ellos.
+- `deployment/manifest.json` declara versión 2.0, branch actual, versión previa preservada y capacidades reales de Bench/API.
+
+### Fixed
+- Corregido el bug donde editar `Nombre visible` guardaba `title` pero la card seguía mostrando `employee/designation/department/company` por prioridad de `label()`.
+- Separadas las responsabilidades en `getDisplayTitle()`, `getSourceLabel()` y `getSearchLabel()` para evitar regresiones entre render, fuente ERPNext y búsqueda.
+- La jerarquía ya no permite desde la UX crear combinaciones como Persona → Departamento o Departamento → Persona.
+
+### Preserved
+- `OS Org Node`.
+- `OS Org Relation` y relaciones históricas existentes.
+- `OS Role Card` y sus campos anteriores.
+- `os-canvas.js` y su zoom, pan, fit y drag.
+- prevención de ciclos cliente existente, reforzada en Bridge.
+- expandir/contraer, búsqueda, filtros e inspector lateral.
+- Process Studio separado.
+- datos existentes: no se ejecuta migración destructiva ni transformación automática de relaciones.
+- Implementación anterior `portal/assets/js/pages/os-page-org.js` y branch `archive/organigrama-v1-stable` en commit `a2b7b88ae3dbbf38b1c93a466c9419e7977af19f`.
+
+### Deployment / Migration
+- Rama nueva: `release/organigrama-v2.0`.
+- Rama de recuperación 1.x: `archive/organigrama-v1-stable`.
+- Actualización de schema exclusivamente aditiva para Role Card, KPI y SOP.
+- Relaciones históricas incompatibles se advierten; **no se migran ni eliminan automáticamente**.
+- Ver `docs/ORGANIGRAMA_MIGRATION_2.0.md` y `docs/ORGANIGRAMA_TESTING_2.0.md` antes de promover a producción.
+
 ## [Flow Studio v3] — 2026-09-09
 
 Nueva generación del editor de procesos **Flow Studio** (autocontenido, sin backend),
