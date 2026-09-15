@@ -36,14 +36,16 @@ No continúes si el backup falla.
 
 ## 3. Instalar LivingOrg Bridge
 
-Desde la carpeta del bench, usando la ruta absoluta del monorepo:
+Desde la carpeta del bench, usando la ruta absoluta del monorepo. Bench soporta `get-app` desde filesystem y `--soft-link` evita copiar o clonar de nuevo la carpeta anidada del app:
 
 ```bash
-bench get-app /RUTA/ABSOLUTA/Soft/frappe_app/livingorg_bridge
+bench get-app --soft-link /RUTA/ABSOLUTA/Soft/frappe_app/livingorg_bridge
 bench --site TU-SITIO install-app livingorg_bridge
 bench --site TU-SITIO migrate
 bench --site TU-SITIO clear-cache
 ```
+
+En producción, el repositorio fuente usado por el symlink debe permanecer en una ruta estable y legible por el usuario de Bench. Si el equipo prefiere una copia física, puede empaquetar/publicar `frappe_app/livingorg_bridge` como repositorio de app separado en una fase posterior.
 
 Verifica:
 
