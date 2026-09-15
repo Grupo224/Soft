@@ -28,7 +28,7 @@
 .os-orgv2-pane .os-flow-item{align-items:center}
 
 @media(max-width:1024px){
-  .os-orgv2-toolbar{flex-direction:column;align-items:stretch}.os-orgv2-primary-actions,.os-orgv2-filters{width:max-content;max-width:100%}.os-orgv2-empty{inset-top:160px}
+  .os-orgv2-toolbar{flex-direction:column;align-items:stretch}.os-orgv2-primary-actions,.os-orgv2-filters{width:max-content;max-width:100%}.os-orgv2-empty{inset:160px 20px 20px}
 }
 @media(max-width:720px){
   .os-orgv2-wrap{min-height:70vh}.os-orgv2-toolbar{left:8px;right:8px;top:8px;gap:7px}
