@@ -50,10 +50,13 @@ def main() -> int:
     require(manifest.get("safety", {}).get("migrate_existing_org_relations_automatically") is False, "automatic relation migration must stay disabled")
 
     page = (ROOT / "portal/pages/os-web-page.html").read_text(encoding="utf-8")
-    v2_pos = page.find("os-page-org-v2.js")
-    v1_pos = page.find("os-page-org.js")
+    # Buscar los `src` reales, no menciones en comentarios/documentación del propio HTML.
+    v2_script = 'src="/files/os-page-org-v2.js'
+    v1_script = 'src="/files/os-page-org.js'
+    v2_pos = page.find(v2_script)
+    v1_pos = page.find(v1_script)
     require(v2_pos >= 0 and v1_pos >= 0 and v2_pos < v1_pos, "v2 route must load before legacy /org route")
-    require("os-org-v2.css" in page, "v2 CSS is not loaded")
+    require('href="/files/os-org-v2.css' in page, "v2 CSS is not loaded")
 
     deploy = (ROOT / "scripts/deploy.py").read_text(encoding="utf-8")
     require('"css/os-org-v2.css"' in deploy, "deploy.py does not publish v2 CSS")
