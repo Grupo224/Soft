@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Despliegue canónico, idempotente y no destructivo de LivingOrg OS.
 
-Sincroniza Custom DocTypes + portal Website. La lógica operativa server-side vive
-en el Custom App `livingorg_bridge`, que debe instalarse en el bench antes de
-activar runs Live. Ver INSTALL.md.
+Sincroniza Custom DocTypes + portal Website por REST. El runtime operativo puede
+ser `livingorg_bridge` o un runtime API compatible; `--require-bridge` conserva
+la verificación estricta del modo Bench/Custom App.
 """
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ DT_PLAN = [
 
 PORTAL_ASSETS = [
     "css/os-portal.css", "css/os-hardening.css", "css/os-operational.css",
-    "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
+    "js/os-api.js", "js/os-runtime.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
     "js/os-hardening.js", "js/os-operational.js", "js/os-operational-workfix.js",
     "js/pages/os-page-agents.js", "js/pages/os-page-analytics.js", "js/pages/os-page-home.js",
     "js/pages/os-page-knowledge.js", "js/pages/os-page-org.js", "js/pages/os-page-processes.js",
