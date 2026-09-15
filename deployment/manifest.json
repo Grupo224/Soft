@@ -1,13 +1,54 @@
 {
   "product": "LivingOrg OS",
-  "schema_version": "1.0",
-  "deployment_contract_version": "1.0",
+  "product_version": "2.0.0",
+  "schema_version": "2.0",
+  "deployment_contract_version": "1.1",
   "portal_route": "os",
+  "current_stable": {
+    "organigrama": "2.0.0",
+    "branch": "release/organigrama-v2.0",
+    "route": "/os#/org",
+    "frontend_entrypoint": "portal/assets/js/pages/os-page-org-v2.js"
+  },
+  "previous_stable": {
+    "organigrama": "1.x",
+    "branch": "archive/organigrama-v1-stable",
+    "commit": "a2b7b88ae3dbbf38b1c93a466c9419e7977af19f",
+    "frontend_entrypoint": "portal/assets/js/pages/os-page-org.js"
+  },
   "source_of_truth": {
     "doctypes": "erpnext_setup/doctypes",
     "portal": "portal",
     "permissions": "scripts/permissions.py",
-    "schema_overlays": "scripts/schema_overlays.py"
+    "schema_overlays": "scripts/schema_overlays.py",
+    "organigrama_v2_architecture": "docs/ORGANIGRAMA_V2.md",
+    "organigrama_v2_migration": "docs/ORGANIGRAMA_MIGRATION_2.0.md",
+    "organigrama_v2_testing": "docs/ORGANIGRAMA_TESTING_2.0.md"
+  },
+  "organigrama_v2": {
+    "preserves_legacy_frontend": true,
+    "legacy_frontend": "portal/assets/js/pages/os-page-org.js",
+    "load_order_rule": "os-page-org-v2.js MUST load before os-page-org.js because the router resolves the first matching route",
+    "required_doctypes": [
+      "OS Org Node",
+      "OS Org Relation",
+      "OS Role Card",
+      "OS KPI Definition",
+      "OS Process",
+      "OS SOP"
+    ],
+    "additive_schema": {
+      "OS Role Card": ["org_node", "purpose", "objectives", "functions", "competencies", "tools", "process_refs", "sop_refs"],
+      "OS KPI Definition": ["org_node", "role_card", "designation", "Position and RoleCard entity_type options"],
+      "OS SOP": ["responsible_node"]
+    },
+    "hierarchy": {
+      "Company": ["Department"],
+      "Department": ["Department", "Designation"],
+      "Designation": ["Designation", "Employee", "Agent"],
+      "Employee": [],
+      "Agent": []
+    }
   },
   "supported_modes": {
     "bench": {
@@ -18,6 +59,7 @@
       "supports_server_hooks": true,
       "supports_document_permission_hooks": true,
       "supports_operational_actions": true,
+      "supports_org_semantic_validation": true,
       "recommended_for": "full-native-production"
     },
     "api": {
@@ -31,6 +73,7 @@
       "supports_web_page_sync": true,
       "supports_server_hooks": false,
       "supports_document_permission_hooks": false,
+      "supports_org_semantic_validation": "frontend-only-unless-compatible-api-runtime-is-installed",
       "operational_runtime": [
         "external-openclaw-runtime",
         "server-script-runtime-when-enabled"
@@ -44,7 +87,8 @@
     "drop_fields": false,
     "truncate_data": false,
     "reinstall": false,
-    "store_secrets_in_repo": false
+    "store_secrets_in_repo": false,
+    "migrate_existing_org_relations_automatically": false
   },
   "required_environment": [
     "FRAPPE_BASE_URL",
@@ -63,6 +107,7 @@
   ],
   "verification": {
     "bridge_capability_endpoint": "livingorg_bridge.status.capabilities",
-    "api_identity_endpoint": "frappe.auth.get_logged_user"
+    "api_identity_endpoint": "frappe.auth.get_logged_user",
+    "organigrama_contract_validator": "scripts/validate_org_v2.py"
   }
 }
