@@ -5,7 +5,17 @@ Guía canónica para humanos y agentes. LivingOrg OS soporta dos modos oficiales
 - **Bench / Custom App**: runtime nativo `livingorg_bridge` + sincronización REST.
 - **API-First / OpenClaw**: sincronización sin SSH/Bench; runtime operativo separado cuando no existe Bridge.
 
-Lee primero `deployment/manifest.json` y `deployment/README.md`.
+## Versión vigente
+
+```text
+CURRENT STABLE CODE: Organigrama Vivo 2.0.0
+RECOMMENDED BRANCH:  release/organigrama-v2.0
+PREVIOUS STABLE:     archive/organigrama-v1-stable
+PREVIOUS COMMIT:     a2b7b88ae3dbbf38b1c93a466c9419e7977af19f
+PORTAL:              /os#/org
+```
+
+Lee primero `deployment/manifest.json`, `docs/ORGANIGRAMA_MIGRATION_2.0.md` y `deployment/README.md`.
 
 ## Variables comunes
 
@@ -19,35 +29,47 @@ Opcionales: `LIVINGORG_REPO_ROOT`, `FRAPPE_TIMEOUT_SECONDS`.
 
 Nunca guardar secretos en Git ni en assets públicos.
 
-# Modo A — Bench / Custom App
+## Preflight común para 2.0
 
-## Preflight
+Antes de escribir en ERPNext:
 
 ```bash
+git checkout release/organigrama-v2.0
 python scripts/validate_repo.py
-python scripts/deploy.py --mode update --dry-run
+python scripts/validate_org_v2.py
 ```
+
+`validate_org_v2.py` debe terminar en `PASS org-v2` antes de continuar.
+
+# Modo A — Bench / Custom App
+
+El modo recomendado cuando se necesita enforcement server-side completo, incluida la validación semántica de `OS Org Relation`.
 
 ## Primera instalación
 
 Sigue `deployment/bench/INSTALL.md` / `INSTALL.md`: backup → instalar `livingorg_bridge` en bench → migrate → dry-run → deployment con verificación del Bridge.
 
 ```bash
+python scripts/deploy.py --mode install --dry-run --require-bridge
 python scripts/deploy.py --mode install --require-bridge
 python scripts/verify.py --require-bridge
 ```
 
-## Actualización
+## Actualización 1.x → 2.0
 
 1. Backup del sitio.
-2. Actualiza el repo con `git pull --ff-only` en la rama estable elegida.
-3. Si cambió `frappe_app/livingorg_bridge`, actualiza la copia instalada por Bench y ejecuta migrate/clear-cache.
-4. Sincroniza schema + portal.
-5. Ejecuta verify y smoke test.
+2. Confirmar que Git está en `release/organigrama-v2.0`.
+3. Ejecutar `python scripts/validate_repo.py`.
+4. Ejecutar `python scripts/validate_org_v2.py`.
+5. Actualizar `frappe_app/livingorg_bridge` en Bench porque 2.0 añade validación server-side de `OS Org Relation`.
+6. Ejecutar el migrate/clear-cache requerido por la operación de Bench.
+7. Dry-run del schema/portal.
+8. Desplegar schema + assets + Web Page.
+9. VERIFY.
+10. Ejecutar `docs/ORGANIGRAMA_TESTING_2.0.md` en staging.
 
 ```bash
-python scripts/validate_repo.py
-python scripts/deploy.py --mode update --dry-run
+python scripts/deploy.py --mode update --dry-run --require-bridge
 python scripts/deploy.py --mode update --require-bridge
 python scripts/verify.py --require-bridge
 ```
@@ -66,32 +88,40 @@ python scripts/preflight.py
 
 Valida identidad y acceso básico sin escribir.
 
-## Primera instalación
+## Primera instalación 2.0
 
 ```bash
 python scripts/validate_repo.py
+python scripts/validate_org_v2.py
 python scripts/deploy_api.py --mode install --dry-run
 python scripts/deploy_api.py --mode install
 python scripts/verify.py
 ```
 
-## Actualización
+## Actualización 1.x → 2.0
 
 ```bash
+python scripts/preflight.py
 python scripts/validate_repo.py
+python scripts/validate_org_v2.py
 python scripts/deploy_api.py --mode update --dry-run
 python scripts/deploy_api.py --mode update
 python scripts/verify.py
 ```
 
-## Qué sincroniza el modo API
+Después ejecuta el checklist E2E de `docs/ORGANIGRAMA_TESTING_2.0.md` en staging.
+
+## Qué sincroniza 2.0 por API
 
 - módulo y roles OS;
 - child tables y Custom DocTypes;
+- campos aditivos de `OS Role Card`, `OS KPI Definition` y `OS SOP`;
 - overlays aditivos de schema;
 - permisos canónicos serializados en los Custom DocTypes;
-- assets HTML/CSS/JS;
-- Web Page `/os`.
+- `os-org-v2.css`;
+- `os-page-org-v2.js` y el frontend legacy preservado;
+- demás assets HTML/CSS/JS;
+- Web Page `/os` con v2 cargada antes de v1.
 
 ## Qué NO puede instalar por sí solo
 
@@ -102,9 +132,22 @@ REST no instala `frappe_app/livingorg_bridge` ni sus hooks Python. En concreto n
 - `has_permission` Python;
 - módulos importables bajo `livingorg_bridge.*`.
 
-Las operaciones críticas requieren Bridge preexistente, OpenClaw Runtime externo o Server Script Runtime cuando el sitio ya permita Server Scripts. Consulta `deployment/api/API_MATRIX.md`.
+Por eso, en API-only puro, las reglas de jerarquía 2.0 se previenen desde el portal, pero no deben presentarse como enforcement server-side frente a un cliente REST arbitrario. Para esa frontera se requiere Bridge preexistente u otro runtime compatible.
+
+Consulta `deployment/api/API_MATRIX.md`.
 
 `verify.py` debe reportar `DEGRADED` si schema/portal están correctos pero no existe runtime operativo confirmado. Eso no es un error de instalación del schema, pero sí una limitación funcional que debe mostrarse explícitamente.
+
+# Orden de assets crítico de Organigrama 2.0
+
+En `portal/pages/os-web-page.html` debe mantenerse:
+
+```text
+os-page-org-v2.js
+os-page-org.js
+```
+
+En ese orden. El router resuelve la primera ruta `/org` registrada. Invertirlo reactiva 1.x.
 
 # Fuente de verdad compartida
 
@@ -113,13 +156,14 @@ Ambos modos consumen los mismos recursos:
 - `erpnext_setup/doctypes/` — schema;
 - `scripts/permissions.py` — permisos canónicos;
 - `scripts/schema_overlays.py` — overlays;
-- `portal/` — frontend.
+- `portal/` — frontend;
+- `deployment/manifest.json` — versión y contrato machine-readable.
 
 No crear árboles `api_doctypes/` o `bench_doctypes/` ni frontends duplicados.
 
 # Seguridad / idempotencia
 
-INSTALL y UPDATE son no destructivos por defecto. No usar `reinstall.py` ni `cleanup_data.py`; no DROP/TRUNCATE ni eliminar campos con datos automáticamente. Las migraciones destructivas futuras requieren versión explícita, backup verificado y autorización específica.
+INSTALL y UPDATE son no destructivos por defecto. No usar `reinstall.py` ni `cleanup_data.py`; no DROP/TRUNCATE ni eliminar campos con datos automáticamente. La migración 2.0 no transforma ni borra relaciones históricas de Organigrama.
 
 # Standalone legado
 
@@ -132,7 +176,7 @@ No sustituye `/os` como aplicación operativa.
 
 # Prueba operacional posterior
 
-Cuando el runtime operativo esté disponible, verifica al menos:
+Además del checklist de Organigrama 2.0, cuando el runtime operativo esté disponible verifica al menos:
 
 - botón **Acciones ERPNext**;
 - Run Test que crea Step Runs;
@@ -145,8 +189,15 @@ Cuando el runtime operativo esté disponible, verifica al menos:
 
 # Rollback
 
-No uses `reinstall.py`. Sigue `ROLLBACK.md`: revert del commit y redeploy compatible. En modo Bench, migrate del Custom App cuando aplique. En modo API, no eliminar schema/datos automáticamente para igualar un commit antiguo.
+Para Organigrama 2.0, la referencia exacta es:
+
+```text
+archive/organigrama-v1-stable
+a2b7b88ae3dbbf38b1c93a466c9419e7977af19f
+```
+
+No uses `reinstall.py`. Sigue `ROLLBACK.md` y `docs/ORGANIGRAMA_MIGRATION_2.0.md`. No elimines los campos nuevos durante rollback: un frontend 1.x puede ignorarlos y así no pierdes información capturada en 2.0.
 
 # Estado de verificación
 
-CI/dry-run cubren sintaxis y consistencia estática. La instalación en un ERPNext específico, sus impuestos, cuentas, permisos, workflows y customizations sigue marcada **REQUIERE VALIDACIÓN EN ERPNext** hasta ejecutar VERIFY/smoke test en ese sitio.
+CI/dry-run cubren sintaxis, estructura y contrato estático. Hasta ejecutar el checklist E2E sobre un ERPNext de staging, la clasificación máxima es **READY FOR STAGING**. `READY FOR PRODUCTION` exige las pruebas definidas en `docs/ORGANIGRAMA_TESTING_2.0.md`.
