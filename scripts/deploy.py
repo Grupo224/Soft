@@ -33,7 +33,8 @@ DT_PLAN = [
 ]
 
 PORTAL_ASSETS = [
-    "css/os-portal.css", "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
+    "css/os-portal.css", "css/os-hardening.css",
+    "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js", "js/os-hardening.js",
     "js/pages/os-page-agents.js", "js/pages/os-page-analytics.js", "js/pages/os-page-home.js",
     "js/pages/os-page-knowledge.js", "js/pages/os-page-org.js", "js/pages/os-page-processes.js",
     "js/pages/os-page-runs.js", "js/pages/os-page-sop.js", "js/pages/os-page-work.js",
