@@ -5,6 +5,26 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 
 ## [Unreleased]
 
+### Operación ERPNext
+- Nuevo Custom App `livingorg_bridge` sin modificaciones al core de ERPNext/Frappe.
+- Nuevo child DocType `OS Process Action` para declarar acciones estructuradas por paso: abrir, crear, crear desde origen, actualizar, submit y vincular documentos.
+- Nuevo DocType `OS Document Link` para registrar los documentos ERPNext reales producidos o usados por cada Step Run.
+- `OS Process`, `OS Run` y `OS Step Run` reciben campos operativos aditivos mediante `scripts/schema_overlays.py`.
+- Process Studio incorpora **Acciones ERPNext** de forma discreta y ejecución Test/Live.
+- Mi Trabajo permite ejecutar acciones del paso y abrir el documento real resultante.
+- Centro de Ejecución permite consultar los documentos ERPNext relacionados con un Run.
+- Mappers nativos allowlist para Quotation → Sales Order, Sales Order → Delivery Note/Sales Invoice, Delivery Note → Sales Invoice y flujos Purchase Order/Purchase Receipt/Purchase Invoice.
+- Runs crean Step Runs con snapshots de pasos y acciones para trazabilidad histórica.
+- START/END simples se autoavanzan; las siguientes tareas se desbloquean según edges y predecesores.
+
+### Gobierno server-side
+- Transiciones de Step Run validadas por `livingorg_bridge`.
+- Evidence-first y Approval-first se imponen en servidor, no sólo en JavaScript.
+- Las aprobaciones pendientes se crean desde el runtime y sólo el usuario/rol solicitado puede decidirlas.
+- Operadores quedan restringidos por `actor_user`/`actor_role` en Step Runs, Aprobaciones y Document Links.
+- Las acciones de documentos respetan permisos nativos de ERPNext y rechazan campos reservados.
+- No existe ejecución de métodos Python arbitrarios configurables desde el portal.
+
 ### Seguridad
 - Eliminadas credenciales y rutas locales hardcodeadas de los scripts de deployment actuales; configuración por variables de entorno.
 - `reinstall.py` y `cleanup_data.py` requieren doble confirmación para acciones destructivas.
@@ -14,19 +34,21 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 
 ### Estabilidad / deployment
 - Nuevo entrypoint canónico `scripts/deploy.py`, idempotente y con `--dry-run`.
+- `--require-bridge` verifica que `livingorg_bridge` esté activo antes de considerar completo el deployment operativo.
 - `install.py`, `update.py`, `update_v2.py` y `deploy_standalone.py` conservados como wrappers DEPRECATED compatibles.
 - Cliente REST reutilizable en `scripts/frappe_client.py` con timeout y reintentos acotados.
 - `seed_demo.py` deja de hardcodear secretos y evita duplicados clave.
-- Añadida validación estática y workflow de GitHub Actions.
+- Añadida validación estática y workflow de GitHub Actions, incluyendo compilación del Custom App.
 
 ### Frontend / responsive
 - Capa `os-hardening.css` para 430/360/320 px, modales, inspector, toolbars, tablas y contención de overflow.
 - `prefers-reduced-motion` soportado en la capa de hardening.
 - Capa `os-hardening.js` mantiene compatibilidad sin reescribir módulos existentes.
+- Nueva capa aditiva `os-operational.js` / `os-operational.css` para operación ERPNext sin reescribir Process Studio.
 
 ### Auditoría
-- `OS Step Run` incorpora campos snapshot aditivos para versión, instrucciones, SOP, prompt y policy.
-- Documentación completa de instalación, deployment, rollback, seguridad, compatibilidad y agentes IA.
+- `OS Step Run` incorpora campos snapshot aditivos para versión, instrucciones, SOP, prompt, policy y acciones de sistema.
+- Documentación completa de instalación, deployment, rollback, seguridad, compatibilidad, acciones operativas y agentes IA.
 
 ## [Flow Studio v3] — 2026-09-09
 
