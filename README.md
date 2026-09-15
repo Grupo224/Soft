@@ -1,59 +1,49 @@
-# LivingOrg OS — Portal HTML/CSS/JS para ERPNext/Frappe
+# LivingOrg OS
 
-Portal completo (Organigrama Vivo, Process Studio, SOP Builder, Mi Trabajo,
-Aprobaciones, Execution Center, Agentes/Prompts, Analítica, Integraciones, Role
-Cards y KPIs) diseñado para montarse **desde el módulo de Sitio Web de ERPNext**
-(HTML/CSS/JS puro, sin frameworks, sin build step) y operar sobre Custom DocTypes
-creados desde la interfaz — sin modificar el core de Frappe/ERPNext y sin
-necesitar acceso SSH.
+LivingOrg OS es una capa operativa sobre ERPNext/Frappe para modelar estructura, procesos, SOPs, ejecución, evidencia, aprobaciones, agentes, conocimiento y KPIs sin modificar el core de ERPNext, Frappe o Frappe CRM.
 
-Este repositorio traduce a código los dos documentos de referencia del negocio:
-el **blueprint funcional** (`SOP_Blueprint_SaaS_Organigrama_Vivo_IA_Humano`) y el
-**SOP técnico de implementación** (`SOP_Tecnico_ERPNext_Frontend_...Sin_SSH`).
+## Componentes
 
-## Contenido del repositorio
+- `portal/`: portal principal `/os`, HTML/CSS/JavaScript Vanilla conectado por sesión same-origin a Frappe.
+- `erpnext_setup/doctypes/`: esquemas de los Custom DocTypes `OS *`.
+- `scripts/`: configuración, permisos canónicos, cliente REST, validación y despliegue reproducible.
+- `livingorg-os/`, `livingorg-os-v2/`, `livingorg-flow-studio-v3/`: generaciones standalone/prototipos visuales conservadas por compatibilidad y referencia UX.
+- scripts raíz (`install.py`, `update.py`, `update_v2.py`, `deploy_standalone.py`): entrypoints legacy conservados; delegan en `scripts/deploy.py`.
 
-```
-portal/
-  assets/css/os-portal.css     Sistema de diseño completo (dark, responsive)
-  assets/js/os-api.js          Adaptador REST único hacia Frappe (CSRF, errores, timeouts)
-  assets/js/os-core.js         Sesión, router (hash SPA), store, UI kit, CRUD genérico
-  assets/js/os-canvas.js       Motor pan/zoom/drag SVG reutilizado por Org + Process Studio
-  assets/js/pages/*.js         10 rutas: home, org, processes(+studio), work, approvals,
-                                runs, agents/prompts/sop/integrations/roles/kpis,
-                                knowledge/skills, analytics
-  pages/os-web-page.html       El único bloque HTML que se pega en el Web Page de Frappe
+## Regla de arquitectura
 
-erpnext_setup/
-  doctypes/*.json              Especificación campo-por-campo de los 20 Custom DocTypes
-  roles_permission_matrix.md   Matriz de permisos por rol OS
-  README_INSTALACION.md        Guía paso a paso (sin SSH) para montar todo esto
+ERPNext/Frappe es la fuente de verdad. Los canvases y prototipos visuales no deben convertirse en una segunda base de datos. No se modifica core.
 
-docs/
-  ARQUITECTURA.md              Decisiones de arquitectura y mapa de rutas
-```
+## Inicio rápido
 
-## Empieza aquí
+1. Lee `SECURITY.md` antes de usar credenciales.
+2. Copia `.env.example` a `.env` fuera de Git y exporta sus variables en tu shell.
+3. Instala la dependencia existente del tooling de despliegue: `python -m pip install -r requirements-deploy.txt`.
+4. Valida: `python scripts/validate_repo.py`.
+5. Haz un dry-run: `python scripts/deploy.py --mode update --dry-run`.
+6. Despliega: `python scripts/deploy.py --mode update`.
 
-1. Lee `erpnext_setup/README_INSTALACION.md` — es la guía de instalación completa,
-   en orden: roles → DocTypes → permisos → subir archivos → crear el Web Page.
-2. Revisa `docs/ARQUITECTURA.md` para entender las decisiones de diseño y cómo
-   cada pantalla del portal se conecta a los DocTypes.
-   Para el historial de cambios ve `CHANGELOG.md`; para el detalle de la
-   auditoría de bugs v1.1.0 (diagnóstico, matriz de comparación, pruebas y
-   evidencia) ve `docs/AUDITORIA_2026-08_v1.1.0.md`.
-3. Los archivos de `portal/assets/` son el producto final: código JavaScript
-   plano (ES5, sin dependencias externas) y CSS auto-contenido, listos para
-   subirse tal cual al Administrador de Archivos de Frappe.
+Consulta `INSTALL.md`, `DEPLOYMENT.md`, `ROLLBACK.md` y `TROUBLESHOOTING.md` para el procedimiento completo.
 
-## Principios no negociables (heredados del SOP técnico)
+## Seguridad
 
-- **Nunca** se modifica `frappe`/`erpnext` ni se depende de Server Scripts para
-  el MVP. Todo corre sobre Custom DocTypes + REST API estándar + permisos reales.
-- **Ningún secreto** (API keys de IA, tokens de WhatsApp/Meta, client secrets)
-  vive en este portal. Los DocTypes de gobierno (`OS Prompt`, `OS Agent`,
-  `OS Integration`) solo guardan referencias/estado, nunca credenciales.
-- El canvas (Organigrama y Process Studio) **representa** datos persistidos en
-  ERPNext; nunca es la única copia de la verdad.
-- Todo lo importante queda auditable: `Track Changes` en los DocTypes, evidencia
-  obligatoria antes de cerrar un paso, y aprobaciones explícitas para gates de riesgo.
+Nunca publiques API keys, API secrets, cookies, contraseñas ni tokens en este repositorio. El portal usa sesión same-origin de Frappe y no necesita secretos en JavaScript. Los permisos efectivos de los DocTypes durante el despliegue se normalizan desde `scripts/permissions.py`.
+
+> Importante: versiones anteriores del repositorio contenían credenciales hardcodeadas. Deben considerarse comprometidas y rotarse en ERPNext aunque ya no aparezcan en el HEAD actual. Reescribir historial Git es una operación separada y potencialmente disruptiva; ver `SECURITY.md`.
+
+## Desarrollo
+
+No elimines generaciones antiguas solamente por estar duplicadas. Si un entrypoint queda obsoleto, se conserva como `DEPRECATED` o wrapper hasta una migración explícita. No introduzcas frameworks frontend sin una necesidad demostrable.
+
+## Documentación
+
+- `ARCHITECTURE.md`: arquitectura y fronteras.
+- `AGENTS.md`: instrucciones para OpenClaw/Claude/Codex y otros agentes.
+- `INSTALL.md`: instalación.
+- `DEPLOYMENT.md`: despliegue/actualización.
+- `UPGRADE.md`: estrategia de upgrade.
+- `ROLLBACK.md`: reversión.
+- `SECURITY.md`: seguridad y secretos.
+- `COMPATIBILITY.md`: compatibilidad.
+- `TROUBLESHOOTING.md`: diagnóstico.
+- `CHANGELOG.md`: historial de producto.

@@ -5,6 +5,29 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 
 ## [Unreleased]
 
+### Seguridad
+- Eliminadas credenciales y rutas locales hardcodeadas de los scripts de deployment actuales; configuración por variables de entorno.
+- `reinstall.py` y `cleanup_data.py` requieren doble confirmación para acciones destructivas.
+- Permisos efectivos de DocTypes normalizados desde `scripts/permissions.py`; Viewer/Auditor quedan read-only en el deployment soportado.
+- Añadida sanitización allowlist para rich HTML, URLs y preview de SOP.
+- `os-api.js` detecta excepciones Frappe dentro de HTTP 200 y mantiene correlation log acotado sin payloads sensibles.
+
+### Estabilidad / deployment
+- Nuevo entrypoint canónico `scripts/deploy.py`, idempotente y con `--dry-run`.
+- `install.py`, `update.py`, `update_v2.py` y `deploy_standalone.py` conservados como wrappers DEPRECATED compatibles.
+- Cliente REST reutilizable en `scripts/frappe_client.py` con timeout y reintentos acotados.
+- `seed_demo.py` deja de hardcodear secretos y evita duplicados clave.
+- Añadida validación estática y workflow de GitHub Actions.
+
+### Frontend / responsive
+- Capa `os-hardening.css` para 430/360/320 px, modales, inspector, toolbars, tablas y contención de overflow.
+- `prefers-reduced-motion` soportado en la capa de hardening.
+- Capa `os-hardening.js` mantiene compatibilidad sin reescribir módulos existentes.
+
+### Auditoría
+- `OS Step Run` incorpora campos snapshot aditivos para versión, instrucciones, SOP, prompt y policy.
+- Documentación completa de instalación, deployment, rollback, seguridad, compatibilidad y agentes IA.
+
 ## [Flow Studio v3] — 2026-09-09
 
 Nueva generación del editor de procesos **Flow Studio** (autocontenido, sin backend),
@@ -27,67 +50,22 @@ directamente (ahora portados al repositorio, que es la fuente de verdad) como
 los que quedaban pendientes de intervención en el código fuente.
 
 ### Corregido
-- **BUG-01 [P0]** — `process` como fieldname colisionaba con el método interno
-  `Meta.process()` de Frappe, bloqueando la creación por API de `OS SOP`,
-  `OS Run`, `OS Knowledge Source` y `OS Approval`. Renombrado a `process_ref`
-  en los 4 DocTypes y en todo el JS que lo referenciaba.
-- **BUG-02 [P0]** — Organigrama Vivo entraba en recursión infinita
-  (`Maximum call stack size exceeded`) con relaciones circulares
-  (A reporta a B, B reporta a A). `buildHierarchy()` ahora detecta y corta el
-  ciclo; `treeLayout()`/`subtreeIds()` llevan guarda de visitados.
-- **BUG-03 [P1]** — Process Studio no permitía conectar pasos de forma
-  intuitiva. Se agrega conectar arrastrando desde el puerto de un paso hasta
-  otro (drag-to-connect), además del modo "Conectar" existente con
-  indicación visual más clara.
-- **DIS-01 [P2]** — En las tarjetas del Organigrama, el punto de estado y el
-  chevron de expandir se sobreponían al texto cuando el título o subtítulo
-  eran largos. Ahora el texto trunca con elipsis y se reserva espacio fijo
-  para ambos controles.
-- **DIS-02 [P3]** — `os-core.js` declaraba la clave `"AI→H"` dos veces en el
-  mapa de `badgeExec`. Eliminada la duplicada.
-- **MOV-01 [P1]** — `livingorg-os/` no ocultaba la barra lateral en móvil
-  (solo colapsaba a 76px en escritorio). Se agrega el mismo patrón off-canvas
-  del portal ERPNext: `@media(max-width:720px)` con `transform`, botón
-  hamburguesa y scrim.
-- **MOV-02 [P2]** — Auditoría de responsivo del portal ERPNext tras el reskin
-  visual en 390/720/1080px (topbar, hero, tablas, toolbar del lienzo,
-  asistente de Procesos). Se encontraron y corrigieron dos desbordes reales
-  introducidos por el reskin: (1) la fila "Mapa de ejecución" / "Health
-  Score" del Centro de Mando fijaba `grid-template-columns:1.6fr 1fr` por
-  estilo en línea, que no colapsaba a una columna en móvil como el resto de
-  las grillas — se movió a la clase `.os-grid-mid`, sí cubierta por el
-  `@media(max-width:720px)` existente; (2) el pie del asistente de "Nuevo
-  proceso" (Cancelar / Guardar borrador / Siguiente) recortaba el botón
-  "Cancelar" en pantallas ≤560px por falta de `flex-wrap` — ahora envuelve en
-  dos filas.
-- **UX-01 [P2]** — El colapso de barra lateral en escritorio del portal
-  ERPNext no recordaba su estado entre recargas. Ahora persiste en
-  `localStorage` (aplicado antes del primer pintado, sin parpadeo) con
-  `aria-expanded`/`aria-label`, mismo patrón que ya existía en
-  `livingorg-os/`.
-- **DOC-01 [P2]** — `README_INSTALACION.md` indicaba pegar el contenido del
-  Web Page en "el campo HTML"; en Frappe v15 el campo real es
-  `main_section_html` (distinto de `main_section`, que es para
-  Markdown/Rich Text). Corregido y aclarado.
-- **DOC-02 [P2]** — El orden de creación de DocTypes listaba `OS SOP Step` en
-  la posición 4, antes de `OS Prompt`/`OS Agent`, a los que enlaza — falla la
-  validación de Link tanto por Desk como por API. Reordenado
-  topológicamente contra los 20 `.json` reales; se documenta además la única
-  referencia circular genuina del modelo (`OS Process` ↔ `OS SOP`) y cómo
-  resolverla en dos pasadas.
+- **BUG-01 [P0]** — `process` como fieldname colisionaba con el método interno `Meta.process()` de Frappe. Renombrado a `process_ref` en los DocTypes y JS afectados.
+- **BUG-02 [P0]** — Organigrama Vivo protegida contra recursión infinita con relaciones circulares.
+- **BUG-03 [P1]** — Process Studio agrega conexión drag-to-connect entre puertos.
+- **DIS-01 [P2]** — Ajustes de tarjetas de Organigrama para títulos/subtítulos largos.
+- **DIS-02 [P3]** — Eliminada clave duplicada `AI→H` en `badgeExec`.
+- **MOV-01 [P1]** — Sidebar standalone off-canvas en móvil.
+- **MOV-02 [P2]** — Correcciones responsive previas en Centro de Mando y asistente de Procesos.
+- **UX-01 [P2]** — Persistencia del colapso de sidebar en escritorio.
+- **DOC-01 [P2]** — Documentado `main_section_html` de Frappe v15.
+- **DOC-02 [P2]** — Orden topológico de creación de DocTypes y ciclo `OS Process` ↔ `OS SOP` documentado.
 
 ### Pendiente documentado
-- **UX-02 [P3]** — Selector de tema claro/oscuro unificado entre el portal
-  ERPNext (solo claro) y el standalone (claro/oscuro). Ver
-  `docs/ARQUITECTURA.md` § Pendientes.
+- **UX-02 [P3]** — Selector de tema claro/oscuro unificado entre portal ERPNext y standalone.
 
 ## [1.0.0] — Punto de partida de esta auditoría
 
-Estado del repositorio antes de aplicar las correcciones anteriores — incluye
-todo el trabajo previo: portal HTML/CSS/JS sobre ERPNext/Frappe con 20 Custom
-DocTypes, Organigrama Vivo, Process Studio (lienzo BPMN + asistente de
-Procesos con SIPOC/RACI/metas), SOP Builder, Centro de Ejecución, gobierno
-(Agentes/Prompts/Integraciones/Roles/KPIs/Políticas), reskin visual con la
-identidad Grupo Altoplano, y el prototipo standalone `livingorg-os/` con el
-mismo módulo de Procesos rediseñado. Ver `docs/ARQUITECTURA.md` para el
-detalle completo.
+Portal HTML/CSS/JS sobre ERPNext/Frappe con Custom DocTypes, Organigrama Vivo,
+Process Studio, SOP Builder, Centro de Ejecución, gobierno, reskin visual y
+prototipos standalone. Ver `ARCHITECTURE.md` y `docs/ARQUITECTURA.md`.
