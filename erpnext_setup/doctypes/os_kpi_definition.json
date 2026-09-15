@@ -25,8 +25,28 @@
       "fieldname": "entity_type",
       "label": "Entity Type",
       "fieldtype": "Select",
-      "options": "Company\nProcess\nStep\nAgent\nConnector",
+      "options": "Company\nProcess\nStep\nAgent\nConnector\nPosition\nRoleCard",
       "in_list_view": 1
+    },
+    {
+      "fieldname": "org_node",
+      "label": "Organization Node",
+      "fieldtype": "Link",
+      "options": "OS Org Node",
+      "description": "Organigrama Vivo 2.0: puesto o nodo organizacional al que pertenece el KPI."
+    },
+    {
+      "fieldname": "role_card",
+      "label": "Role Card",
+      "fieldtype": "Link",
+      "options": "OS Role Card"
+    },
+    {
+      "fieldname": "designation",
+      "label": "Designation",
+      "fieldtype": "Link",
+      "options": "Designation",
+      "description": "Compatibilidad con puestos vinculados directamente a Designation."
     },
     {
       "fieldname": "formula",
@@ -61,50 +81,10 @@
     }
   ],
   "permissions": [
-    {
-      "role": "OS Admin",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 1,
-      "report": 1,
-      "export": 1
-    },
-    {
-      "role": "OS Architect",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 0
-    },
-    {
-      "role": "OS Auditor",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 1
-    },
-    {
-      "role": "OS Viewer",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 0
-    },
-    {
-      "role": "System Manager",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 1,
-      "report": 1,
-      "export": 1
-    }
+    {"role":"OS Admin","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1},
+    {"role":"OS Architect","read":1,"write":1,"create":1,"delete":0,"report":1,"export":0},
+    {"role":"OS Auditor","read":1,"write":1,"create":1,"delete":0,"report":1,"export":1},
+    {"role":"OS Viewer","read":1,"write":1,"create":1,"delete":0,"report":1,"export":0},
+    {"role":"System Manager","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1}
   ]
 }
