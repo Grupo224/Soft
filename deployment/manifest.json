@@ -7,6 +7,7 @@
   "current_stable": {
     "organigrama": "2.0.0",
     "branch": "release/organigrama-v2.0",
+    "compatibility_branches": ["repair/prompt-maestro-2026-09"],
     "route": "/os#/org",
     "frontend_entrypoint": "portal/assets/js/pages/os-page-org-v2.js"
   },
@@ -27,6 +28,7 @@
   },
   "organigrama_v2": {
     "preserves_legacy_frontend": true,
+    "preserves_legacy_schema_fields": true,
     "legacy_frontend": "portal/assets/js/pages/os-page-org.js",
     "load_order_rule": "os-page-org-v2.js MUST load before os-page-org.js because the router resolves the first matching route",
     "required_doctypes": [
