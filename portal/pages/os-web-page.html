@@ -1,35 +1,39 @@
 <!--
-  LivingOrg OS — Web Page ERPNext/Frappe (ruta sugerida: /os).
-  Los assets se publican mediante scripts/deploy.py y usan sesión same-origin.
-  El runtime operativo puede ser livingorg_bridge o un runtime API same-origin compatible.
-  No coloques secretos, API keys ni tokens en este HTML o en los JavaScript del portal.
+  LivingOrg OS — Web Page ERPNext/Frappe (ruta /os).
+  CURRENT STABLE: Organigrama Vivo 2.0.
+  La implementación v2 se carga antes de os-page-org.js; el router resuelve la
+  primera /org registrada. El archivo 1.x permanece intacto para trazabilidad.
+  No coloques secretos, API keys ni tokens en este HTML o en los JavaScript.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/files/os-portal.css?v=2026091504">
-<link rel="stylesheet" href="/files/os-hardening.css?v=2026091504">
-<link rel="stylesheet" href="/files/os-operational.css?v=2026091504">
+<link rel="stylesheet" href="/files/os-portal.css?v=2026091505">
+<link rel="stylesheet" href="/files/os-hardening.css?v=2026091505">
+<link rel="stylesheet" href="/files/os-operational.css?v=2026091505">
+<link rel="stylesheet" href="/files/os-org-v2.css?v=2026091505">
 
 <div id="os-app-root" class="os-app" aria-live="polite">
   <div class="os-gate"><div class="ico" aria-hidden="true">⏳</div><h2>Cargando LivingOrg OS…</h2></div>
 </div>
 <noscript><p>LivingOrg OS necesita JavaScript para operar sobre ERPNext/Frappe.</p></noscript>
 
-<script src="/files/os-api.js?v=2026091504"></script>
-<script src="/files/os-runtime.js?v=2026091504"></script>
-<script src="/files/os-core.js?v=2026091504"></script>
-<script src="/files/os-hardening.js?v=2026091504"></script>
-<script src="/files/os-canvas.js?v=2026091504"></script>
-<script src="/files/os-page-home.js?v=2026091504"></script>
-<script src="/files/os-page-org.js?v=2026091504"></script>
-<script src="/files/os-page-processes.js?v=2026091504"></script>
-<script src="/files/os-page-work.js?v=2026091504"></script>
-<script src="/files/os-page-runs.js?v=2026091504"></script>
-<script src="/files/os-page-agents.js?v=2026091504"></script>
-<script src="/files/os-page-sop.js?v=2026091504"></script>
-<script src="/files/os-page-knowledge.js?v=2026091504"></script>
-<script src="/files/os-page-analytics.js?v=2026091504"></script>
-<script src="/files/os-operational.js?v=2026091504"></script>
-<script src="/files/os-operational-workfix.js?v=2026091504"></script>
-<script src="/files/os-app.js?v=2026091504"></script>
+<script src="/files/os-api.js?v=2026091505"></script>
+<script src="/files/os-runtime.js?v=2026091505"></script>
+<script src="/files/os-core.js?v=2026091505"></script>
+<script src="/files/os-hardening.js?v=2026091505"></script>
+<script src="/files/os-canvas.js?v=2026091505"></script>
+<script src="/files/os-page-home.js?v=2026091505"></script>
+<!-- v2 primero: /org resuelve esta implementación. 1.x se conserva cargada después. -->
+<script src="/files/os-page-org-v2.js?v=2026091505"></script>
+<script src="/files/os-page-org.js?v=2026091505"></script>
+<script src="/files/os-page-processes.js?v=2026091505"></script>
+<script src="/files/os-page-work.js?v=2026091505"></script>
+<script src="/files/os-page-runs.js?v=2026091505"></script>
+<script src="/files/os-page-agents.js?v=2026091505"></script>
+<script src="/files/os-page-sop.js?v=2026091505"></script>
+<script src="/files/os-page-knowledge.js?v=2026091505"></script>
+<script src="/files/os-page-analytics.js?v=2026091505"></script>
+<script src="/files/os-operational.js?v=2026091505"></script>
+<script src="/files/os-operational-workfix.js?v=2026091505"></script>
+<script src="/files/os-app.js?v=2026091505"></script>
