@@ -1,38 +1,46 @@
 #!/usr/bin/env python3
-"""Limpia los REGISTROS (datos) de todos los Doctypes OS_* (no-child) — el DELETE de DocType no dropa la tabla."""
-import re, requests, time
+"""Elimina registros OS_* con doble confirmación; no elimina DocTypes."""
+from __future__ import annotations
 
-src = open("/home/ubuntu/.openclaw/workspace/Soft_repo/reinstall.py").read()
-KEY = re.search(r'KEY = "([^"]+)"', src).group(1)
-SECRET = re.search(r'SECRET = "([^"]+)"', src).group(1)
-B = "https://demo.altoplano.mx"
-HDR = {"Authorization": f"token {KEY}:{SECRET}"}
+import argparse
+import os
+import sys
 
-# Doctypes OS no-child (con datos propios); los child tables van dentro del padre.
+from scripts.config import ConfigurationError, load_settings
+from scripts.frappe_client import FrappeClient, FrappeRequestError
+
 NON_CHILD = [
     "OS Agent", "OS Approval", "OS Evidence", "OS Integration", "OS KPI Definition",
     "OS Knowledge Source", "OS Org Node", "OS Org Relation", "OS Policy", "OS Process",
     "OS Prompt", "OS Role Card", "OS Run", "OS SOP", "OS Skill", "OS Step Run",
 ]
 
-def req(method, path, **kw):
-    for _ in range(6):
-        try:
-            r = requests.request(method, B + path, timeout=60, **kw)
-            if r.status_code in (200, 201, 202, 204, 404):
-                return r
-        except Exception:
-            pass
-        time.sleep(2)
-    return None
 
-total = 0
-for dt in NON_CHILD:
-    r = req("GET", f"/api/resource/{dt}", headers=HDR, params={"fields": '["name"]', "limit_page_length": "500"})
-    recs = r.json().get("data", []) if r and r.status_code == 200 else []
-    for rec in recs:
-        req("DELETE", f"/api/resource/{dt}/{rec['name']}", headers=HDR)
-        total += 1
-    if recs:
-        print(f"  {dt}: {len(recs)} borrados")
-print(f"Total registros borrados: {total}")
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--confirm-destroy", action="store_true")
+    args = parser.parse_args()
+    try:
+        if not args.confirm_destroy or os.environ.get("LIVINGORG_ALLOW_DESTRUCTIVE") != "1":
+            raise ConfigurationError(
+                "Limpieza bloqueada. Usa --confirm-destroy y LIVINGORG_ALLOW_DESTRUCTIVE=1."
+            )
+        settings = load_settings()
+        client = FrappeClient(settings)
+        total = 0
+        for doctype in NON_CHILD:
+            rows = client.list(doctype, fields=["name"], limit=500)
+            for row in rows:
+                client.delete(doctype, row["name"], allow_missing=True)
+                total += 1
+            if rows:
+                print(f"{doctype}: {len(rows)} borrados")
+        print(f"Total registros borrados: {total}")
+        return 0
+    except (ConfigurationError, FrappeRequestError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
