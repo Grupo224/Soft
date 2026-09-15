@@ -1,15 +1,16 @@
 {
   "product": "LivingOrg OS",
-  "product_version": "2.0.0",
+  "product_version": "2.0.1",
   "schema_version": "2.0",
   "deployment_contract_version": "1.1",
   "portal_route": "os",
   "current_stable": {
-    "organigrama": "2.0.0",
+    "organigrama": "2.0.1",
     "branch": "release/organigrama-v2.0",
     "compatibility_branches": ["repair/prompt-maestro-2026-09"],
     "route": "/os#/org",
-    "frontend_entrypoint": "portal/assets/js/pages/os-page-org-v2.js"
+    "frontend_entrypoint": "portal/assets/js/pages/os-page-org-v2.js",
+    "profile_editor": "portal/assets/js/pages/os-org-profile-v2.js"
   },
   "previous_stable": {
     "organigrama": "1.x",
@@ -31,6 +32,7 @@
     "preserves_legacy_schema_fields": true,
     "legacy_frontend": "portal/assets/js/pages/os-page-org.js",
     "load_order_rule": "os-page-org-v2.js MUST load before os-page-org.js because the router resolves the first matching route",
+    "full_profile_behavior": "Ficha completa MUST open inside LivingOrg; direct navigation to OS Org Node is not the primary UX",
     "required_doctypes": [
       "OS Org Node",
       "OS Org Relation",
