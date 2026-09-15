@@ -1,87 +1,87 @@
 # DEPLOYMENT
 
-Guía canónica para humanos y agentes automatizados. No uses secretos embebidos en código.
+Guía canónica para humanos y agentes. LivingOrg OS operativo tiene dos piezas: `livingorg_bridge` (server-side) y el portal/Custom DocTypes (deployment REST).
 
-## Prerrequisitos
-
-Completa `INSTALL.md` y confirma:
+## Preflight
 
 ```bash
 python scripts/validate_repo.py
 python scripts/deploy.py --mode update --dry-run
 ```
 
-Variables obligatorias: `FRAPPE_BASE_URL`, `FRAPPE_API_KEY`, `FRAPPE_API_SECRET`. Opcionales: `LIVINGORG_REPO_ROOT`, `FRAPPE_TIMEOUT_SECONDS`.
+Variables: `FRAPPE_BASE_URL`, `FRAPPE_API_KEY`, `FRAPPE_API_SECRET`; opcionales `LIVINGORG_REPO_ROOT`, `FRAPPE_TIMEOUT_SECONDS`.
 
-## Desplegar portal ERPNext
+## Primera instalación
+
+Sigue `INSTALL.md`: backup → instalar `livingorg_bridge` en bench → migrate → dry-run → deployment con verificación del Bridge.
 
 ```bash
-python scripts/deploy.py --mode update
+python scripts/deploy.py --mode install --require-bridge
 ```
 
-Este comando:
+## Actualización
 
-1. conserva/crea el módulo y roles;
-2. carga los JSON de DocTypes;
-3. normaliza permisos con `scripts/permissions.py`;
-4. actualiza o crea DocTypes sin borrar datos;
-5. reemplaza los assets públicos del portal por nombre;
-6. actualiza o crea la Web Page con ruta `/os`.
+1. Backup del sitio.
+2. Actualiza el repo con `git pull --ff-only` en la rama estable elegida.
+3. Si cambió `frappe_app/livingorg_bridge`, actualiza la copia instalada por Bench y ejecuta:
 
-## Desplegar standalone `/livingorg`
+```bash
+bench --site TU-SITIO migrate
+bench --site TU-SITIO clear-cache
+```
+
+4. Sincroniza schemas + portal:
+
+```bash
+python scripts/validate_repo.py
+python scripts/deploy.py --mode update --dry-run
+python scripts/deploy.py --mode update --require-bridge
+```
+
+5. En producción:
+
+```bash
+bench restart
+```
+
+## Qué sincroniza `scripts/deploy.py`
+
+- módulo y roles OS;
+- child tables y Custom DocTypes;
+- overlays aditivos de schema (`OS Process.actions`, campos runtime de `OS Run`/`OS Step Run`);
+- permisos canónicos;
+- assets HTML/CSS/JS;
+- Web Page `/os`;
+- capability check de `livingorg_bridge` cuando usas `--require-bridge`.
+
+No borra registros existentes.
+
+## Prueba operacional posterior
+
+Ejecuta el smoke test de `INSTALL.md`. Debes verificar al menos:
+
+- botón **Acciones ERPNext**;
+- Run Test que crea Step Runs;
+- Step Run asignado visible en Mi Trabajo;
+- acción `LINK_DOCUMENT` o `CREATE_FROM_SOURCE`;
+- `OS Document Link` creado;
+- evidencia y aprobación bloqueadas en servidor cuando se exigen;
+- aprobación por usuario/rol asignado;
+- acceso al documento ERPNext desde el Run.
+
+## Standalone legado
 
 ```bash
 python scripts/deploy.py --mode standalone --dry-run
 python scripts/deploy.py --mode standalone
 ```
 
-## Cache busting
+No sustituye `/os` como aplicación operativa.
 
-Portal:
+## Rollback
 
-```bash
-python cache_bust.py
-```
-
-Standalone:
-
-```bash
-python cache_bust_livingorg.py
-```
-
-Los scripts actualizan la clave `?v=` y vuelven a desplegar usando la configuración segura central.
-
-## Actualizar una instalación existente
-
-```bash
-git pull --ff-only
-python scripts/validate_repo.py
-python scripts/deploy.py --mode update --dry-run
-python scripts/deploy.py --mode update
-```
-
-Después ejecuta las pruebas manuales de `TROUBLESHOOTING.md` y `COMPATIBILITY.md`.
-
-## Reinstalación destructiva
-
-NO es un procedimiento normal. El script se bloquea salvo doble confirmación:
-
-```bash
-export LIVINGORG_ALLOW_DESTRUCTIVE=1
-python reinstall.py --confirm-destroy
-```
-
-Antes de ejecutarlo exporta/respaldá los datos y lee `ROLLBACK.md`. No automatices esta orden en CI.
-
-## Comprobaciones posteriores
-
-- Abrir `/os` autenticado.
-- Comprobar Network: sin 401/403/404/422/500 inesperados.
-- Comprobar Console: 0 errores JavaScript no controlados.
-- Verificar permisos con un usuario por rol, no con Administrator.
-- Verificar 320, 360, 375, 390, 430 px, tablet y desktop.
-- Confirmar que el editor enriquecido elimina `script`, event handlers y URLs no permitidas.
+No uses `reinstall.py`. Sigue `ROLLBACK.md`: revert del commit, migrate del Custom App si aplica y redeploy del portal/schemas.
 
 ## Estado de verificación
 
-Los scripts incluyen validaciones estáticas y dry-run. Una ejecución real contra cada sitio ERPNext es **REQUIERE VALIDACIÓN EN ERPNext** porque el repositorio no contiene las credenciales ni el runtime del cliente.
+CI/dry-run cubren sintaxis y consistencia estática. La instalación en un sitio ERPNext específico, sus impuestos, cuentas, permisos, workflows y customizations sigue marcada **REQUIERE VALIDACIÓN EN ERPNext** hasta ejecutar el smoke test en ese sitio.

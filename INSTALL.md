@@ -1,84 +1,153 @@
-# INSTALL
+# INSTALL — LivingOrg OS operativo
 
 ## Prerrequisitos
 
-- ERPNext/Frappe accesible por HTTPS.
+- ERPNext/Frappe v15+ accesible por HTTPS.
+- Bench con acceso para instalar un Custom App.
 - Usuario técnico con permisos suficientes para crear/actualizar Custom DocTypes, Roles, Files y Web Pages.
-- Python 3.10+.
-- Acceso local al repositorio.
+- Python 3.10+ para el deployment externo.
+- Repositorio `Grupo224/Soft` clonado en el servidor o en una máquina autorizada.
+- Backup reciente del sitio antes de instalar.
 
-## 1. Preparar Python
+> LivingOrg no modifica el core de ERPNext/Frappe. La lógica server-side vive en `livingorg_bridge` y los objetos de negocio viven en Custom DocTypes `OS *`.
+
+## 1. Obtener la versión a instalar
+
+Mientras el PR operativo no esté fusionado usa:
+
+```bash
+git fetch origin
+git checkout repair/prompt-maestro-2026-09
+git pull origin repair/prompt-maestro-2026-09
+git rev-parse HEAD
+```
+
+El instalador debe registrar el SHA exacto desplegado.
+
+## 2. Backup
+
+Desde el bench:
+
+```bash
+bench --site TU-SITIO backup --with-files
+```
+
+No continúes si el backup falla.
+
+## 3. Instalar LivingOrg Bridge
+
+Desde la carpeta del bench, usando la ruta absoluta del monorepo:
+
+```bash
+bench get-app /RUTA/ABSOLUTA/Soft/frappe_app/livingorg_bridge
+bench --site TU-SITIO install-app livingorg_bridge
+bench --site TU-SITIO migrate
+bench --site TU-SITIO clear-cache
+```
+
+Verifica:
+
+```bash
+bench --site TU-SITIO list-apps
+```
+
+Debe aparecer `livingorg_bridge` junto a `frappe` y `erpnext`.
+
+## 4. Preparar deployment de Custom DocTypes + portal
+
+En la raíz de `Soft`:
 
 ```bash
 python -m venv .venv
-# Linux/macOS
 source .venv/bin/activate
-# Windows PowerShell
-# .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements-deploy.txt
 ```
 
-## 2. Configurar variables
-
-No copies secretos dentro de ningún `.py` o `.js`.
-
-Linux/macOS:
+Configura credenciales de un usuario técnico. Nunca las guardes en Git:
 
 ```bash
 export FRAPPE_BASE_URL="https://erp.example.com"
 export FRAPPE_API_KEY="TU_API_KEY"
 export FRAPPE_API_SECRET="TU_API_SECRET"
-```
-
-PowerShell:
-
-```powershell
-$env:FRAPPE_BASE_URL="https://erp.example.com"
-$env:FRAPPE_API_KEY="TU_API_KEY"
-$env:FRAPPE_API_SECRET="TU_API_SECRET"
-```
-
-Opcional:
-
-```bash
-export FRAPPE_TIMEOUT_SECONDS=90
 export LIVINGORG_REPO_ROOT="$(pwd)"
 ```
 
-## 3. Validar repositorio
+## 5. Validar antes de escribir
 
 ```bash
 python scripts/validate_repo.py
 python scripts/deploy.py --mode install --dry-run
 ```
 
-El dry-run no escribe en ERPNext; valida configuración, JSONs y assets requeridos.
+El dry-run valida JSONs, topología de DocTypes y assets sin modificar ERPNext.
 
-## 4. Instalar
+## 6. Sincronizar LivingOrg OS
 
 ```bash
-python scripts/deploy.py --mode install
+python scripts/deploy.py --mode install --require-bridge
 ```
 
-El instalador crea o actualiza de forma idempotente:
+Esto crea/actualiza de forma idempotente:
 
 - `OS Business Layer`;
 - roles `OS *`;
-- Custom DocTypes;
-- assets públicos del portal;
-- Web Page `/os`.
+- Custom DocTypes y child tables, incluidos `OS Process Action` y `OS Document Link`;
+- campos operativos de `OS Process`, `OS Run` y `OS Step Run` mediante overlays;
+- permisos canónicos;
+- assets del portal;
+- Web Page `/os`;
+- verificación de `livingorg_bridge`.
 
-Los permisos enviados a Frappe se normalizan desde `scripts/permissions.py`. No uses los JSON de `erpnext_setup/doctypes` como mecanismo independiente de permisos sin pasar por el despliegue canónico.
+Después:
 
-## 5. Validación manual requerida
+```bash
+bench --site TU-SITIO migrate
+bench --site TU-SITIO clear-cache
+bench restart
+```
 
-En ERPNext verifica:
+## 7. Smoke test obligatorio
 
-1. `/os` exige sesión y no abre como Guest.
-2. `OS Viewer` y `OS Auditor` no pueden crear/escribir DocTypes OS.
-3. Un operador sólo recibe el alcance que la política real de Frappe le permita.
-4. Carga, búsqueda, CRUD y adjuntos funcionan según el rol.
-5. No aparecen errores no controlados en consola.
+Inicia sesión como `OS Admin` o `System Manager` y valida:
 
-La restricción documental por usuario/empresa debe configurarse con User Permissions, shares o una Custom App según el caso. La UI no sustituye autorización de servidor.
+1. abre `/os`;
+2. abre un proceso en Process Studio;
+3. aparece **⚙ Acciones ERPNext** con indicador verde del Bridge;
+4. crea una acción `LINK_DOCUMENT` contra un DocType inocuo de prueba;
+5. crea un Run `Test`;
+6. confirma que se crean `OS Run` + `OS Step Run`;
+7. inicia el Step Run desde **Mi Trabajo**;
+8. ejecuta/vincula el documento desde **ERPNext**;
+9. verifica que aparece un `OS Document Link`;
+10. completa el paso;
+11. si el paso exige evidencia, confirma que el servidor bloquea completar sin ella;
+12. si exige aprobación, confirma que se crea `OS Approval`, el paso queda Waiting y sólo el aprobador puede decidir.
+
+## 8. Prueba del caso Sales Order → Sales Invoice
+
+Hazla primero en staging/demo:
+
+- proceso Active de prueba;
+- acción `CREATE_FROM_SOURCE`;
+- Source DocType `Sales Order`;
+- Target DocType `Sales Invoice`;
+- `submit_after_create = 0`.
+
+Inicia el Run con un Sales Order de prueba y ejecuta la acción. Debe crear un Sales Invoice **Draft**, registrar `OS Document Link` y permitir abrirlo desde LivingOrg.
+
+No actives `submit_after_create` hasta validar impuestos, cuentas, series, warehouses y permisos del sitio.
+
+## 9. Roles
+
+Asigna los roles `OS *` desde ERPNext y usa User Permissions por Company cuando corresponda. `livingorg_bridge` añade restricciones de usuario/rol para Step Runs y Aprobaciones, pero no sustituye la segmentación de Company de ERPNext.
+
+## 10. Qué no usar
+
+- No uses `reinstall.py` para actualizar.
+- No pegues tokens/API keys en scripts.
+- No edites ERPNext/Frappe core.
+- No habilites Server Scripts inseguros para sustituir el Bridge.
+- No configures métodos Python arbitrarios desde el portal.
+
+Consulta también `DEPLOYMENT.md`, `ROLLBACK.md`, `SECURITY.md` y `docs/OPERATIONAL_ACTIONS.md`.

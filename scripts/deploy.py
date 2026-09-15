@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Despliegue canónico, idempotente y no destructivo de LivingOrg OS.
 
-Reemplaza la duplicación de install.py/update.py/update_v2.py sin borrar esos
-entrypoints: los scripts legacy se mantienen como wrappers compatibles.
+Sincroniza Custom DocTypes + portal Website. La lógica operativa server-side vive
+en el Custom App `livingorg_bridge`, que debe instalarse en el bench antes de
+activar runs Live. Ver INSTALL.md.
 """
 from __future__ import annotations
 
@@ -14,27 +15,30 @@ from pathlib import Path
 from scripts.config import ConfigurationError, load_settings
 from scripts.frappe_client import FrappeClient, FrappeRequestError
 from scripts.permissions import apply_canonical_permissions
+from scripts.schema_overlays import apply_schema_overlays
 
 ROLES = [
     "OS Admin", "OS Architect", "OS Publisher", "OS AI Supervisor",
     "OS Manager", "OS Operator", "OS Auditor", "OS Viewer",
 ]
 
-# Última topología conocida. Se rompe deliberadamente el ciclo Process <-> SOP.
+# Orden topológico. Los child tables deben existir antes de sus padres.
+# OS Process <-> OS SOP se resuelve en dos pasadas, igual que antes.
 DT_PLAN = [
-    ("os_prompt", None), ("os_agent", None), ("os_process_step", None),
-    ("os_process_edge", None), ("os_sop_step", None), ("os_org_node", None),
-    ("os_org_relation", None), ("os_role_card", None), ("os_kpi_definition", None),
-    ("os_integration", None), ("os_skill", None), ("os_policy", None),
-    ("os_process_goal", None), ("os_process", ["sop"]),
-    ("os_knowledge_source", None), ("os_sop", None), ("os_process", None),
-    ("os_run", None), ("os_step_run", None), ("os_evidence", None),
-    ("os_approval", None),
+    ("os_prompt", None), ("os_agent", None),
+    ("os_process_step", None), ("os_process_action", None), ("os_process_edge", None),
+    ("os_sop_step", None), ("os_org_node", None), ("os_org_relation", None),
+    ("os_role_card", None), ("os_kpi_definition", None), ("os_integration", None),
+    ("os_skill", None), ("os_policy", None), ("os_process_goal", None),
+    ("os_process", ["sop"]), ("os_knowledge_source", None), ("os_sop", None),
+    ("os_process", None), ("os_run", None), ("os_step_run", None),
+    ("os_document_link", None), ("os_evidence", None), ("os_approval", None),
 ]
 
 PORTAL_ASSETS = [
-    "css/os-portal.css", "css/os-hardening.css",
-    "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js", "js/os-hardening.js",
+    "css/os-portal.css", "css/os-hardening.css", "css/os-operational.css",
+    "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
+    "js/os-hardening.js", "js/os-operational.js",
     "js/pages/os-page-agents.js", "js/pages/os-page-analytics.js", "js/pages/os-page-home.js",
     "js/pages/os-page-knowledge.js", "js/pages/os-page-org.js", "js/pages/os-page-processes.js",
     "js/pages/os-page-runs.js", "js/pages/os-page-sop.js", "js/pages/os-page-work.js",
@@ -45,6 +49,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("install", "update", "standalone"), default="update")
     parser.add_argument("--dry-run", action="store_true", help="Valida archivos/configuración sin escribir en Frappe.")
+    parser.add_argument(
+        "--require-bridge", action="store_true",
+        help="Falla si el sitio no expone livingorg_bridge.status.capabilities.",
+    )
     return parser.parse_args()
 
 
@@ -55,6 +63,7 @@ def load_spec(dt_dir: Path, filename: str, remove_fields: list[str] | None) -> d
     if remove_fields:
         spec["fields"] = [f for f in spec.get("fields", []) if f.get("fieldname") not in remove_fields]
     spec = {k: v for k, v in spec.items() if k != "doctype"}
+    spec = apply_schema_overlays(spec)
     return apply_canonical_permissions(spec)
 
 
@@ -77,7 +86,7 @@ def sync_doctypes(client: FrappeClient, root: Path, dry_run: bool) -> None:
         if dry_run:
             continue
         if remove_fields is not None and client.exists("DocType", name):
-            # Paso intermedio del ciclo: no degradar un DocType ya completo.
+            # Paso intermedio del ciclo: jamás degradar un DocType ya completo.
             continue
         if client.exists("DocType", name):
             client.update("DocType", name, spec)
@@ -148,6 +157,24 @@ def sync_standalone(client: FrappeClient, root: Path, dry_run: bool) -> None:
         client.create("Web Page", payload)
 
 
+def check_bridge(client: FrappeClient, *, required: bool) -> bool:
+    print("[bridge] livingorg_bridge.status.capabilities")
+    try:
+        response = client.request("GET", "/api/method/livingorg_bridge.status.capabilities")
+        message = response.json().get("message", {})
+        if message.get("operational_actions") is True:
+            print(f"  OK livingorg_bridge {message.get('version', '?')}")
+            return True
+    except FrappeRequestError as exc:
+        if required:
+            raise
+        print(f"  WARN bridge no disponible: {exc}")
+        return False
+    if required:
+        raise RuntimeError("livingorg_bridge respondió sin capability operational_actions=true")
+    return False
+
+
 def main() -> int:
     args = parse_args()
     try:
@@ -155,17 +182,18 @@ def main() -> int:
         client = FrappeClient(settings)
         root = settings.repo_root
 
-        # Dry-run también verifica que los JSON sean parseables y los assets existan.
         if args.mode in {"install", "update"}:
             ensure_module_and_roles(client, args.dry_run)
             sync_doctypes(client, root, args.dry_run)
             sync_portal(client, root, args.dry_run)
+            if not args.dry_run:
+                check_bridge(client, required=args.require_bridge)
         if args.mode == "standalone":
             sync_standalone(client, root, args.dry_run)
 
         print("OK: validación completada" if args.dry_run else "OK: despliegue completado")
         return 0
-    except (ConfigurationError, FrappeRequestError, FileNotFoundError, json.JSONDecodeError) as exc:
+    except (ConfigurationError, FrappeRequestError, FileNotFoundError, json.JSONDecodeError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

@@ -1,0 +1,30 @@
+{
+  "doctype": "DocType",
+  "name": "OS Document Link",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 0,
+  "editable_grid": 1,
+  "track_changes": 1,
+  "fields": [
+    {"fieldname":"run","label":"Run","fieldtype":"Link","options":"OS Run","reqd":1,"in_list_view":1},
+    {"fieldname":"step_run","label":"Step Run","fieldtype":"Link","options":"OS Step Run","in_list_view":1},
+    {"fieldname":"process_ref","label":"Process","fieldtype":"Link","options":"OS Process","in_list_view":1},
+    {"fieldname":"step_key","label":"Step Key","fieldtype":"Data"},
+    {"fieldname":"action_key","label":"Action Key","fieldtype":"Data"},
+    {"fieldname":"link_role","label":"Link Role","fieldtype":"Select","options":"Source\nTarget\nResult\nRelated","default":"Result","in_list_view":1},
+    {"fieldname":"reference_doctype","label":"Reference DocType","fieldtype":"Link","options":"DocType","reqd":1,"in_list_view":1},
+    {"fieldname":"reference_name","label":"Reference Name","fieldtype":"Dynamic Link","options":"reference_doctype","reqd":1,"in_list_view":1},
+    {"fieldname":"label","label":"Label","fieldtype":"Data"},
+    {"fieldname":"is_primary","label":"Primary Result","fieldtype":"Check","default":"0"},
+    {"fieldname":"document_status_snapshot","label":"Document Status Snapshot","fieldtype":"Data","description":"Estado/docstatus observado al vincular el documento."}
+  ],
+  "permissions": [
+    {"role":"OS Admin","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1},
+    {"role":"OS Manager","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Operator","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Auditor","read":1,"write":0,"create":0,"delete":0,"report":1,"export":1},
+    {"role":"OS Viewer","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"System Manager","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1}
+  ]
+}

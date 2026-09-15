@@ -24,7 +24,7 @@ jobs:
       - name: Validate repository structure and secrets
         run: python scripts/validate_repo.py
       - name: Compile Python
-        run: python -m compileall -q scripts *.py
+        run: python -m compileall -q scripts frappe_app *.py
       - name: Validate JavaScript syntax
         shell: bash
         run: |

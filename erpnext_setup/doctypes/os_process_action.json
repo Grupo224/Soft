@@ -1,0 +1,30 @@
+{
+  "doctype": "DocType",
+  "name": "OS Process Action",
+  "module": "OS Business Layer",
+  "custom": 1,
+  "istable": 1,
+  "editable_grid": 1,
+  "track_changes": 0,
+  "fields": [
+    {"fieldname":"action_key","label":"Action Key","fieldtype":"Data","reqd":1,"in_list_view":1},
+    {"fieldname":"step_key","label":"Step Key","fieldtype":"Data","reqd":1,"in_list_view":1},
+    {"fieldname":"action_label","label":"Action Label","fieldtype":"Data","reqd":1,"in_list_view":1},
+    {"fieldname":"system","label":"System","fieldtype":"Select","options":"ERPNext\nExternal","default":"ERPNext","reqd":1,"in_list_view":1},
+    {"fieldname":"action_type","label":"Action Type","fieldtype":"Select","options":"OPEN_DOCUMENT\nCREATE_DOCUMENT\nUPDATE_DOCUMENT\nCREATE_FROM_SOURCE\nSUBMIT_DOCUMENT\nLINK_DOCUMENT","reqd":1,"in_list_view":1},
+    {"fieldname":"source_doctype","label":"Source DocType","fieldtype":"Link","options":"DocType"},
+    {"fieldname":"target_doctype","label":"Target DocType","fieldtype":"Link","options":"DocType","in_list_view":1},
+    {"fieldname":"required_role","label":"Required Role","fieldtype":"Link","options":"Role","description":"Rol adicional necesario para ejecutar esta acción. Los permisos nativos del DocType siguen aplicando."},
+    {"fieldname":"completion_rule","label":"Completion Rule","fieldtype":"Select","options":"Manual\nDocument Linked\nDocument Exists\nDocument Submitted","default":"Document Linked"},
+    {"fieldname":"is_required","label":"Required Before Step Completion","fieldtype":"Check","default":"1"},
+    {"fieldname":"submit_after_create","label":"Submit After Create","fieldtype":"Check","default":"0","description":"Desactivado por defecto. Sólo se envía si el usuario también tiene permiso Submit sobre el documento objetivo."},
+    {"fieldname":"field_mapping_json","label":"Field Mapping JSON","fieldtype":"Code","options":"JSON","description":"Mapa declarativo source_field -> target_field. No acepta rutas Python ni métodos arbitrarios."},
+    {"fieldname":"defaults_json","label":"Defaults JSON","fieldtype":"Code","options":"JSON","description":"Valores por defecto permitidos para el documento destino."},
+    {"fieldname":"description","label":"Description","fieldtype":"Small Text"},
+    {"fieldname":"sort_order","label":"Sort Order","fieldtype":"Int","default":"0"}
+  ],
+  "permissions": [
+    {"role":"OS Admin","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1},
+    {"role":"System Manager","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1}
+  ]
+}
