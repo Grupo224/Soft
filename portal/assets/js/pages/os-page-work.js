@@ -15,13 +15,13 @@
       var filters = [["actor_user", "=", OS.session.user]];
       if (onlyOpen) filters.push(["status", "in", ["Queued", "Running", "Waiting"]]);
       api.list("OS Step Run", {
-        fields: ["name", "run", "step_key", "step_title_snapshot", "execution_type_snapshot", "status", "queued_at", "started_at", "evidence_required", "approval_required"],
+        fields: ["name", "run", "step_key", "step_title_snapshot", "execution_type_snapshot", "instructions_snapshot", "process_version_snapshot", "status", "queued_at", "started_at", "evidence_required", "approval_required"],
         filters: filters, orderBy: "queued_at desc", limit: 100
       }).then(function (rows) {
         var host = container.querySelector("#os-work-list");
         if (!rows.length) { host.innerHTML = ui.empty("🎉", "Sin pendientes", "No tienes pasos asignados en este filtro."); return; }
         host.innerHTML = rows.map(function (r) {
-          return '<div class="os-card" style="display:flex;align-items:center;gap:14px" data-n="' + r.name + '">' +
+          return '<div class="os-card" style="display:flex;align-items:center;gap:14px" data-n="' + U.escapeHtml(r.name) + '">' +
             '<div style="flex:1"><div><b>' + U.escapeHtml(r.step_title_snapshot || r.step_key) + '</b> ' + ui.badgeExec(r.execution_type_snapshot) + '</div>' +
             '<div class="muted" style="font-size:12px">Run ' + U.escapeHtml(r.run) + ' · ' + U.timeAgo(r.queued_at) + (r.evidence_required ? " · requiere evidencia" : "") + '</div></div>' +
             ui.badgeStatus(r.status) +
@@ -31,12 +31,22 @@
             '</div></div>';
         }).join("");
         host.querySelectorAll("[data-a='start']").forEach(function (b) {
-          b.onclick = function (e) { e.stopPropagation(); var n = b.closest("[data-n]").dataset.n;
-            api.update("OS Step Run", n, { status: "Running", started_at: new Date().toISOString().slice(0, 19).replace("T", " ") }).then(function () { ui.toast("Tarea iniciada", "ok"); load(onlyOpen); }).catch(ui.error);
+          b.onclick = function (e) {
+            e.stopPropagation();
+            var n = b.closest("[data-n]").dataset.n;
+            b.disabled = true;
+            api.update("OS Step Run", n, { status: "Running", started_at: new Date().toISOString().slice(0, 19).replace("T", " ") })
+              .then(function () { ui.toast("Tarea iniciada", "ok"); load(onlyOpen); })
+              .catch(function (err) { b.disabled = false; ui.error(err); });
           };
         });
         host.querySelectorAll("[data-a='complete']").forEach(function (b) {
-          b.onclick = function (e) { e.stopPropagation(); var n = b.closest("[data-n]").dataset.n; var row = rows.find(function (r) { return r.name === n; }); openComplete(row, function () { load(onlyOpen); }); };
+          b.onclick = function (e) {
+            e.stopPropagation();
+            var n = b.closest("[data-n]").dataset.n;
+            var row = rows.find(function (r) { return r.name === n; });
+            openComplete(row, function () { load(onlyOpen); });
+          };
         });
       }).catch(ui.error);
     }
@@ -50,16 +60,23 @@
     }
   }
 
-  /** Busca las instrucciones del paso (viven en OS Process Step, no se snapshotean
-   * en OS Step Run) para que quien ejecuta sepa qué se le pide antes de completar. */
+  /**
+   * Usa primero la instrucción congelada del Step Run. Los registros legacy que
+   * no tienen snapshot conservan el fallback histórico al OS Process vigente.
+   * Ese fallback es compatibilidad, no debe interpretarse como evidencia histórica.
+   */
   function fetchStepInstructions(stepRun) {
+    if (stepRun.instructions_snapshot) return Promise.resolve(stepRun.instructions_snapshot);
     return api.get("OS Run", stepRun.run).then(function (run) {
       if (!run.process_ref) return "";
       return api.get("OS Process", run.process_ref).then(function (proc) {
         var step = (proc.steps || []).find(function (s) { return s.step_key === stepRun.step_key; });
         return (step && step.instructions) || "";
       });
-    }).catch(function () { return ""; });
+    }).catch(function (err) {
+      console.warn("[OS] No fue posible recuperar instrucciones legacy", err && err.correlationId ? err.correlationId : "");
+      return "";
+    });
   }
 
   function openComplete(stepRun, done) {
@@ -82,9 +99,15 @@
             var comment = body.querySelector("#c-comment").value.trim();
             var fileInput = body.querySelector("#c-file");
             var finish = function (evidenceOk) {
-              if (stepRun.evidence_required && !evidenceOk) { ui.toast("Este paso exige evidencia verificable antes de completarse.", "warn"); return; }
-              api.update("OS Step Run", stepRun.name, { status: "Completed", completed_at: new Date().toISOString().slice(0, 19).replace("T", " "), output_json: JSON.stringify({ comment: comment }) })
-                .then(function () { ui.toast("Paso completado", "ok"); done(); }).catch(ui.error);
+              if (stepRun.evidence_required && !evidenceOk) {
+                ui.toast("Este paso exige evidencia verificable antes de completarse.", "warn");
+                return;
+              }
+              api.update("OS Step Run", stepRun.name, {
+                status: "Completed",
+                completed_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+                output_json: JSON.stringify({ comment: comment })
+              }).then(function () { ui.toast("Paso completado", "ok"); done(); }).catch(ui.error);
             };
             if (fileInput && fileInput.files && fileInput.files[0]) {
               api.uploadFile(fileInput.files[0], { doctype: "OS Step Run", docname: stepRun.name, fieldname: "file" }).then(function (f) {
@@ -92,10 +115,22 @@
                   .then(function () { finish(true); }).catch(ui.error);
               }).catch(ui.error);
             } else if (body.querySelector("#c-ref") && body.querySelector("#c-ref").value.trim()) {
-              var parts = body.querySelector("#c-ref").value.trim().split(":");
-              api.create("OS Evidence", { run: stepRun.run, step_run: stepRun.name, evidence_type: "Record", reference_doctype: parts[0], reference_name: parts[1], summary: comment, verification_status: "Pending" })
-                .then(function () { finish(true); }).catch(ui.error);
-            } else { finish(!stepRun.evidence_required); }
+              var reference = body.querySelector("#c-ref").value.trim();
+              var separator = reference.indexOf(":");
+              if (separator <= 0 || separator === reference.length - 1) {
+                ui.toast("La referencia debe usar el formato DocType:nombre.", "warn");
+                return false;
+              }
+              var referenceDoctype = reference.slice(0, separator).trim();
+              var referenceName = reference.slice(separator + 1).trim();
+              api.create("OS Evidence", {
+                run: stepRun.run, step_run: stepRun.name, evidence_type: "Record",
+                reference_doctype: referenceDoctype, reference_name: referenceName,
+                summary: comment, verification_status: "Pending"
+              }).then(function () { finish(true); }).catch(ui.error);
+            } else {
+              finish(!stepRun.evidence_required);
+            }
           }
         }
       ]
@@ -117,9 +152,9 @@
         var host = container.querySelector("#os-appr-list");
         if (!rows.length) { host.innerHTML = ui.empty("✅", "Bandeja vacía", "No hay decisiones pendientes."); return; }
         host.innerHTML = rows.map(function (r) {
-          return '<div class="os-card" data-n="' + r.name + '">' +
+          return '<div class="os-card" data-n="' + U.escapeHtml(r.name) + '">' +
             '<div style="display:flex;justify-content:space-between;gap:10px"><div>' +
-            '<div><b>Run ' + U.escapeHtml(r.run) + '</b>' + (r.process_ref ? ' · <a href="#/processes/' + r.process_ref + '">' + U.escapeHtml(r.process_ref) + '</a>' : '') + ' ' + (r.risk_level ? ui.badgeRisk(r.risk_level) : '') + '</div>' +
+            '<div><b>Run ' + U.escapeHtml(r.run) + '</b>' + (r.process_ref ? ' · <a href="#/processes/' + encodeURIComponent(r.process_ref) + '">' + U.escapeHtml(r.process_ref) + '</a>' : '') + ' ' + (r.risk_level ? ui.badgeRisk(r.risk_level) : '') + '</div>' +
             '<div class="muted" style="font-size:12px">Paso: ' + U.escapeHtml(r.step_run || "—") + ' · solicitado a ' + U.escapeHtml(r.requested_to || r.requested_role || "—") + ' · ' + U.timeAgo(r.requested_at) +
             (r.due_by ? ' · vence ' + U.fmtDate(r.due_by) : '') + '</div>' +
             (r.context_snapshot ? '<pre style="white-space:pre-wrap;font-size:11.5px;color:var(--os-text-dim);margin-top:8px">' + U.escapeHtml(r.context_snapshot).slice(0, 400) + '</pre>' : "") +
@@ -151,7 +186,12 @@
             }).then(function (doc) {
               ui.toast("Decisión registrada", "ok");
               if (doc.step_run) {
-                api.update("OS Step Run", doc.step_run, approve ? { status: "Approved" } : { status: "Failed", error_code: "APPROVAL_REJECTED", error_message: comment }).catch(function () {});
+                api.update("OS Step Run", doc.step_run, approve ? { status: "Approved" } : {
+                  status: "Failed", error_code: "APPROVAL_REJECTED", error_message: comment
+                }).catch(function (err) {
+                  console.error("[OS] La aprobación se registró pero no se pudo sincronizar el Step Run", err);
+                  ui.toast("Decisión guardada; revisa el estado del paso asociado.", "warn");
+                });
               }
               done();
             }).catch(ui.error);
