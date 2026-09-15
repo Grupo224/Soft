@@ -12,6 +12,9 @@ doc_events = {
     "OS Process": {
         "validate": "livingorg_bridge.governance.validate_process",
     },
+    "OS Org Relation": {
+        "validate": "livingorg_bridge.governance.validate_org_relation",
+    },
     "OS Step Run": {
         "validate": "livingorg_bridge.governance.validate_step_run",
     },
