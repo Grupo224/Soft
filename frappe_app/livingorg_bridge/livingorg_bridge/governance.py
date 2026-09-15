@@ -16,6 +16,18 @@ SYSTEM_KEYS = {
     "parent", "parentfield", "parenttype", "doctype", "published_on",
 }
 
+# Organigrama Vivo 2.0. REPORTS_TO se almacena child -> parent.
+# Esta matriz evita relaciones organizacionalmente absurdas en servidor sin
+# migrar ni borrar relaciones históricas existentes durante el upgrade.
+ORG_ALLOWED_PARENTS = {
+    "Company": set(),
+    "Department": {"Company", "Department"},
+    "Designation": {"Department", "Designation"},
+    "Employee": {"Designation"},
+    "Agent": {"Designation"},
+    "Custom": {"Custom"},
+}
+
 
 def _scrub(value: Any):
     if isinstance(value, dict):
@@ -33,6 +45,66 @@ def _definition_changed(before, doc) -> bool:
     left = json.dumps(_scrub(before.as_dict()), sort_keys=True, default=str, ensure_ascii=False)
     right = json.dumps(_scrub(doc.as_dict()), sort_keys=True, default=str, ensure_ascii=False)
     return left != right
+
+
+def validate_org_relation(doc, method=None) -> None:
+    """Valida nuevas/alteradas relaciones jerárquicas de Organigrama Vivo 2.0.
+
+    Relaciones históricas no se reescriben. Si una relación previa fuera del
+    modelo 2.0 permanece sin editar, el upgrade no la elimina ni la corrige a
+    escondidas; la UI la reporta como advertencia para revisión humana.
+    """
+    if not doc.from_node or not doc.to_node:
+        return
+    if doc.from_node == doc.to_node:
+        frappe.throw(_("Un elemento del organigrama no puede depender de sí mismo."))
+    if doc.relation_type != "REPORTS_TO":
+        return
+
+    child = frappe.get_doc("OS Org Node", doc.from_node)
+    parent = frappe.get_doc("OS Org Node", doc.to_node)
+    allowed = ORG_ALLOWED_PARENTS.get(child.node_type, set())
+    if parent.node_type not in allowed:
+        frappe.throw(
+            _("Jerarquía no válida: {0} no puede depender de {1}.").format(
+                child.node_type, parent.node_type
+            )
+        )
+
+    # Un elemento sólo puede tener un padre jerárquico vigente.
+    existing = frappe.get_all(
+        "OS Org Relation",
+        filters={"from_node": doc.from_node, "relation_type": "REPORTS_TO"},
+        fields=["name", "to_node"],
+        limit_page_length=100,
+    )
+    for rel in existing:
+        if rel.name != doc.name:
+            frappe.throw(_("Este elemento ya tiene un padre jerárquico. Reasígnalo en lugar de crear una segunda relación."))
+
+    # Defensa en profundidad: evita ciclos aunque un cliente API omita la UI.
+    rows = frappe.get_all(
+        "OS Org Relation",
+        filters={"relation_type": "REPORTS_TO"},
+        fields=["name", "from_node", "to_node"],
+        limit_page_length=5000,
+    )
+    parent_of = {}
+    for rel in rows:
+        if rel.name == doc.name:
+            continue
+        parent_of.setdefault(rel.from_node, rel.to_node)
+    parent_of[doc.from_node] = doc.to_node
+
+    cur = doc.to_node
+    visited = set()
+    while cur:
+        if cur == doc.from_node:
+            frappe.throw(_("La relación crearía un ciclo jerárquico."))
+        if cur in visited:
+            break
+        visited.add(cur)
+        cur = parent_of.get(cur)
 
 
 def validate_process(doc, method=None) -> None:
