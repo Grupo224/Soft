@@ -22,8 +22,6 @@ ROLES = [
     "OS Manager", "OS Operator", "OS Auditor", "OS Viewer",
 ]
 
-# Orden topológico. Los child tables deben existir antes de sus padres.
-# OS Process <-> OS SOP se resuelve en dos pasadas, igual que antes.
 DT_PLAN = [
     ("os_prompt", None), ("os_agent", None),
     ("os_process_step", None), ("os_process_action", None), ("os_process_edge", None),
@@ -38,7 +36,7 @@ DT_PLAN = [
 PORTAL_ASSETS = [
     "css/os-portal.css", "css/os-hardening.css", "css/os-operational.css",
     "js/os-api.js", "js/os-app.js", "js/os-canvas.js", "js/os-core.js",
-    "js/os-hardening.js", "js/os-operational.js",
+    "js/os-hardening.js", "js/os-operational.js", "js/os-operational-workfix.js",
     "js/pages/os-page-agents.js", "js/pages/os-page-analytics.js", "js/pages/os-page-home.js",
     "js/pages/os-page-knowledge.js", "js/pages/os-page-org.js", "js/pages/os-page-processes.js",
     "js/pages/os-page-runs.js", "js/pages/os-page-sop.js", "js/pages/os-page-work.js",
@@ -49,10 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("install", "update", "standalone"), default="update")
     parser.add_argument("--dry-run", action="store_true", help="Valida archivos/configuración sin escribir en Frappe.")
-    parser.add_argument(
-        "--require-bridge", action="store_true",
-        help="Falla si el sitio no expone livingorg_bridge.status.capabilities.",
-    )
+    parser.add_argument("--require-bridge", action="store_true", help="Falla si el sitio no expone livingorg_bridge.status.capabilities.")
     return parser.parse_args()
 
 
@@ -86,7 +81,6 @@ def sync_doctypes(client: FrappeClient, root: Path, dry_run: bool) -> None:
         if dry_run:
             continue
         if remove_fields is not None and client.exists("DocType", name):
-            # Paso intermedio del ciclo: jamás degradar un DocType ya completo.
             continue
         if client.exists("DocType", name):
             client.update("DocType", name, spec)
@@ -110,16 +104,12 @@ def sync_portal(client: FrappeClient, root: Path, dry_run: bool) -> None:
         if not path.is_file():
             raise FileNotFoundError(path)
         replace_public_file(client, path, path.name, dry_run)
-
     page_path = root / "portal" / "pages" / "os-web-page.html"
     html = page_path.read_text(encoding="utf-8")
     print("[webpage] /os")
     if dry_run:
         return
-    payload = {
-        "title": "LivingOrg OS", "route": "os", "published": 1,
-        "content_type": "HTML", "main_section_html": html,
-    }
+    payload = {"title": "LivingOrg OS", "route": "os", "published": 1, "content_type": "HTML", "main_section_html": html}
     matches = client.list("Web Page", fields=["name"], filters=[["route", "=", "os"]], limit=5)
     if matches:
         client.update("Web Page", matches[0]["name"], payload)
@@ -138,7 +128,6 @@ def sync_standalone(client: FrappeClient, root: Path, dry_run: bool) -> None:
         if not path.is_file():
             raise FileNotFoundError(path)
         replace_public_file(client, path, remote, dry_run)
-
     html = (standalone / "index.html").read_text(encoding="utf-8")
     html = html.replace('href="styles.css', 'href="/files/livingorg-styles.css')
     html = html.replace('src="js/config.js', 'src="/files/livingorg-config.js')
@@ -146,10 +135,7 @@ def sync_standalone(client: FrappeClient, root: Path, dry_run: bool) -> None:
     print("[webpage] /livingorg")
     if dry_run:
         return
-    payload = {
-        "title": "LivingOrg OS v2", "route": "livingorg", "published": 1,
-        "content_type": "HTML", "main_section_html": html,
-    }
+    payload = {"title": "LivingOrg OS v2", "route": "livingorg", "published": 1, "content_type": "HTML", "main_section_html": html}
     matches = client.list("Web Page", fields=["name"], filters=[["route", "=", "livingorg"]], limit=5)
     if matches:
         client.update("Web Page", matches[0]["name"], payload)
@@ -181,7 +167,6 @@ def main() -> int:
         settings = load_settings()
         client = FrappeClient(settings)
         root = settings.repo_root
-
         if args.mode in {"install", "update"}:
             ensure_module_and_roles(client, args.dry_run)
             sync_doctypes(client, root, args.dry_run)
@@ -190,7 +175,6 @@ def main() -> int:
                 check_bridge(client, required=args.require_bridge)
         if args.mode == "standalone":
             sync_standalone(client, root, args.dry_run)
-
         print("OK: validación completada" if args.dry_run else "OK: despliegue completado")
         return 0
     except (ConfigurationError, FrappeRequestError, FileNotFoundError, json.JSONDecodeError, RuntimeError) as exc:

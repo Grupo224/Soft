@@ -21,12 +21,16 @@ REQUIRED_OPERATIONAL = [
     "erpnext_setup/doctypes/os_document_link.json",
     "scripts/schema_overlays.py",
     "portal/assets/js/os-operational.js",
+    "portal/assets/js/os-operational-workfix.js",
     "portal/assets/css/os-operational.css",
     "frappe_app/livingorg_bridge/setup.py",
     "frappe_app/livingorg_bridge/livingorg_bridge/hooks.py",
     "frappe_app/livingorg_bridge/livingorg_bridge/api.py",
     "frappe_app/livingorg_bridge/livingorg_bridge/events.py",
+    "frappe_app/livingorg_bridge/livingorg_bridge/governance.py",
     "frappe_app/livingorg_bridge/livingorg_bridge/permissions.py",
+    "frappe_app/livingorg_bridge/livingorg_bridge/evidence_permissions.py",
+    "frappe_app/livingorg_bridge/livingorg_bridge/status.py",
 ]
 SECRET_PATTERNS = [
     re.compile(r'(?im)^\s*(?:API_)?SECRET\s*=\s*["\'][^"\']+["\']'),
@@ -78,17 +82,17 @@ def main() -> int:
             fail(f"fetch() fuera del adaptador API: {js_file.relative_to(ROOT)}", errors)
 
     web_page = (ROOT / "portal" / "pages" / "os-web-page.html").read_text(encoding="utf-8")
-    for required_asset in ("os-hardening.css", "os-hardening.js", "os-api.js", "os-operational.css", "os-operational.js"):
+    for required_asset in ("os-hardening.css", "os-hardening.js", "os-api.js", "os-operational.css", "os-operational.js", "os-operational-workfix.js"):
         if required_asset not in web_page:
             fail(f"Web Page no carga asset requerido: {required_asset}", errors)
 
     deploy = (ROOT / "scripts" / "deploy.py").read_text(encoding="utf-8")
-    for token in ("os_process_action", "os_document_link", "apply_schema_overlays", "os-operational.js"):
+    for token in ("os_process_action", "os_document_link", "apply_schema_overlays", "os-operational.js", "os-operational-workfix.js"):
         if token not in deploy:
             fail(f"Deployment no incluye componente operativo: {token}", errors)
 
     hooks = (ROOT / "frappe_app" / "livingorg_bridge" / "livingorg_bridge" / "hooks.py").read_text(encoding="utf-8")
-    for token in ("OS Process", "OS Step Run", "OS Approval", "permission_query_conditions", "has_permission"):
+    for token in ("OS Process", "OS Step Run", "OS Approval", "OS Evidence", "permission_query_conditions", "has_permission", "governance.validate_step_run"):
         if token not in hooks:
             fail(f"Custom App no declara control requerido: {token}", errors)
 
