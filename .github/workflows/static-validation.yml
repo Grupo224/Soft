@@ -6,6 +6,7 @@ on:
     branches:
       - claude/erpnext-portal-doctypes-ek0pwa
       - 'repair/**'
+      - 'release/**'
 
 permissions:
   contents: read
@@ -23,6 +24,8 @@ jobs:
           node-version: '22'
       - name: Validate repository structure and secrets
         run: python scripts/validate_repo.py
+      - name: Validate Organigrama Vivo 2.0 contract
+        run: python scripts/validate_org_v2.py
       - name: Compile Python
         run: python -m compileall -q scripts frappe_app *.py
       - name: Validate JavaScript syntax
