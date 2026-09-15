@@ -2,7 +2,8 @@
 """Validaciones estáticas rápidas del repositorio LivingOrg OS.
 
 No reemplaza pruebas en ERPNext ni pruebas visuales. CI valida estructura,
-JSON, secretos y que la capa operacional esté completa antes de desplegar.
+JSON, secretos, deployment dual y que la capa operacional esté completa antes
+de desplegar.
 """
 from __future__ import annotations
 
@@ -15,11 +16,17 @@ REQUIRED_DOCS = [
     "README.md", "INSTALL.md", "DEPLOYMENT.md", "ARCHITECTURE.md",
     "TROUBLESHOOTING.md", "AGENTS.md", "CHANGELOG.md", "SECURITY.md",
     "ROLLBACK.md", "UPGRADE.md", "COMPATIBILITY.md", "docs/OPERATIONAL_ACTIONS.md",
+    "deployment/README.md", "deployment/manifest.json",
+    "deployment/bench/INSTALL.md", "deployment/api/INSTALL.md",
+    "deployment/api/API_MATRIX.md", "deployment/openclaw/AGENT.md",
 ]
 REQUIRED_OPERATIONAL = [
     "erpnext_setup/doctypes/os_process_action.json",
     "erpnext_setup/doctypes/os_document_link.json",
     "scripts/schema_overlays.py",
+    "scripts/deploy_api.py",
+    "scripts/preflight.py",
+    "scripts/verify.py",
     "portal/assets/js/os-operational.js",
     "portal/assets/js/os-operational-workfix.js",
     "portal/assets/css/os-operational.css",
@@ -61,6 +68,23 @@ def main() -> int:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             fail(f"JSON inválido {json_file.relative_to(ROOT)}: {exc}", errors)
 
+    manifest_path = ROOT / "deployment" / "manifest.json"
+    if manifest_path.is_file():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            modes = manifest.get("supported_modes", {})
+            for mode in ("bench", "api"):
+                if mode not in modes:
+                    fail(f"Manifest no declara deployment mode requerido: {mode}", errors)
+            safety = manifest.get("safety", {})
+            if safety.get("default_safe_mode") is not True:
+                fail("Manifest debe mantener default_safe_mode=true", errors)
+            for key in ("delete_schema_objects", "drop_fields", "truncate_data", "reinstall", "store_secrets_in_repo"):
+                if safety.get(key) is not False:
+                    fail(f"Manifest debe declarar safety.{key}=false", errors)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            fail(f"Manifest inválido: {exc}", errors)
+
     for path in ROOT.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES or ".git" in path.parts:
             continue
@@ -91,6 +115,13 @@ def main() -> int:
         if token not in deploy:
             fail(f"Deployment no incluye componente operativo: {token}", errors)
 
+    deploy_api = (ROOT / "scripts" / "deploy_api.py").read_text(encoding="utf-8")
+    if "--require-bridge" in deploy_api:
+        fail("deploy_api.py no debe exigir Bridge", errors)
+    for token in ("deploy.main", "--mode", "--dry-run"):
+        if token not in deploy_api:
+            fail(f"deploy_api.py no cumple contrato esperado: {token}", errors)
+
     hooks = (ROOT / "frappe_app" / "livingorg_bridge" / "livingorg_bridge" / "hooks.py").read_text(encoding="utf-8")
     for token in ("OS Process", "OS Step Run", "OS Approval", "OS Evidence", "permission_query_conditions", "has_permission", "governance.validate_step_run"):
         if token not in hooks:
@@ -99,7 +130,7 @@ def main() -> int:
     if errors:
         print(f"\nValidación fallida: {len(errors)} problema(s).")
         return 1
-    print("OK: validación estática del repositorio y capa operacional completada.")
+    print("OK: validación estática del repositorio, deployment dual y capa operacional completada.")
     return 0
 
 
