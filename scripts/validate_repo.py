@@ -16,6 +16,7 @@ REQUIRED_DOCS = [
     "README.md", "INSTALL.md", "DEPLOYMENT.md", "ARCHITECTURE.md",
     "TROUBLESHOOTING.md", "AGENTS.md", "CHANGELOG.md", "SECURITY.md",
     "ROLLBACK.md", "UPGRADE.md", "COMPATIBILITY.md", "docs/OPERATIONAL_ACTIONS.md",
+    "docs/INSTALACION_ERPNext_VIRGEN.md",
     "deployment/README.md", "deployment/manifest.json",
     "deployment/bench/INSTALL.md", "deployment/api/INSTALL.md",
     "deployment/api/API_MATRIX.md", "deployment/openclaw/AGENT.md",

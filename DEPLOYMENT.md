@@ -17,6 +17,8 @@ PORTAL:              /os#/org
 
 Lee primero `deployment/manifest.json`, `docs/ORGANIGRAMA_MIGRATION_2.0.md` y `deployment/README.md`.
 
+**Sitio ERPNext nuevo (virgen):** sigue `docs/INSTALACION_ERPNext_VIRGEN.md` — fases con candado, checklist de cero errores y ruta incremental por entregas. Es el "deber ser" del despliegue.
+
 ## Variables comunes
 
 ```bash

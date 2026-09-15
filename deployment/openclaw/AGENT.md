@@ -22,13 +22,19 @@ Permitir que el usuario indique solamente repositorio, rama, ERPNext y modo de d
 
 1. `/AGENTS.md`
 2. `/deployment/manifest.json`
-3. `/docs/ORGANIGRAMA_V2.md`
-4. `/docs/ORGANIGRAMA_MIGRATION_2.0.md`
-5. `/docs/ORGANIGRAMA_TESTING_2.0.md`
-6. `/SECURITY.md`
-7. `/deployment/README.md`
-8. guía específica del modo solicitado
-9. `/ROLLBACK.md`
+3. `/deployment/openclaw/AGENT.md`
+4. `/docs/INSTALACION_ERPNext_VIRGEN.md`
+5. `/docs/ORGANIGRAMA_V2.md`
+6. `/docs/ORGANIGRAMA_MIGRATION_2.0.md`
+7. `/docs/ORGANIGRAMA_TESTING_2.0.md`
+8. `/SECURITY.md`
+9. `/deployment/README.md`
+10. guía específica del modo solicitado
+11. `/ROLLBACK.md`
+
+Para un sitio ERPNext **nuevo/virgen**, la guía 4 es de cumplimiento obligatorio: define las
+fases con candado (§2), el checklist de cero errores (§4, incluye fallos ya ocurridos y su
+corrección) y las 5 entregas incrementales (§5). No improvises un orden distinto de despliegue.
 
 Si cualquiera de estos archivos contradice una inferencia del agente, prevalece el contrato explícito de `deployment/manifest.json` y la documentación 2.0.
 

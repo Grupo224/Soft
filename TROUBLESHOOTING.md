@@ -1,5 +1,9 @@
 # TROUBLESHOOTING
 
+> Para instalaciones nuevas sigue `docs/INSTALACION_ERPNext_VIRGEN.md` (§4 = checklist de
+> cero errores con los fallos ya ocurridos y su corrección). Este archivo resuelve síntomas
+> puntuales después de instalar.
+
 ## El portal muestra “Necesitas iniciar sesión”
 
 1. abre `/app` y confirma que la sesión ERPNext esté activa;

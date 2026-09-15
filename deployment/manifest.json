@@ -21,6 +21,8 @@
   "source_of_truth": {
     "doctypes": "erpnext_setup/doctypes",
     "portal": "portal",
+    "deployment_guide": "docs/INSTALACION_ERPNext_VIRGEN.md",
+    "server_scripts": "deployment/server_scripts",
     "permissions": "scripts/permissions.py",
     "schema_overlays": "scripts/schema_overlays.py",
     "organigrama_v2_architecture": "docs/ORGANIGRAMA_V2.md",

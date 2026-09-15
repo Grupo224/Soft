@@ -9,6 +9,10 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 - **Escrituras del portal (`/os`)**: la Web Page se servía con `frappe.csrf_token = "None"` y sin meta `csrf-token`, así que todo POST/PUT/DELETE de una sesión autenticada fallaba en silencio. `os-api.js` ahora precarga el token real de sesión desde el endpoint `livingorg_api_csrf`, lo cachea, descarta valores inválidos (`None`, `null`, plantilla) y `os-core.js` distingue "sin sesión" de "sin conexión" en el arranque.
 - **Guardado de procesos (`/os#/processes`)**: un valor inexistente en un campo Link devolvía el error crudo del motor (`No se pudo encontrar Compañía: 1, Owner User: 1`, HTTP 417) y el asistente se cerraba perdiendo lo capturado. Ahora el asistente permanece abierto si el servidor rechaza el registro, el mensaje se traduce a algo accionable (*«1» no existe en Compañía*) y los campos Link ofrecen sugerencias al enfocar en lugar de esperar texto tecleado.
 
+### Documentación
+- Nueva guía maestra **`docs/INSTALACION_ERPNext_VIRGEN.md`** — *el deber ser* para instalar en un ERPNext virgen: qué se instala y qué no se toca, preparación del sitio, usuario técnico y credenciales, 9 fases con candado verificable, smoke test técnico y de negocio, checklist de cero errores (con los fallos reales ya ocurridos y su corrección), ruta incremental en 5 entregas y plantilla de reporte.
+- Declarada en `deployment/manifest.json` (`source_of_truth.deployment_guide`) y añadida al orden de lectura obligatorio de `deployment/README.md` y `deployment/openclaw/AGENT.md`; `scripts/validate_repo.py` la exige en CI.
+
 ### Operación ERPNext
 - Nuevo Custom App `livingorg_bridge` sin modificaciones al core de ERPNext/Frappe.
 - Nuevo child DocType `OS Process Action` para declarar acciones estructuradas por paso: abrir, crear, crear desde origen, actualizar, submit y vincular documentos.

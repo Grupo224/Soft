@@ -49,6 +49,7 @@ Lee en este orden:
 1. `AGENTS.md`
 2. `deployment/manifest.json`
 3. `deployment/openclaw/AGENT.md`
-4. la guía del modo solicitado
-5. `SECURITY.md`
-6. `ROLLBACK.md`
+4. `docs/INSTALACION_ERPNext_VIRGEN.md` (**el deber ser**: fases con candado, checklist de cero errores, ruta incremental por entregas)
+5. la guía del modo solicitado
+6. `SECURITY.md`
+7. `ROLLBACK.md`

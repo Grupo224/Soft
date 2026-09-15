@@ -1,5 +1,9 @@
 # INSTALL — LivingOrg OS operativo
 
+> **Sitio ERPNext virgen o instalación nueva:** la ruta canónica es
+> `docs/INSTALACION_ERPNext_VIRGEN.md` (preparación del sitio, fases con candado, checklist de
+> cero errores y ruta incremental). Este documento es la variante nativa con Bench.
+
 ## Prerrequisitos
 
 - ERPNext/Frappe v15+ accesible por HTTPS.
