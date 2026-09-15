@@ -31,6 +31,7 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 - Permisos efectivos de DocTypes normalizados desde `scripts/permissions.py`; Viewer/Auditor quedan read-only en el deployment soportado.
 - Añadida sanitización allowlist para rich HTML, URLs y preview de SOP.
 - `os-api.js` detecta excepciones Frappe dentro de HTTP 200 y mantiene correlation log acotado sin payloads sensibles.
+- Deployment API-first documentado como no destructivo por defecto; no elimina DocTypes/campos/datos ni expone secretos en frontend.
 
 ### Estabilidad / deployment
 - Nuevo entrypoint canónico `scripts/deploy.py`, idempotente y con `--dry-run`.
@@ -39,6 +40,11 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 - Cliente REST reutilizable en `scripts/frappe_client.py` con timeout y reintentos acotados.
 - `seed_demo.py` deja de hardcodear secretos y evita duplicados clave.
 - Añadida validación estática y workflow de GitHub Actions, incluyendo compilación del Custom App.
+- Añadido contrato de deployment dual en `deployment/manifest.json`: `bench` y `api` comparten schema/frontend.
+- Añadido modo API-first/OpenClaw sin SSH/Bench para sincronizar Module Def, roles, Custom DocTypes, permisos canónicos, assets y `/os` vía REST.
+- Añadidos `scripts/preflight.py`, `scripts/deploy_api.py` y `scripts/verify.py` para preflight de sólo lectura, despliegue API explícito y clasificación de runtime `FULL`/`DEGRADED`.
+- Añadida matriz de capacidades para diferenciar schema/portal vía API de hooks Python y runtime operativo real.
+- `scripts/validate_repo.py` valida ahora el contrato dual, safe mode y archivos requeridos de ambos modos.
 
 ### Frontend / responsive
 - Capa `os-hardening.css` para 430/360/320 px, modales, inspector, toolbars, tablas y contención de overflow.
@@ -49,6 +55,7 @@ Versionado semántico (`MAJOR.MINOR.PATCH`).
 ### Auditoría
 - `OS Step Run` incorpora campos snapshot aditivos para versión, instrucciones, SOP, prompt, policy y acciones de sistema.
 - Documentación completa de instalación, deployment, rollback, seguridad, compatibilidad, acciones operativas y agentes IA.
+- OpenClaw recibe un contrato explícito de instalación/update/verify para no improvisar rutas, credenciales ni operaciones destructivas.
 
 ## [Flow Studio v3] — 2026-09-09
 
