@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static contract validation for Organigrama Vivo 2.0.
+"""Static contract validation for Organigrama Vivo 2.x.
 
 This is intentionally independent from a live ERPNext site. It catches packaging,
 load-order, schema and safety regressions before deployment. End-to-end checks on
@@ -34,8 +34,10 @@ def require_fields(actual: dict[str, dict], names: tuple[str, ...], doctype: str
 def main() -> int:
     required_files = [
         "portal/assets/js/pages/os-page-org-v2.js",
+        "portal/assets/js/pages/os-org-profile-v2.js",
         "portal/assets/js/pages/os-page-org.js",
         "portal/assets/css/os-org-v2.css",
+        "portal/assets/css/os-org-profile-v2.css",
         "portal/pages/os-web-page.html",
         "erpnext_setup/doctypes/os_role_card.json",
         "erpnext_setup/doctypes/os_kpi_definition.json",
@@ -50,28 +52,34 @@ def main() -> int:
         require((ROOT / rel).is_file(), f"missing required file: {rel}")
 
     manifest = load_json("deployment/manifest.json")
-    require(manifest.get("product_version") == "2.0.0", "manifest product_version must be 2.0.0")
+    require(manifest.get("product_version") == "2.0.1", "manifest product_version must be 2.0.1")
+    require(manifest.get("current_stable", {}).get("organigrama") == "2.0.1", "current stable organigrama must be 2.0.1")
     require(manifest.get("current_stable", {}).get("branch") == "release/organigrama-v2.0", "current stable branch mismatch")
+    require(manifest.get("current_stable", {}).get("profile_editor") == "portal/assets/js/pages/os-org-profile-v2.js", "profile editor manifest entry missing")
     require("repair/prompt-maestro-2026-09" in manifest.get("current_stable", {}).get("compatibility_branches", []), "compatibility branch alias missing")
     require(manifest.get("previous_stable", {}).get("branch") == "archive/organigrama-v1-stable", "previous stable branch mismatch")
     require(manifest.get("organigrama_v2", {}).get("preserves_legacy_schema_fields") is True, "manifest must declare legacy schema preservation")
+    require("inside LivingOrg" in manifest.get("organigrama_v2", {}).get("full_profile_behavior", ""), "manifest must declare internal full profile behavior")
     require(manifest.get("safety", {}).get("migrate_existing_org_relations_automatically") is False, "automatic relation migration must stay disabled")
 
     page = (ROOT / "portal/pages/os-web-page.html").read_text(encoding="utf-8")
-    # Buscar los `src` reales, no menciones en comentarios/documentación del propio HTML.
     v2_script = 'src="/files/os-page-org-v2.js'
+    profile_script = 'src="/files/os-org-profile-v2.js'
     v1_script = 'src="/files/os-page-org.js'
     v2_pos = page.find(v2_script)
+    profile_pos = page.find(profile_script)
     v1_pos = page.find(v1_script)
-    require(v2_pos >= 0 and v1_pos >= 0 and v2_pos < v1_pos, "v2 route must load before legacy /org route")
+    require(v2_pos >= 0 and profile_pos >= 0 and v1_pos >= 0 and v2_pos < profile_pos < v1_pos, "script order must be org-v2 -> profile-v2 -> legacy org")
     require('href="/files/os-org-v2.css' in page, "v2 CSS is not loaded")
+    require('href="/files/os-org-profile-v2.css' in page, "profile editor CSS is not loaded")
 
     deploy = (ROOT / "scripts/deploy.py").read_text(encoding="utf-8")
     require('"css/os-org-v2.css"' in deploy, "deploy.py does not publish v2 CSS")
+    require('"css/os-org-profile-v2.css"' in deploy, "deploy.py does not publish profile CSS")
     require('"js/pages/os-page-org-v2.js"' in deploy, "deploy.py does not publish v2 JS")
+    require('"js/pages/os-org-profile-v2.js"' in deploy, "deploy.py does not publish profile editor JS")
 
     role = fields(load_json("erpnext_setup/doctypes/os_role_card.json"))
-    # Fields present in 1.x must never disappear during this additive release.
     require_fields(
         role,
         ("role_title", "designation", "mission", "expected_results", "responsibilities", "kpis", "owner_user"),
@@ -127,13 +135,21 @@ def main() -> int:
     require("Designation: [\"Designation\", \"Employee\", \"Agent\"]" in js, "Position hierarchy rule missing")
     require("OS.router.register(\"/org\"" in js, "v2 /org route missing")
 
+    profile = (ROOT / "portal/assets/js/pages/os-org-profile-v2.js").read_text(encoding="utf-8")
+    require('PROFILE_LINK = \'a[href^="/app/os-org-node/"]\'' in profile, "profile editor must intercept the previous full-profile link")
+    require("event.preventDefault()" in profile, "profile editor must prevent navigation to the DocType")
+    require("openProfile(nodeName)" in profile, "profile editor open flow missing")
+    require('OS.orgProfileV2 = { version: "2.0.1"' in profile, "profile editor version must be 2.0.1")
+    for label in ("Perfil del puesto", "Personas", "KPIs", "Procesos", "SOPs", "Documentos"):
+        require(label in profile, f"profile editor missing section {label}")
+
     hooks = (ROOT / "frappe_app/livingorg_bridge/livingorg_bridge/hooks.py").read_text(encoding="utf-8")
     gov = (ROOT / "frappe_app/livingorg_bridge/livingorg_bridge/governance.py").read_text(encoding="utf-8")
     require('"OS Org Relation"' in hooks and "validate_org_relation" in hooks, "Bridge org relation hook missing")
     require("ORG_ALLOWED_PARENTS" in gov and "validate_org_relation" in gov, "Bridge semantic validator missing")
     require("La relación crearía un ciclo jerárquico" in gov, "server-side cycle validation missing")
 
-    print("PASS org-v2: packaging, load order, legacy schema preservation, additive schema, display-name contract and hierarchy guards")
+    print("PASS org-v2.0.1: internal full profile, packaging, load order, legacy schema preservation and hierarchy guards")
     return 0
 
 
