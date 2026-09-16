@@ -180,7 +180,20 @@
       var b = document.createElement("button");
       b.className = "os-btn " + (a.cls || "");
       b.textContent = a.label;
-      b.onclick = function () { if (a.onClick(close) !== false && !a.keepOpen) close(); };
+      b.onclick = function () {
+        var outcome = a.onClick(close);
+        // Guardados reales contra ERPNext devuelven promesa: el modal se cierra solo
+        // si el servidor acepta el registro; si rechaza, los datos capturados siguen ahí.
+        if (outcome && typeof outcome.then === "function") {
+          b.disabled = true;
+          outcome.then(function (ok) {
+            b.disabled = false;
+            if (ok !== false && !a.keepOpen) close();
+          }, function () { b.disabled = false; });
+          return;
+        }
+        if (outcome !== false && !a.keepOpen) close();
+      };
       foot.appendChild(b);
     });
     bg.appendChild(box);
@@ -351,13 +364,22 @@
         box.innerHTML = rows.map(function (r) { return '<div class="os-palette-item" data-v="' + util.escapeHtml(r.name) + '">' + util.escapeHtml(r.name) + '</div>'; }).join("");
         box.style.display = "block";
         box.querySelectorAll("[data-v]").forEach(function (el) {
-          el.onclick = function () { input.value = el.dataset.v; box.style.display = "none"; onSelect && onSelect(el.dataset.v); };
+          el.onclick = function () {
+            input.value = el.dataset.v;
+            input.dataset.osPicked = "1"; // el valor viene de la lista: apunta a un registro existente
+            box.style.display = "none";
+            onSelect && onSelect(el.dataset.v);
+          };
         });
       }).catch(function () { box.style.display = "none"; });
     }, 250);
-    input.addEventListener("input", function () { if (input.value.trim().length >= 1) doSearch(input.value.trim()); else box.style.display = "none"; });
+    input.addEventListener("input", function () {
+      input.dataset.osPicked = ""; // el texto cambió: ya no se sabe si el registro existe
+      if (input.value.trim().length >= 1) doSearch(input.value.trim()); else doSearch("");
+    });
     input.addEventListener("blur", function () { setTimeout(function () { box.style.display = "none"; }, 180); });
-    input.addEventListener("focus", function () { if (input.value.trim().length >= 1) doSearch(input.value.trim()); });
+    // Al enfocar se ofrecen opciones aunque el campo esté vacío: se elige, no se teclea a ciegas.
+    input.addEventListener("focus", function () { doSearch(input.value.trim()); });
   };
 
   OS.ui = ui;
@@ -841,8 +863,10 @@
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); }
       });
     }).catch(function (err) {
-      OS.ui && OS.ui.error ? OS.ui.error(err) : console.error(err);
-      root.innerHTML = OS.ui.empty("⚠️", "No se pudo conectar con ERPNext", (err && err.message) || "");
+      console.warn("[OS] whoami falló; se asume sesión no autenticada:", (err && err.message) || err);
+      root.innerHTML = '<div class="os-gate"><div class="ico">🔒</div><h2>Necesitas iniciar sesión</h2>' +
+        '<p>Este portal opera sobre la sesión autenticada de ERPNext/Frappe. Inicia sesión para continuar.</p>' +
+        '<a class="os-btn primary" href="/login?redirect-to=' + encodeURIComponent(global.location.pathname + global.location.hash) + '">Iniciar sesión</a></div>';
     });
   };
 })(window);

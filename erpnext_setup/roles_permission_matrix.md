@@ -1,46 +1,48 @@
 # Matriz de roles y permisos — LivingOrg OS
 
-Basada en el SOP técnico §6 y el blueprint §16.1. Configúrala en
-**Role Permission Manager** para cada DocType `OS *`. R=Read, W=Write, C=Create, D=Delete.
+Fuente humana de referencia. La fuente ejecutable es `scripts/permissions.py`. R=Read, W=Write, C=Create, D=Delete.
 
-| DocType             | OS Admin | OS Architect | OS Publisher | OS AI Supervisor | OS Manager | OS Operator | OS Auditor | OS Viewer |
-|---------------------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| OS Org Node         | RWCD | RWC | R | R | RW | R | R | R |
-| OS Org Relation     | RWCD | RWC | R | R | RW | R | R | R |
-| OS Role Card        | RWCD | RWC | R | R | RW | R | R | R |
-| OS Process          | RWCD | RWC (Draft/Pilot) | RW (publicar/retirar) | R | R (su área) | R | R | R |
-| OS Process Step*    | RWCD | RWC | RW | R | R | R | R | R |
-| OS Process Edge*    | RWCD | RWC | RW | R | R | R | R | R |
-| OS Process Goal*    | RWCD | RWC | RW | R | R | R | R | R |
-| OS SOP              | RWCD | RWC | RW | R | R | R | R | R |
-| OS Prompt           | RWCD | R | R | RWCD | R | – | R | R |
-| OS Agent            | RWCD | R | R | RWCD | R | – | R | R |
-| OS Run              | RWCD | R | R | R | RW (su área) | R (asignados) | R | R |
-| OS Step Run         | RWCD | R | R | R | RW (su área) | RW (asignados) | R | R |
-| OS Evidence         | RWCD | R | R | R | RW | RWC (propias) | R | R |
-| OS Approval         | RWCD | R | R | R | RW (su área) | RW (si es aprobador) | R | R |
-| OS KPI Definition   | RWCD | RWC | R | R | R | – | R | R |
-| OS Integration      | RWCD | – | – | R | – | – | R | R |
+| DocType | OS Admin | OS Architect | OS Publisher | OS AI Supervisor | OS Manager | OS Operator | OS Auditor | OS Viewer |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| OS Org Node | RWCD | RWC | R | R | RW | R | R | R |
+| OS Org Relation | RWCD | RWC | R | R | RW | R | R | R |
+| OS Role Card | RWCD | RWC | R | R | RW | R | R | R |
+| OS Process | RWCD | RWC | RW | R | R | R | R | R |
+| OS Process Step* | RWCD | RWC | RW | R | R | R | R | R |
+| OS Process Action* | RWCD | RWC | RW | R | R | R | R | R |
+| OS Process Edge* | RWCD | RWC | RW | R | R | R | R | R |
+| OS Process Goal* | RWCD | RWC | RW | R | R | R | R | R |
+| OS SOP | RWCD | RWC | RW | R | R | R | R | R |
+| OS SOP Step* | RWCD | RWC | RW | R | R | R | R | R |
+| OS Prompt | RWCD | R | R | RWCD | R | – | R | R |
+| OS Agent | RWCD | R | R | RWCD | R | – | R | R |
+| OS Run | RWCD | R | R | R | RW | R | R | R |
+| OS Step Run | RWCD | R | R | R | RW | RW (asignados) | R | R |
+| OS Document Link | RWCD | R | R | R | R | R (sus pasos) | R | R |
+| OS Evidence | RWCD | R | R | R | RW | RWC (propias) | R | R |
+| OS Approval | RWCD | R | R | R | RW | RW (si es aprobador) | R | R |
+| OS KPI Definition | RWCD | RWC | R | R | R | – | R | R |
+| OS Integration | RWCD | – | – | R | – | – | R | R |
 | OS Knowledge Source | RWCD | RWC | R | RWC | R | R | R | R |
-| OS Skill            | RWCD | RWC | R | RWC | R | – | R | R |
-| OS Policy           | RWCD | – | – | R | RW | R | R | R |
+| OS Skill | RWCD | RWC | R | RWC | R | – | R | R |
+| OS Policy | RWCD | – | – | R | RW | R | R | R |
 
-\* Child tables: heredan el permiso efectivo del documento padre (`OS Process`);
-configúralas igual por consistencia si tu versión de Frappe las expone en el
-Permission Manager de forma independiente.
+\* Child tables heredan el acceso efectivo del documento padre. Las filas se mantienen por consistencia y para versiones de Frappe que las muestran en Permission Manager.
 
-## Reglas de gobierno que la UI del portal ya refleja
+## Reglas server-side
 
-- **Diseñar ≠ Publicar**: `OS Architect` puede crear/editar procesos en `Draft`/`Pilot`,
-  pero llevar un proceso a `Active` (o `Retired`) queda reservado a `OS Publisher`
-  (o `OS Admin`). Ajusta el permiso de escritura de `OS Process` si tu operación
-  real exige bloquear el cambio de estado a nivel de campo (Property Setter sobre
-  `status` con permission level, disponible desde Customize Form sin tocar el core).
-- **Multi-empresa**: si el sitio maneja más de una `Company`, agrega además
-  **User Permission** por `Company` a cada usuario (Desk → User Permission) para
-  que las listas del portal (procesos, runs, organigrama) respeten el alcance real.
-- **Nunca Guest**: ninguno de estos DocTypes debe otorgarse al rol `Guest`. El
-  portal exige sesión autenticada (`OS.boot` bloquea el acceso si `frappe.auth.get_logged_user`
-  devuelve `Guest`).
-- **Auditoría**: `Track Changes` activo en todos los DocTypes "Normal" satisface
-  el requisito de historial de cambios sin necesitar un motor de auditoría propio.
+`livingorg_bridge` añade restricciones que la matriz por sí sola no puede expresar:
+
+- `OS Step Run`: un Operator sólo puede consultar/modificar pasos asignados a su usuario o a uno de sus roles.
+- `OS Approval`: un Operator sólo puede decidir solicitudes dirigidas a su usuario/rol.
+- `OS Document Link`: un Operator sólo ve vínculos pertenecientes a sus Step Runs.
+- `OS Run`: los roles de negocio no reciben Create directo; los runs se crean mediante el endpoint controlado del Bridge.
+- documentos ERPNext (`Sales Invoice`, `Sales Order`, etc.): conservan siempre sus permisos nativos; LivingOrg no los eleva.
+
+## Multiempresa
+
+Usa User Permission por `Company` y las reglas normales de ERPNext para segmentar datos empresariales. LivingOrg no debe convertirse en un mecanismo alterno de aislamiento de Company.
+
+## Nunca Guest
+
+Ningún DocType OS ni endpoint operativo admite Guest. `/os` requiere sesión autenticada.

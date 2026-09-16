@@ -22,9 +22,27 @@
       "in_list_view": 1
     },
     {
+      "fieldname": "org_node",
+      "label": "Organization Node",
+      "fieldtype": "Link",
+      "options": "OS Org Node",
+      "in_list_view": 1,
+      "description": "Organigrama Vivo 2.0: permite una ficha contextual por puesto visual sin romper Role Cards históricas basadas sólo en Designation."
+    },
+    {
+      "fieldname": "purpose",
+      "label": "Purpose",
+      "fieldtype": "Small Text"
+    },
+    {
       "fieldname": "mission",
       "label": "Mission",
       "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "objectives",
+      "label": "Objectives",
+      "fieldtype": "Text Editor"
     },
     {
       "fieldname": "expected_results",
@@ -37,9 +55,37 @@
       "fieldtype": "Text Editor"
     },
     {
-      "fieldname": "kpis",
-      "label": "KPIs",
+      "fieldname": "functions",
+      "label": "Functions",
+      "fieldtype": "Text Editor"
+    },
+    {
+      "fieldname": "competencies",
+      "label": "Competencies",
+      "fieldtype": "Text Editor"
+    },
+    {
+      "fieldname": "tools",
+      "label": "Tools",
       "fieldtype": "Small Text"
+    },
+    {
+      "fieldname": "kpis",
+      "label": "KPIs (Legacy Summary)",
+      "fieldtype": "Small Text",
+      "description": "Se conserva por compatibilidad. Los KPIs estructurados nuevos usan OS KPI Definition."
+    },
+    {
+      "fieldname": "process_refs",
+      "label": "Process References (Legacy Summary)",
+      "fieldtype": "Small Text",
+      "description": "Resumen opcional; la relación estructurada se mantiene en OS Process.responsible_node."
+    },
+    {
+      "fieldname": "sop_refs",
+      "label": "SOP References (Legacy Summary)",
+      "fieldtype": "Small Text",
+      "description": "Resumen opcional; la relación estructurada se mantiene en OS SOP.responsible_node."
     },
     {
       "fieldname": "owner_user",

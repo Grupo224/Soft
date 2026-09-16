@@ -1,0 +1,119 @@
+{
+  "product": "LivingOrg OS",
+  "product_version": "2.0.1",
+  "schema_version": "2.0",
+  "deployment_contract_version": "1.1",
+  "portal_route": "os",
+  "current_stable": {
+    "organigrama": "2.0.1",
+    "branch": "release/organigrama-v2.0",
+    "compatibility_branches": ["repair/prompt-maestro-2026-09"],
+    "route": "/os#/org",
+    "frontend_entrypoint": "portal/assets/js/pages/os-page-org-v2.js",
+    "profile_editor": "portal/assets/js/pages/os-org-profile-v2.js"
+  },
+  "previous_stable": {
+    "organigrama": "1.x",
+    "branch": "archive/organigrama-v1-stable",
+    "commit": "a2b7b88ae3dbbf38b1c93a466c9419e7977af19f",
+    "frontend_entrypoint": "portal/assets/js/pages/os-page-org.js"
+  },
+  "source_of_truth": {
+    "doctypes": "erpnext_setup/doctypes",
+    "portal": "portal",
+    "deployment_guide": "docs/INSTALACION_ERPNext_VIRGEN.md",
+    "server_scripts": "deployment/server_scripts",
+    "permissions": "scripts/permissions.py",
+    "schema_overlays": "scripts/schema_overlays.py",
+    "organigrama_v2_architecture": "docs/ORGANIGRAMA_V2.md",
+    "organigrama_v2_migration": "docs/ORGANIGRAMA_MIGRATION_2.0.md",
+    "organigrama_v2_testing": "docs/ORGANIGRAMA_TESTING_2.0.md"
+  },
+  "organigrama_v2": {
+    "preserves_legacy_frontend": true,
+    "preserves_legacy_schema_fields": true,
+    "legacy_frontend": "portal/assets/js/pages/os-page-org.js",
+    "load_order_rule": "os-page-org-v2.js MUST load before os-page-org.js because the router resolves the first matching route",
+    "full_profile_behavior": "Ficha completa MUST open inside LivingOrg; direct navigation to OS Org Node is not the primary UX",
+    "required_doctypes": [
+      "OS Org Node",
+      "OS Org Relation",
+      "OS Role Card",
+      "OS KPI Definition",
+      "OS Process",
+      "OS SOP"
+    ],
+    "additive_schema": {
+      "OS Role Card": ["org_node", "purpose", "objectives", "functions", "competencies", "tools", "process_refs", "sop_refs"],
+      "OS KPI Definition": ["org_node", "role_card", "designation", "Position and RoleCard entity_type options"],
+      "OS SOP": ["responsible_node"]
+    },
+    "hierarchy": {
+      "Company": ["Department"],
+      "Department": ["Department", "Designation"],
+      "Designation": ["Designation", "Employee", "Agent"],
+      "Employee": [],
+      "Agent": []
+    }
+  },
+  "supported_modes": {
+    "bench": {
+      "label": "Native Frappe Custom App",
+      "runtime": "livingorg_bridge",
+      "requires_ssh": true,
+      "requires_bench": true,
+      "supports_server_hooks": true,
+      "supports_document_permission_hooks": true,
+      "supports_operational_actions": true,
+      "supports_org_semantic_validation": true,
+      "recommended_for": "full-native-production"
+    },
+    "api": {
+      "label": "API-First / OpenClaw",
+      "runtime": "rest",
+      "requires_ssh": false,
+      "requires_bench": false,
+      "supports_schema_sync": true,
+      "supports_role_sync": true,
+      "supports_asset_sync": true,
+      "supports_web_page_sync": true,
+      "supports_server_hooks": false,
+      "supports_document_permission_hooks": false,
+      "supports_org_semantic_validation": "frontend-only-unless-compatible-api-runtime-is-installed",
+      "operational_runtime": [
+        "external-openclaw-runtime",
+        "server-script-runtime-when-enabled"
+      ],
+      "recommended_for": "restricted-hosting-or-api-only-installations"
+    }
+  },
+  "safety": {
+    "default_safe_mode": true,
+    "delete_schema_objects": false,
+    "drop_fields": false,
+    "truncate_data": false,
+    "reinstall": false,
+    "store_secrets_in_repo": false,
+    "migrate_existing_org_relations_automatically": false
+  },
+  "required_environment": [
+    "FRAPPE_BASE_URL",
+    "FRAPPE_API_KEY",
+    "FRAPPE_API_SECRET"
+  ],
+  "roles": [
+    "OS Admin",
+    "OS Architect",
+    "OS Publisher",
+    "OS AI Supervisor",
+    "OS Manager",
+    "OS Operator",
+    "OS Auditor",
+    "OS Viewer"
+  ],
+  "verification": {
+    "bridge_capability_endpoint": "livingorg_bridge.status.capabilities",
+    "api_identity_endpoint": "frappe.auth.get_logged_user",
+    "organigrama_contract_validator": "scripts/validate_org_v2.py"
+  }
+}

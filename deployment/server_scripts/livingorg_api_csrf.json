@@ -1,0 +1,8 @@
+{
+  "name": "livingorg_api_csrf",
+  "script_type": "API",
+  "api_method": "livingorg_api_csrf",
+  "allow_guest": 1,
+  "disabled": 0,
+  "script": "frappe.response[\"message\"] = frappe.local.session.data.csrf_token or \"\""
+}

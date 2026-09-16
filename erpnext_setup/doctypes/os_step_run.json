@@ -7,160 +7,38 @@
   "editable_grid": 1,
   "track_changes": 1,
   "fields": [
-    {
-      "fieldname": "run",
-      "label": "Run",
-      "fieldtype": "Link",
-      "options": "OS Run",
-      "reqd": 1,
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "step_key",
-      "label": "Step Key",
-      "fieldtype": "Data",
-      "reqd": 1,
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "step_title_snapshot",
-      "label": "Step Title Snapshot",
-      "fieldtype": "Data"
-    },
-    {
-      "fieldname": "execution_type_snapshot",
-      "label": "Execution Type Snapshot",
-      "fieldtype": "Data"
-    },
-    {
-      "fieldname": "actor_user",
-      "label": "Actor User",
-      "fieldtype": "Link",
-      "options": "User",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "actor_agent",
-      "label": "Actor Agent",
-      "fieldtype": "Link",
-      "options": "OS Agent"
-    },
-    {
-      "fieldname": "status",
-      "label": "Status",
-      "fieldtype": "Select",
-      "options": "Queued\nRunning\nWaiting\nApproved\nCompleted\nFailed\nSkipped\nCancelled",
-      "default": "Queued",
-      "in_list_view": 1
-    },
-    {
-      "fieldname": "queued_at",
-      "label": "Queued At",
-      "fieldtype": "Datetime"
-    },
-    {
-      "fieldname": "started_at",
-      "label": "Started At",
-      "fieldtype": "Datetime"
-    },
-    {
-      "fieldname": "completed_at",
-      "label": "Completed At",
-      "fieldtype": "Datetime"
-    },
-    {
-      "fieldname": "attempt_no",
-      "label": "Attempt No",
-      "fieldtype": "Int",
-      "default": "1"
-    },
-    {
-      "fieldname": "input_json",
-      "label": "Input JSON",
-      "fieldtype": "Code",
-      "options": "JSON"
-    },
-    {
-      "fieldname": "output_json",
-      "label": "Output JSON",
-      "fieldtype": "Code",
-      "options": "JSON"
-    },
-    {
-      "fieldname": "error_code",
-      "label": "Error Code",
-      "fieldtype": "Data"
-    },
-    {
-      "fieldname": "error_message",
-      "label": "Error Message",
-      "fieldtype": "Small Text"
-    },
-    {
-      "fieldname": "evidence_required",
-      "label": "Evidence Required",
-      "fieldtype": "Check"
-    },
-    {
-      "fieldname": "approval_required",
-      "label": "Approval Required",
-      "fieldtype": "Check"
-    }
+    {"fieldname":"run","label":"Run","fieldtype":"Link","options":"OS Run","reqd":1,"in_list_view":1},
+    {"fieldname":"step_key","label":"Step Key","fieldtype":"Data","reqd":1,"in_list_view":1},
+    {"fieldname":"step_title_snapshot","label":"Step Title Snapshot","fieldtype":"Data"},
+    {"fieldname":"execution_type_snapshot","label":"Execution Type Snapshot","fieldtype":"Data"},
+    {"fieldname":"process_version_snapshot","label":"Process Version Snapshot","fieldtype":"Data","description":"Versión del proceso vigente al crear este Step Run."},
+    {"fieldname":"instructions_snapshot","label":"Instructions Snapshot","fieldtype":"Long Text","description":"Instrucciones congeladas al crear el Step Run. No debe re-leerse la definición vigente para auditoría histórica."},
+    {"fieldname":"sop_snapshot","label":"SOP Snapshot","fieldtype":"Data","description":"SOP/versión vigente al crear el Step Run."},
+    {"fieldname":"prompt_snapshot","label":"Prompt Snapshot","fieldtype":"Data","description":"Prompt/versión usada por este paso, cuando aplique."},
+    {"fieldname":"policy_snapshot","label":"Policy Snapshot","fieldtype":"Data","description":"Política aplicable al momento de ejecución."},
+    {"fieldname":"actor_user","label":"Actor User","fieldtype":"Link","options":"User","in_list_view":1},
+    {"fieldname":"actor_agent","label":"Actor Agent","fieldtype":"Link","options":"OS Agent"},
+    {"fieldname":"status","label":"Status","fieldtype":"Select","options":"Queued\nRunning\nWaiting\nApproved\nCompleted\nFailed\nSkipped\nCancelled","default":"Queued","in_list_view":1},
+    {"fieldname":"queued_at","label":"Queued At","fieldtype":"Datetime"},
+    {"fieldname":"started_at","label":"Started At","fieldtype":"Datetime"},
+    {"fieldname":"completed_at","label":"Completed At","fieldtype":"Datetime"},
+    {"fieldname":"attempt_no","label":"Attempt No","fieldtype":"Int","default":"1"},
+    {"fieldname":"input_json","label":"Input JSON","fieldtype":"Code","options":"JSON"},
+    {"fieldname":"output_json","label":"Output JSON","fieldtype":"Code","options":"JSON"},
+    {"fieldname":"error_code","label":"Error Code","fieldtype":"Data"},
+    {"fieldname":"error_message","label":"Error Message","fieldtype":"Small Text"},
+    {"fieldname":"evidence_required","label":"Evidence Required","fieldtype":"Check"},
+    {"fieldname":"approval_required","label":"Approval Required","fieldtype":"Check"}
   ],
   "permissions": [
-    {
-      "role": "OS Admin",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 1,
-      "report": 1,
-      "export": 1
-    },
-    {
-      "role": "OS Manager",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 0
-    },
-    {
-      "role": "OS Operator",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 0
-    },
-    {
-      "role": "OS Auditor",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 1
-    },
-    {
-      "role": "OS Viewer",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 0,
-      "report": 1,
-      "export": 0
-    },
-    {
-      "role": "System Manager",
-      "read": 1,
-      "write": 1,
-      "create": 1,
-      "delete": 1,
-      "report": 1,
-      "export": 1
-    }
+    {"role":"OS Admin","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1},
+    {"role":"OS Architect","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Publisher","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS AI Supervisor","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Manager","read":1,"write":1,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Operator","read":1,"write":1,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"OS Auditor","read":1,"write":0,"create":0,"delete":0,"report":1,"export":1},
+    {"role":"OS Viewer","read":1,"write":0,"create":0,"delete":0,"report":1,"export":0},
+    {"role":"System Manager","read":1,"write":1,"create":1,"delete":1,"report":1,"export":1}
   ]
 }

@@ -1,0 +1,85 @@
+/*!
+ * LivingOrg OS — responsive/safety hardening.
+ * Capa aditiva: corrige overflow y ergonomía móvil sin reemplazar el diseño base.
+ */
+.os-app{max-width:100%;overflow-x:clip}
+@supports not (overflow:clip){.os-app{overflow-x:hidden}}
+.os-app .os-shell,.os-app .os-main,.os-app .os-content,.os-app .os-card,.os-app .os-page-head{min-width:0;max-width:100%}
+.os-app img,.os-app svg,.os-app video,.os-app canvas{max-width:100%}
+.os-app .os-modal-bg{padding:clamp(8px,2vw,24px)}
+.os-app .os-modal{width:min(760px,calc(100vw - 24px));max-width:100%;max-height:calc(100dvh - 24px)}
+.os-app .os-modal.wide{width:min(1080px,calc(100vw - 24px))}
+.os-app .os-modal-body{min-width:0;overflow-wrap:anywhere}
+.os-app .os-inspector{max-width:100vw}
+.os-app .os-table-wrap{max-width:100%;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.os-app .os-table-wrap table{width:max(100%,680px)}
+.os-app .os-canvas-wrap,.os-app .os-canvas-stage{max-width:100%;overscroll-behavior:contain}
+.os-app .os-page-title{font-size:clamp(19px,2.4vw,22px);overflow-wrap:anywhere}
+.os-app .os-page-sub,.os-app .os-field,.os-app .os-flow-item{overflow-wrap:anywhere}
+.os-app .os-input,.os-app .os-select,.os-app .os-textarea{max-width:100%}
+.os-app .os-rte-area{overflow-wrap:anywhere}
+.os-app .os-steps-progress{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.os-app .os-steps-progress .sp{min-width:130px;white-space:nowrap}
+
+@media(max-width:430px){
+  .os-app{--os-topbar-h:56px;--os-inspector-w:100vw}
+  .os-app .os-content{padding:14px 12px 44px}
+  .os-app .os-topbar{padding-inline:9px;gap:6px}
+  .os-app .os-crumb{max-width:38vw}
+  .os-app .os-search{min-width:44px;width:44px;justify-content:center;padding:0}
+  .os-app .os-user-chip{min-width:44px;justify-content:center}
+  .os-app .os-page-head{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:12px;margin-bottom:14px}
+  .os-app .os-page-actions{margin-left:0;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .os-app .os-page-actions>.os-btn,.os-app .os-page-actions>.os-select{width:100%;max-width:none!important;min-width:0}
+  .os-app .os-page-actions>.os-save-state{grid-column:1/-1}
+  .os-app .os-toolbar{align-items:stretch;gap:8px}
+  .os-app .os-toolbar>.os-input,.os-app .os-toolbar>.os-select,.os-app .os-toolbar>.os-btn{width:100%!important;max-width:none!important}
+  .os-app .os-card{padding:12px;border-radius:11px}
+  .os-app .os-hero{padding:18px 16px;border-radius:18px}
+  .os-app .os-hero h1{font-size:clamp(21px,7vw,26px)}
+  .os-app .os-hero-actions{width:100%}
+  .os-app .os-hero-actions>.os-btn{flex:1 1 140px}
+  .os-app .os-row{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+  .os-app .os-row>.os-field{min-width:0;width:100%}
+  .os-app .os-modal-bg{padding:6px;align-items:flex-end}
+  .os-app .os-modal,.os-app .os-modal.wide{width:100%;max-height:calc(100dvh - 12px);border-radius:16px 16px 10px 10px}
+  .os-app .os-modal-head,.os-app .os-modal-body,.os-app .os-modal-foot{padding-inline:14px}
+  .os-app .os-modal-foot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .os-app .os-modal-foot>.os-btn{width:100%;white-space:normal}
+  .os-app .os-inspector{inset:0!important;width:100%!important;max-width:100%!important}
+  .os-app .os-inspector-head,.os-app .os-inspector-body,.os-app .os-inspector-foot{padding-inline:14px}
+  .os-app .os-inspector-foot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .os-app .os-inspector-foot>.os-btn{width:100%;white-space:normal}
+  .os-app .os-sidebar{width:min(264px,calc(100vw - 32px));max-width:calc(100vw - 32px)}
+  .os-app .os-table-wrap table{width:max(100%,620px)}
+  .os-app .os-health{align-items:flex-start}
+  .os-app .os-health-ringwrap{width:96px}
+  .os-app .os-health-legend{min-width:0;width:100%}
+  .os-app .os-bar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px}
+  .os-app .os-bar-row .lbl{width:auto;min-width:0;overflow-wrap:anywhere}
+  .os-app .os-bar-row .val{width:auto}
+  .os-app .os-rte-toolbar{gap:6px}
+  .os-app .os-rte-toolbar .os-btn{min-height:40px;flex:1 1 auto}
+}
+
+@media(max-width:360px){
+  .os-app .os-content{padding-inline:10px}
+  .os-app .os-topbar{padding-inline:7px}
+  .os-app .os-crumb{max-width:34vw}
+  .os-app .os-page-actions{grid-template-columns:minmax(0,1fr)}
+  .os-app .os-page-actions>.os-save-state{grid-column:auto}
+  .os-app .os-modal-foot,.os-app .os-inspector-foot{grid-template-columns:minmax(0,1fr)}
+  .os-app .os-card{padding:11px}
+  .os-app .os-table-wrap table{width:max(100%,580px)}
+}
+
+@media(max-width:320px){
+  .os-app .os-content{padding-inline:8px}
+  .os-app .os-sidebar{width:calc(100vw - 20px);max-width:calc(100vw - 20px)}
+  .os-app .os-page-title{font-size:19px}
+  .os-app .os-btn{white-space:normal}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .os-app *, .os-app *::before, .os-app *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
