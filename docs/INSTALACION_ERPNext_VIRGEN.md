@@ -148,6 +148,8 @@ Esta tabla es la parte que evita repetir problemas: cada renglón salió de un i
 | **4.8** La Web Page `/os` sale vacía | `content_type = HTML` usa el campo **`main_section_html`** (no `main_section`) | Dejar que `deploy` publique la página desde `portal/pages/os-web-page.html` | `/os` responde 200 y muestra el portal |
 | **4.9** Ruido rojo en consola (`openfpcdn.io/fingerprintjs`, `initHighlighting deprecated`) | Snippet de tracking de visitas del sitio y librería de resaltado; **no** son del portal | No perseguirlo durante una instalación; el bloqueador de anuncios del navegador lo provoca | Sobrevive a `Ctrl+Shift+R`; las funciones del portal operan igual |
 | **4.10** El portal pide iniciar sesión | El portal opera sobre la **sesión same-origin** de ERPNext; nunca guarda tokens en el navegador | Iniciar sesión en el sitio (mismo dominio) antes de usar `/os` | `/login?redirect-to=/os` deja entrar y `/os` carga |
+| **4.11** Un elemento del organigrama no se puede quitar | Al reescribir una página (1.x → 2.0) se perdieron acciones que sí existían (borrar nodo/relación) | Al reemplazar una pantalla, **comparar las acciones con la versión anterior** y conservarlas; el Inspector debe ofrecer Eliminar/Desvincular | En `/os#/org`: inspector de nodo → **Eliminar**; acciones ▾ → **Desvincular del padre**; clic en la línea → **Desvincular** |
+| **4.12** “No tienes permiso” al eliminar | El borrado del organigrama requiere `OS Admin` o `System Manager` (`scripts/permissions.py`) | Asignar el rol necesario al usuario humano según su trabajo, no dar más de lo que necesita | El portal avisa del rol requerido en vez de fallar en silencio |
 
 ---
 
