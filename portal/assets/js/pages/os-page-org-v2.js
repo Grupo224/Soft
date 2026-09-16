@@ -405,6 +405,97 @@
       }).then(function (rel) { if (rel) relations.push(rel); computeAndRender(); return rel; });
     }
 
+    /** ¿El usuario actual puede eliminar en el organigrama? Sólo OS Admin / System Manager.
+     * Si el portal no conoce los roles, se intenta la acción y un 403 se explica al usuario. */
+    function canDeleteNodes() {
+      var roles = (OS.session && OS.session.roles) || [];
+      if (!roles.length) return true;
+      return OS.session.hasRole("OS Admin");
+    }
+
+    function deleteFailure(e) {
+      if (e && e.status === 403) {
+        ui.toast("Tu usuario no puede eliminar en el organigrama. Requiere el rol OS Admin (o System Manager).", "warn", 7000);
+        return;
+      }
+      ui.error(e);
+    }
+
+    /** Elimina el nodo (o un subárbol) sin dejar referencias colgando: borra sus
+     * relaciones, sus Role Cards y limpia los vínculos que apuntaban al nodo (KPIs,
+     * procesos, SOPs). Nunca borra documentos ERPNext (Employee, Company, Department). */
+    function performNodeDelete(ids) {
+      var set = {};
+      ids.forEach(function (id) { set[id] = true; });
+      var tasks = [];
+      relations.filter(function (r) { return set[r.from_node] || set[r.to_node]; }).forEach(function (r) {
+        tasks.push(api.remove("OS Org Relation", r.name));
+      });
+      roleCards.filter(function (c) { return set[c.org_node]; }).forEach(function (c) {
+        tasks.push(api.remove("OS Role Card", c.name));
+      });
+      kpis.filter(function (k) { return set[k.org_node]; }).forEach(function (k) {
+        tasks.push(api.update("OS KPI Definition", k.name, { org_node: "" }));
+      });
+      processes.forEach(function (p) {
+        var patch = {};
+        if (set[p.org_area]) patch.org_area = "";
+        if (set[p.responsible_node]) patch.responsible_node = "";
+        if (Object.keys(patch).length) tasks.push(api.update("OS Process", p.name, patch));
+      });
+      sops.filter(function (s) { return set[s.responsible_node]; }).forEach(function (s) {
+        tasks.push(api.update("OS SOP", s.name, { responsible_node: "" }));
+      });
+      // La limpieza de vínculos no debe impedir quitar el elemento: si algo falla, se avisa.
+      return Promise.all(tasks).catch(function (e) {
+        ui.toast("No se pudieron limpiar todos los vínculos: " + ((e && e.message) || ""), "warn", 6000);
+      }).then(function () {
+        return ids.reduce(function (chain, id) {
+          return chain.then(function () { return api.remove("OS Org Node", id); });
+        }, Promise.resolve());
+      });
+    }
+
+    function afterNodeDelete(ids) {
+      var set = {};
+      ids.forEach(function (id) { set[id] = true; });
+      nodes = nodes.filter(function (n) { return !set[n.name]; });
+      relations = relations.filter(function (r) { return !set[r.from_node] && !set[r.to_node]; });
+      roleCards = roleCards.filter(function (c) { return !set[c.org_node]; });
+      ui.inspector.markClean();
+      ui.inspector.close();
+      computeAndRender();
+      ui.toast(ids.length > 1 ? ids.length + " elementos eliminados" : "Elemento eliminado", "ok");
+    }
+
+    /** Flujo de borrado: si el nodo tiene elementos debajo, se decide explícitamente. */
+    function deleteNodeFlow(node) {
+      if (!canDeleteNodes()) {
+        ui.toast("Tu usuario no puede eliminar en el organigrama. Requiere el rol OS Admin (o System Manager).", "warn", 7000);
+        return;
+      }
+      var kids = subtreeIds(hier, node.name).filter(function (id) { return id !== node.name; });
+      var label = getDisplayTitle(node);
+      function run(ids) {
+        performNodeDelete(ids).then(function () { afterNodeDelete(ids); }).catch(function (e) { deleteFailure(e); computeAndRender(); });
+      }
+      if (!kids.length) {
+        ui.confirm('¿Eliminar "' + label + '" del organigrama? Se quitan sus relaciones y su ficha de rol; los documentos ERPNext (Employee, Company, Department) no se borran.', { danger: true, okLabel: "Eliminar" })
+          .then(function (ok) { if (ok) run([node.name]); });
+        return;
+      }
+      var names = kids.slice(0, 8).map(function (id) { return getDisplayTitle(hier.byId[id]) || id; });
+      var body = document.createElement("div");
+      body.innerHTML = '<p style="margin:0 0 10px">"' + U.escapeHtml(label) + '" tiene <b>' + kids.length + '</b> elemento(s) debajo: ' +
+        U.escapeHtml(names.join(", ")) + (kids.length > names.length ? "…" : "") + '</p>' +
+        '<div class="hint">Puedes arrastrar esos elementos a otro padre antes de eliminarlo, o quitarlo sólo a él (quedarán como elementos sin ubicación).</div>';
+      return ui.modal({ title: "Eliminar " + label, body: body, actions: [
+        { label: "Cancelar", cls: "ghost", onClick: function () { return true; } },
+        { label: "Eliminar sólo este", cls: "ghost", onClick: function () { run([node.name]); return true; } },
+        { label: "Eliminar con todo lo que cuelga (" + (kids.length + 1) + ")", cls: "danger", onClick: function () { run([node.name].concat(kids)); return true; } }
+      ] });
+    }
+
     function showWarnings(list) {
       var body = document.createElement("div");
       body.innerHTML = list.length ? list.map(function (w) {
@@ -563,8 +654,20 @@
       body.innerHTML = ui.fieldRow("Desde", '<div class="os-tag">' + U.escapeHtml(getDisplayTitle(from) || rel.from_node) + '</div>') +
         ui.fieldRow("Hacia", '<div class="os-tag">' + U.escapeHtml(getDisplayTitle(to) || rel.to_node) + '</div>') +
         ui.fieldRow("Tipo", '<div>' + U.escapeHtml(REL_LABEL[rel.relation_type] || rel.relation_type) + '</div>') +
-        '<div class="hint">Las relaciones técnicas se administran desde Avanzado. La jerarquía principal también puede cambiarse arrastrando una card.</div>';
-      ui.inspector.open({ title: "Relación", subtitle: REL_LABEL[rel.relation_type] || rel.relation_type, body: body, foot: document.createElement("div"), onClose: function () { if (engine) engine.clearSelection(); } });
+        '<div class="hint">Puedes desvincular esta relación aquí abajo. La jerarquía principal también puede cambiarse arrastrando una card.</div>';
+      var foot = document.createElement("div");
+      foot.innerHTML = '<button class="os-btn danger sm" id="orgv2-rel-del">Desvincular</button>';
+      ui.inspector.open({ title: "Relación", subtitle: REL_LABEL[rel.relation_type] || rel.relation_type, body: body, foot: foot, onClose: function () { if (engine) engine.clearSelection(); } });
+      foot.querySelector("#orgv2-rel-del").onclick = function () {
+        ui.confirm('¿Desvincular "' + (getDisplayTitle(from) || rel.from_node) + '" de "' + (getDisplayTitle(to) || rel.to_node) + '"? Los elementos se conservan; sólo se elimina la relación.', { danger: true, okLabel: "Desvincular" })
+          .then(function (ok) {
+            if (!ok) return;
+            api.remove("OS Org Relation", rel.name).then(function () {
+              var i = relations.indexOf(rel); if (i >= 0) relations.splice(i, 1);
+              ui.inspector.markClean(); ui.inspector.close(); computeAndRender(); ui.toast("Relación eliminada", "ok");
+            }).catch(function (e) { deleteFailure(e); });
+          });
+      };
     }
 
     function openInspector(node) {
@@ -583,6 +686,7 @@
       foot.innerHTML = '<span class="os-save-state" id="orgv2-save-state"></span><div class="os-orgv2-foot-actions">' +
         '<button class="os-btn ghost sm" id="orgv2-actions">Acciones ▾</button>' +
         '<a class="os-btn ghost sm" href="/app/os-org-node/' + encodeURIComponent(node.name) + '" target="_blank">Ficha completa ↗</a>' +
+        '<button class="os-btn danger sm" id="orgv2-del">Eliminar</button>' +
         '<button class="os-btn ghost sm" id="orgv2-cancel">Cancelar</button>' +
         '<button class="os-btn primary sm" id="orgv2-save">Guardar</button></div>';
 
@@ -610,6 +714,7 @@
       });
       foot.querySelector("#orgv2-cancel").onclick = function () { ui.inspector.closeGuarded(); };
       foot.querySelector("#orgv2-actions").onclick = function () { openContextActions(node); };
+      foot.querySelector("#orgv2-del").onclick = function () { deleteNodeFlow(node); };
       foot.querySelector("#orgv2-save").onclick = function () { saveInspector(node, body, foot); };
     }
 
@@ -809,8 +914,10 @@
         actions.push({ label: "＋ Agente IA", fn: function () { openCreateContextual(node, "Agent"); } });
       }
       if (node.node_type === "Employee" && hier.parentOf[node.name]) actions.push({ label: "Quitar asignación", fn: function () { replaceHierarchy(node.name, null).then(function () { ui.inspector.close(); ui.toast("Asignación eliminada", "ok"); }); } });
+      if (hier.parentOf[node.name] && node.node_type !== "Employee") actions.push({ label: "Desvincular del padre", fn: function () { replaceHierarchy(node.name, null).then(function () { ui.inspector.close(); ui.toast("Elemento desvinculado", "ok"); }); } });
+      actions.push({ label: "Eliminar elemento", danger: true, fn: function () { deleteNodeFlow(node); } });
       var body = document.createElement("div");
-      body.innerHTML = actions.length ? '<div class="os-orgv2-action-grid">' + actions.map(function (a, i) { return '<button class="os-btn" data-a="' + i + '">' + U.escapeHtml(a.label) + '</button>'; }).join('') + '</div>' : ui.empty("—", "Sin acciones contextuales");
+      body.innerHTML = actions.length ? '<div class="os-orgv2-action-grid">' + actions.map(function (a, i) { return '<button class="os-btn' + (a.danger ? " danger" : "") + '" data-a="' + i + '">' + U.escapeHtml(a.label) + '</button>'; }).join('') + '</div>' : ui.empty("—", "Sin acciones contextuales");
       var m = ui.modal({ title: "Acciones · " + getDisplayTitle(node), body: body, actions: [{ label: "Cerrar", cls: "ghost", onClick: function () { return true; } }] });
       body.querySelectorAll("[data-a]").forEach(function (b) { b.onclick = function () { var a = actions[Number(b.dataset.a)]; m.close(); if (a) a.fn(); }; });
     }
